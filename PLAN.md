@@ -1,4 +1,4 @@
-# MyClip — Implementation Plan (v24)
+# MyClip — Implementation Plan (v25)
 
 Lightweight, open-source, 100%-local clipboard manager for macOS. **Parity contract: Maccy 2.7.1 @ `eb03eba` — `PARITY.md` is the authoritative inventory.** Stack: Go + [MyGo](https://mygo.egoist.dev) v0.5.5 (pure Go, no cgo, native GPU UI, tray, global shortcuts, clipboard APIs, SQLite plugin, updater).
 
