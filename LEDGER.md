@@ -108,6 +108,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
 13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width. (NOTE: numeric #12 intentionally unused. Items 1–5 = PRE-M1 (a)/(b) blocking; #13 = PRE-M1 (c'); the rest gate later milestones.)
+14. D14 Clipboard.sync() not ported — approve (non-blocking; parity-inventory accuracy).
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 

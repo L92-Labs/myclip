@@ -46,7 +46,7 @@
 | footer | `showFooter` true | count/clear/quit | M2/M4 |
 | `windowSize`/`windowPosition` | 450×800, persisted | persisted | M2 |
 | `clearOnQuit` | false | quit hook (`applicationWillTerminate` → full `History.clear()`: unpinned items wiped, popup closed) | M4 |
-| `clearSystemClipboard` | false | guards `NSPasteboard.clearContents()` inside `History.clear()` + `clearAll()` (Maccy Clipboard.swift:141-144; called at History.swift:242/264; quit path inherits when both prefs on) | M2 |
+| `clearSystemClipboard` | false | guards `NSPasteboard.clearContents()` inside `History.clear()` + `clearAll()` (Maccy Clipboard.swift:141-146 (`clear()` body; `clearContents()` at 146); called at Observables/History.swift:242/264; quit path inherits when both prefs on) | M2 |
 | launch at login (General pane, SMAppService) | off | MyGo login-item API | M4 |
 
 ## 2b. Keyboard map (port from 2.7.1 key-handling source; M1 spike validates on real popup window)
@@ -108,4 +108,4 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
 | D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation — user sign-off pending (non-blocking) |
 | D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user code-injection residual (inheriting MyClip's TCC grants); bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a 'downgrade'); post-load mapped-image cdhash tripwire is best-effort and contingent on the PRE-M1 (c') attestation spike | contingent — user sign-off if triggered |
-| D14 | `Clipboard.sync()` copyInMaccy activate/hide quirk (Chrome Remote Desktop/NetBeans) not ported | recorded deviation |
+| D14 | `Clipboard.sync()` activate/hide quirk (Chrome Remote Desktop/NetBeans) not ported — call sites: `copyInMaccy` (Clipboard.swift:70) AND general `copy()` (Clipboard.swift:104) | recorded deviation — **user sign-off pending (non-blocking)** |
