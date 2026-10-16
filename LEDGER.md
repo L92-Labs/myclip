@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -503,6 +503,30 @@ All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof proc
 | T13 packet identity (meta) | — | R21 packet generated mechanically from headers (same script as R20) | /tmp packet |
 
 All 19 labeled findings adopted; no rejections.
+
+## Round 21 → v22 (14 themes + 1 meta from 20 labeled findings: Cursor 5 + Opus 11 + GLM 4)
+
+All three: FINDINGS on frozen v21 @ a523a0a. Headline: Opus falsified v20's OnChange rationale from source — `update()` snapshots `u.changes` and skips callbacks when state is unchanged (updater.go:325-336), so ⑥'s own writes never reach a ⑥b-registered callback; the "fire for ⑥'s own writes" claim and its vacuous 12b leg are gone. Cursor's findings were entirely propagation/precision class on v20's additions.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 OnChange snapshot rationale false + vacuous 12b leg | Opus onchange-6b-snapshot-misses-6-writes (med) | adopted — synchronous post-⑥ assert (AutomaticDownloads==false && pref==false); mirror tested via injected window-response seam (updater.go:514-519) with callback completion exposed | `fire for ⑥'s own writes` = 0 |
+| T2 12b sub-steps + pref assert not in SSOT | Cursor T4-6b-gate-ssot-omission (med); Opus r20-t4-leg-not-in-gate-ssot (low-med) | adopted — 12b names ②b/③b/⑥b (+③c D13); myclipDownloadsPref assert added | `incl. ②b, ③b, ⑥b` = 1 |
+| T3 settings fail-open on ignore chain | Opus settings-read-failure-fails-open-on-ignore-chain (med) | adopted — read error ⇒ ignoreEvents=true + capture disabled + visible error; corrupt settings.db ⇒ zero rows test | `corrupt settings.db` = 1 |
+| T4 gate9a injection vector unnamed (vacuous) | Opus gate9a-injection-vector-unnamed-vacuous (med) | adopted — named vector (swapped Contents/Resources dylib, unsigned/foreign-signed) + LV-rejection assert + LV-disabled negative control | `NAMED VECTOR` = 1 |
+| T5 stale socket after kill-9 | Opus stale-socket-after-kill9 (low-med); GLM stale-socket-unlink-before-bind-unspecified (low-med) | adopted — flock-held lstat(unlink-socket owned by uid) → unlink → bind; #17 kill-9 leg extended with socket rebind | `else refuse) → unlink → bind` = 1 |
+| T6 CI grep scope vs fixtures + garbled allowlist | Opus ci-grep-scope-vs-fixtures + garbled-allowlist (low) | adopted — grep scope = non-test .go excluding internal/lint/testdata/; duplicate SetAutomaticDownloads removed; native.go re-export note reattached | dup lexeme = 0 |
+| T7 D7/D10 sign-off after implementation | Opus deviation-signoff-after-implementation (low-med) | adopted — D7 before M1; D10 before M2 (decision list) | `BEFORE M1 implementation` = 1 |
+| T8 tagged-feed redirect host misclassified | Opus tagged-feed-manifest-redirect-host-misclassified (low) | adopted — check-leg set = feed host + api.github.com + manifest redirect hosts (github.go:18,44-64); 12a-ii = manifest archive URLs | text present |
+| T9 packaged launch method unspecified | Opus packaged-env/HOME-launch-method-unspecified (low) | adopted — exec Contents/MacOS/myclip directly; in-process env + IsPackaged asserts | `Contents/MacOS/myclip` = 1 |
+| T10 ledger supersession markers missing (R16-T2/T11, R17-T6/T7) | Opus ledger-supersession-markers-missing (low) | adopted — R16-T2 (part-superseded R19/R20), R16-T11 (file mode 0600), R17-T6/T7 (covered by R18-T7 rewrite + §3.7 never-bound text); byte-verified | markers present |
+| T11 decision #12 gap undocumented + R19-T12 anchor false | Cursor T10-decision-gap-undocumented (med); GLM r20-t10-disposition-unlanded (med) | adopted — intentional-gap note under decision #13; R19-T12 anchor corrected with false-proof confession | `intentionally unused` = 1 |
+| T12 PLAN R19 theme count 15→14 | Cursor T11-r19-count-PLAN-residue (med); GLM plan-ledger-r19-theme-count-divergence (low) | adopted — both PLAN sites = 14 themes + 1 meta | counts match LEDGER |
+| T13 proof cells garbled / self-quote matches | Opus r20-proofs-not-as-claimed (low); GLM r20-proof-cells-not-verbatim (low-med) | adopted — proofs re-recorded as executed command + count; self-quotes excluded from counts (proof strings never appear in the proving row's own text) | this table's proofs ran post-edit |
+| T14 packet identity (meta) | — | R22 packet generated mechanically from headers | /tmp packet |
+
+All 20 labeled findings adopted; no rejections.
+
 
 
 
