@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v7), R7 (v8), R8 (v9), R9 (v10), R10 (v11).
+Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v7), R7 (v8), R8 (v9), R9 (v10), R10 (v11), R11 (v12).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -196,7 +196,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R
 | Opus | seccode-peer-identity-by-pid-race | low | adopted — LOCAL_PEERTOKEN audit token + exec-after-connect test | PLAN §3.7 |
 | GLM | (no verdict — run incomplete ×2, infra SIGILL) | — | **BLOCKED** — retry R7 | — |
 
-Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 20 (8/6/6, itemized below); R9 = 9 (5/6/4). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
+Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 18 labeled (Cursor 8 + Opus 6 + GLM 4; verdict counts 8/6/6 incl. 2 GLM meta rows; itemized below); R9 = 8 themes (14 labeled = Cursor 4 + Opus 6 + GLM 4); R10 = 6 themes (17 labeled = Cursor 5 + Opus 7 + GLM 5). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
 
 ## Round 7 → v8 (18 findings: Cursor 6 + Opus 7 + GLM 5)
 
@@ -247,12 +247,12 @@ Root cause recorded: several R7 disposition edits silently failed to match in th
 | GLM | ledger-r8-unitemized | high | adopted — this table + index extended | LEDGER |
 | GLM | m1-crossref-claim-unimplemented | low | adopted — checklist = gate SSOT; crossref claim dropped (completed R10) | PLAN M1 |
 | GLM | ledger-rounds-index-stale | low | adopted — index through R8 | LEDGER header |
-| GLM | (meta row — not a finding: GLM R9 emitted 4 labeled findings, 2 overlapping themes above) | ledger-check | — | — |
+| GLM | (meta row — not a finding: GLM R8 emitted 4 labeled findings, 2 overlapping themes above) | ledger-check | — | — |
 | (meta row — not a finding) | R8 verdict counts: Cursor 8 + Opus 6 + GLM 6 reported; itemized GLM labeled findings = 4 (F1–F4) + 2 meta ⇒ **R8 = 18 labeled findings** | ledger-check | PLAN/headers use 18 | LEDGER |
 
-## Round 9 → v10 (9 themes from 15 labeled findings: Cursor 5 + Opus 6 + GLM 4)
+## Round 9 → v10 (8 themes from 14 labeled findings: Cursor 4 + Opus 6 + GLM 4)
 
-All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); M1 #9/#12 N/A-branch conditionality (Cursor); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
+All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
 
 ## Round 9 → v10 — itemized (15 labeled findings = 9 themes: Cursor 5 + Opus 6 + GLM 4)
 
@@ -260,21 +260,20 @@ All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); M1 #9/#12 
 |---|---|---|---|---|---|
 | Cursor | setpath-tilde-literal-skips-mkdir | high | T1 SetPath recipe | adopted — UserHomeDir/Join + MkdirAll/fchmod + gate #11 asserts | PLAN §3.6 |
 | Opus | F1 setpath-tilde-literal | high | T1 | adopted (dup) | PLAN §3.6 |
-| Cursor | m1-gate-9-na-overbroad | high | T2 gate #9 split | adopted — 9a unconditional / 9b conditional | PLAN M1 |
-| Opus | m1-gate-9-waiver-overbroad | med | T2 | adopted (dup) | PLAN M1 |
-| GLM | m1-gate-na-branch-overbroad-for-item-9 | medium | T2 | adopted (dup) | PLAN M1 |
 | Cursor | n1-nettop-split-vs-§3.6-vacuous-10s | med | T3 stale hedge | adopted — hedge removed | PLAN §3.6 |
 | Cursor | parity-version-identity-still-v7 | med | T4 stamps | adopted — PARITY (v9) | PARITY header |
 | GLM | parity-version-stamp-v7 | high | T4 | adopted (dup) | PARITY header |
 | Opus | F6 doc-version-identity-regressed | low | T4 | adopted (dup) | PARITY header |
 | Cursor | r8-ledger-unitemized | med | T5 ledger itemization | adopted — R8/R9 tables + index + count rule | LEDGER |
-| Opus | F4 ledger-r9-not-itemized | med | T5 | adopted (dup) | LEDGER |
+| Opus | F4 ledger-r8-not-itemized | med | T5 | adopted (dup) | LEDGER |
 | GLM | ledger-r8-unitemized | high | T5 | adopted (dup) | LEDGER |
 | GLM | ledger-rounds-index-stale | low | T5 | adopted — index through R10 (completed v11) | LEDGER header |
 | Opus | F2 n6-union-not-propagated-to-shim | med | T6 shim spec | adopted — §3.1 union | PLAN §3.1 |
 | Opus | F3 updater-constructor-wrong-frontend-and-grep-hole | med | T7 native updater | adopted — native.New + extended grep | PLAN N1 |
 | Opus | F5 hold-cycle-text-spliced-and-misanchored | low-med | T8 splice repair | adopted — block rewritten, literal grep | PLAN §3.7 |
 | GLM | m1-crossref-claim-unimplemented | low | T9 SSOT wording | adopted — checklist = gate SSOT | PLAN M1 |
+
+Gate-9 rows (m1-gate-9-na-overbroad / m1-gate-9-waiver-overbroad / m1-gate-na-branch-overbroad-for-item-9) were initially itemized here in error — raw-output grep of all three R10 reviewer files (cursor-plan-v10 / claude-plan-v10 / opencode-plan-v10) attributes them to R10 T1; rows moved out, R9 = 14 labeled (4/6/4) = 8 themes. Opus F4 relabeled to its raw-output label (`ledger-r8-not-itemized`).
 
 ## Round 10 → v11 — itemized (17 labeled findings = 6 themes: Cursor 5 + Opus 7 + GLM 5)
 
@@ -286,3 +285,27 @@ All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); M1 #9/#12 
 | T4 socket path recipe (tilde + run/ mkdir) | Cursor socket-path-tilde-and-run-mkdir-undercorrected (med) | adopted — Join(dataRoot,"run") + MkdirAll | PLAN §3.7 |
 | T5 ledger bookkeeping | Cursor ledger-count-and-index-still-diverged (low-med); Opus ledger-r9-not-itemized (med); Opus ledger-r8-itemization-incomplete + round-mislabels (low-med); Opus ledger-rounds-index-stale regression (low); Opus r3-count-self-contradiction (low); GLM r3-revision-count-stale-in-plan-header (low); GLM r9-count-arithmetic-does-not-sum (low); GLM ledger-rounds-index-still-stops-at-r5 (low); GLM r9-ledger-unitemized (low) | adopted — R3=19 everywhere; R9 itemized (15→9); R8 meta rows relabeled (18 labeled); index through R10 | LEDGER, PLAN headers |
 | T6 updater init sequence + nettop host | Opus updater-init-sequence-underspecified (low-med); Opus nettop-pref-on-host-set-wrong (low-med) | adopted — pinned 8-step main() order + M1 test; feed-host-pinned egress | PLAN N1, §3.6 |
+
+## Round 11 → v12 (13 themes + 1 meta from 20 labeled findings: Cursor 4 + Opus 10 + GLM 6)
+
+Context: first R11 launch lost Cursor (0B) + GLM (killed mid-stream) to a session interruption — both BLOCKED, relaunched fresh on the same frozen input (8b5e7c8). Opus completed in the first launch. All three verdicts: FINDINGS.
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 N1 pref=on leg vacuous + host set wrong + AutomaticDownloads egress | Opus F1 n1-nettop-pref-on-leg-vacuous-and-host-set-wrong (med); Cursor acceptance-n1-m1-vs-gate12-vacuous-na (high); Cursor n1-pref-on-egress-omits-update-asset-hosts (med) | adopted — enumerated allowed-host set (test feed w/ signed manifest, asserted ≥1 connection + LastCheck; GitHub multi-host verified in internal/update/github.go); AutomaticDownloads pinned false on nettop leg; acceptance mirrors waiver branch (never vacuous) | PLAN N1, acceptance |
+| T2 nettop pref=off proof lost when #12 waived | Opus F2 m1-n1-proof-lost-when-item-12-waived (med) | adopted — new unconditional gate item 16 (pref=off zero-outbound + no-download); only pref=on leg waivable | PLAN M1 |
+| T3 LV-loss branch contradicts 9a/#11 + probe ordering | Opus F3 lv-loss-branch-contradicts-9a-and-#11 (med) | adopted — LV-loss no longer free (voids 9a injection check + #11; requires SHA-256 dylib pin + explicit deviation); LV probe moved PRE-M1 | PLAN §3.6, PRE-M1(c) |
+| T4 N6 TOCTOU between union and read | Opus F4 n6-toctou-type-enum-vs-data-read (med) | adopted — changeCount re-check protocol + `concealed-mid-read` test | PLAN N6, M1 #5 |
+| T5 SSOT checklist omits promised tests | Opus F5 m1-checklist-ssot-omits-tests-promised-in-§3 (low-med) | adopted — own-write matrix tests in #2; main()-order test in #12; grep gates in CI line | PLAN M1 |
+| T6 updater assert channel + opt-in mechanism | Opus F6 packaged-updater-assert-has-no-readout (low); GLM m1-updater-optin-mechanism-undefined (low-med) | adopted — assert on persisted `<dataRoot>/updater.json`; opt-in via settings-store API test seam | PLAN M1 #12 |
+| T7 clearSystemClipboard misbound to quit only | Opus F7 clearSystemClipboard-misbound (low-med) | adopted — verified: guards pasteboard-clear inside History.clear()/clearAll() (Clipboard.swift:141-144; History.swift:242/264); quit hook runs full History.clear() when clearOnQuit; PARITY row split (M2/M4) | PARITY §1, PLAN M2 |
+| T8 forgeable own-write marker | Opus F8 own-write-marker-forgeable-bypass-unspecified (low) | adopted — marker gates nothing (full ignore chain + N6 before merge); `forged-marker-concealed` test | PLAN §3.2 |
+| T9 ledger counts still diverge (R8=20 residues; R9 arithmetic) | Opus F9 ledger-counts-still-diverge (low); Cursor r10-t5-r8-count-disposition-incomplete (med); GLM ledger-r9-itemized-arithmetic-broken (low-med); GLM plan-r8-count-still-diverges (low) | adopted — R8=18 everywhere; R9 recounted from raw outputs: gate-9 trio → R10 (grep of all three R10 files), Opus F4 relabeled `ledger-r8-not-itemized`; R9 = 14 labeled (4/6/4) = 8 themes; GLM's "reclassify 2 overflow rows" alternative rejected — rows proven R10's by raw-output labels | PLAN L7/L63, LEDGER |
+| T10 review packet template stale | Opus F10 packet-template-stale (low, meta) | adopted — packet regenerated from LEDGER for R12 | /tmp packet |
+| T11 N6 "first item only" rationale false; union framing | Cursor n6-first-item-only-rationale-contradicts-maccy-241 (med) | adopted — verified Clipboard.swift:173-176 + #241: `pasteboard.types` = superset incl. non-item types; rationale rewritten; union kept as ≥Maccy hardening (recorded, not parity) | PLAN N6/§3.1, PARITY §1 |
+| T12 ignored-types default unverified | GLM ignored-types-default-unverified (med) | adopted — default verified = exactly 5 entries, no `com.apple.is-remote-clipboard` (Defaults.Keys+Names.swift:39-46); assert added to gate #15 + PARITY row; §3.3 clause evidence-backed | PLAN §3.3, M1 #15, PARITY §1 |
+| T13 step① fchmod drift | GLM n1-step1-fchmod-divergence (low) | adopted — ① = MkdirAll(0700) + fchmod 0700 if pre-existing | PLAN N1 |
+| T14 grep third clause non-greppable | GLM n1-grep-third-clause-nongreppable (low) | adopted — `updater.New(` banned outright; `native.New(` clause via statement-level slurped CI check | PLAN N1 |
+
+All 20 labeled findings adopted; no rejections this round. Packet template (T10) was an implementer artifact, corrected for R12.
+
