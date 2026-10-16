@@ -100,14 +100,14 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 4. D6 size caps / DB budget — approve or drop.
 
 **Before M3/M5:**
-5. D7 poll floor 100ms — approve.
+5. D7 poll floor 100ms — approve (BEFORE M1 implementation — the poll loop ships at M1).
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
-8. D10 copy sounds via MyGo audio — approve.
+8. D10 copy sounds via MyGo audio — approve (BEFORE M2 — sounds ship at M2).
 9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
-13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width.
+13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width. (NOTE: numeric #12 intentionally unused — PRE-M1 blocking decisions are lettered (a)/(b)/(c)/(c'); this numeric list covers non-PRE-M1 items.)
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -282,7 +282,7 @@ Gate-9 rows (m1-gate-9-na-overbroad / m1-gate-9-waiver-overbroad / m1-gate-na-br
 
 | Theme | Findings | Disposition | Anchor |
 |---|---|---|---|
-| T1 gate #9 split 9a/9b | Cursor m1-gate-9-na-overbroad (high); Opus m1-gate-9-waiver-overbroad (med); GLM m1-gate-na-branch-overbroad-for-item-9 (medium) | adopted — 9a unconditional, 9b+12 conditional | PLAN M1 |
+| T1 gate #9 split 9a/9b | Cursor m1-gate-9-na-overbroad (high); Opus m1-gate-9-waiver-overbroad (med); GLM m1-gate-na-branch-overbroad-for-item-9 (medium) | adopted — 9a unconditional, 9b+12 conditional (**superseded in part by R19-T5/R20-T5**: item 12 since split into 12a-i/12a-ii/12b) | PLAN M1 |
 | T2 acceptance N1 split mirror | Cursor acceptance-n1-ignores-opt-in-split (med) | adopted — mirrored | PLAN acceptance |
 | T3 acceptance CI branches on runner decision | Cursor acceptance-ci-contradicts-no-ci-mode (med) | adopted | PLAN acceptance |
 | T4 socket path recipe (tilde + run/ mkdir) | Cursor socket-path-tilde-and-run-mkdir-undercorrected (med) | adopted — Join(dataRoot,"run") + MkdirAll | PLAN §3.7 |
@@ -406,7 +406,7 @@ All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propaga
 | T8 sidecar pre-create WAL drift | Opus sidecar-precreate-forces-wal-drift (low-med) | adopted — ③b pre-creates main DB only; sidecars fchmod-or-refuse; #3 asserts journal_mode every launch + sidecar modes after first write | PLAN N1 ③b, M1 #3 |
 | T9 single-instance lock absent | Opus single-instance-unspecified (low) | adopted — ②b `RequestSingleInstanceLock` before any poller/copy/socket work; new gate item 17 (second launch ⇒ exit) (**superseded by R17-T6 + R18-T7**: call removed entirely — fail-closed flock + CI ban; this row's design is void) | PLAN N1, M1 #17 |
 | T10 AST true-ident shadowable | Opus ast-true-ident-shadowable (low) | adopted — constant-true via `types.Info` (name comparison shadowable) | PLAN N1 |
-| T11 LV-loss copy destination unpinned | GLM lv-loss-copy-destination-unpinned (low) | adopted — `<dataRoot>/lib/mygo-sqlite3.dylib` (0700; per-launch re-copy, no cache) | PLAN §3.6 |
+| T11 LV-loss copy destination unpinned | GLM lv-loss-copy-destination-unpinned (low) | adopted — `<dataRoot>/lib/mygo-sqlite3.dylib` (0700 dir; per-launch re-copy, no cache) (**file mode 0600 since R20-T1**) | PLAN §3.6 |
 | T12 settings-store sqlite escapes recipe | GLM settings-store-db-mode-gap (low) | adopted — every sqlite file MyClip opens gets the §3.4 recipe; #3 asserts all DB files under data root | PLAN §3.4, M1 #3 |
 | T13 R12 superseded markers missing | Opus ledger-r12-superseded-markers-missing (low) | adopted — R12 T5/T10 rows marked superseded-by-R14-T2 | LEDGER R12 |
 | T14 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R17 packet regenerated from PLAN/LEDGER headers | /tmp packet |
@@ -475,7 +475,7 @@ All three: FINDINGS on frozen v19 @ b262d80. Escalation driver: v19's PLAN edits
 | T9 PARITY word/pdf row | Cursor r18-t13-parity-word-pdf-omission (med) | adopted — 3-type subtraction + no-PDF-rep test in PARITY row | text present |
 | T10 R18 count arithmetic (5+8+6=19, not 20) + meta label | Opus ledger-r18-count-arithmetic (low); Cursor r18-meta-count-unlabeled (low); GLM ledger-r18-header-meta-label (low) | adopted — R18 = 19 labeled; header/meta labels aligned at all sites | counts consistent |
 | T11 R16 T9 supersession unmarked | Cursor r16-t9-ledger-supersession-unmarked (low) | adopted — marker added (superseded by R17-T6/R18-T7: RequestSingleInstanceLock removed) | marker present |
-| T12 (c') absent from decision list | Opus c-prime-spike-absent-from-decision-list (low) | adopted — decision #13 added (conditional) | `#13` present |
+| T12 (c') absent from decision list | Opus c-prime-spike-absent-from-decision-list (low) | adopted — (c') documented in the lettered PRE-M1 list + numeric decision #13 + intentional-gap note (R20 anchor `#13 present` was a false proof — it matched gate item 13) | PLAN PRE-M1, LEDGER decisions |
 | T13 lib/ dir + mode asserts in D13 branch | GLM d13-branch-copy-modes-unasserted (low) | adopted — ③c creates lib/ 0700 + copy 0600; #9a/#11 assert path+modes when D13 active | text present |
 | T14 PARITY stamp rule | Opus parity-version-stamp-stale (low) | adopted — header now carries the stamp rule ("last plan revision touching PARITY") | header text |
 | T15 packet identity (meta) | Opus r18-t15-packet-identity-not-landed (low, meta); Cursor packet notes | adopted — R20 packet generated mechanically from PLAN L7/L66 + LEDGER index + PARITY L1 (script, then diffed) | /tmp packet |
