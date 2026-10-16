@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -105,6 +105,8 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 7. D2 third language: ES ok?
 8. D10 copy sounds via MyGo audio — approve.
 9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
+10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
+11. D13 (contingent, LV-loss) entitlement delta + downgrade residual — approve if the §3.6 LV spike fails.
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -332,5 +334,41 @@ All three: FINDINGS on frozen v12 @ 484738e. T9-class residue (R9 counts in PLAN
 | T15 M5 notarization impossible in fallback | GLM m5-notarization-fallback-impossible (low) | adopted — notarization only in Developer ID branch; self-signed ⇒ N/A documented | PLAN M5 |
 
 All 22 labeled findings adopted; no rejections.
+
+## Round 13 → v14 (10 themes from 15 labeled findings: Cursor 4 + Opus 8 + GLM 3)
+
+All three: FINDINGS on frozen v13 @ 6407bff. NOTE: this table was omitted from the v14 commit — all three R14 reviewers caught the omission (5th recurrence of the itemize-every-round class); table reconstructed verbatim from the R13 dispositions applied in v14.
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 12a-split refs stale | Cursor gate12-waiver-refs-stale-after-12a-split (med); Opus t2-12a-split-not-propagated-to-item16-and-acceptance (med) | adopted — item 16 + acceptance now name 12a; grep gate: zero bare `item 12[^ab]` | PLAN M1 #16, acceptance |
+| T2 LV-loss vs 9a env leg + #16 path | Cursor lv-loss-9a-env-and-item16-uncarved (med); Opus lv-loss-branch-contradicts-9a-env-leg-and-item16-path (med) | adopted — 9a env leg + #16 gained LV-loss alternates (superseded by R14 T1 signature-validation rewrite) | PLAN M1 #9a/#16 |
+| T3 SHA-pin source unspecified | Opus lv-loss-sha-pin-source-unspecified (low-med) | adopted in v14 as compile-time constant — **superseded by R14 T2**: file-hash pin unsatisfiable after nested re-sign; now signature-based | PLAN §3.6 |
+| T4 pref=on LastCheck nondeterminism | Opus pref-on-leg-nondeterministic-lastcheck-interval (low-med) | adopted — fresh data root precondition + named Interval + failed-backoff note (updater.go:201, 269-270, 381-384) | PLAN N1 |
+| T5 allowlist-from-transcript circular | Cursor n1-allowlist-from-transcript-circular (low-med); Opus n1-allowlist-derived-from-observation-is-circular (med) | adopted — expected host set predeclared from feed form + manifest; transcript verifies only; foreign host = FAIL | PLAN N1 |
+| T6 CLI `set` verb not in §3.7 | Cursor hidden-prefs-cli-set-surface-undefined (low-med); GLM gate15-cli-set-verb-not-in-37-surface (low) | adopted — `set` added to §3.7 (superseded/extended by R14 T4 closed allowlist) | PLAN §3.7, M1 #15 |
+| T7 CLI peer DR unpinned / ad-hoc bypass | Opus cli-peer-dr-unpinned-adhoc-same-identifier (low-med) | adopted — pinned DR string in MyClip source + gate #10 ad-hoc negative test | PLAN §3.7 |
+| T8 main-order test mechanism unspecified | Opus main-order-test-mechanism-unspecified (low) | adopted — injectable step-recorder seam; no-sqlite-before-③b assert | PLAN N1, M1 #12b |
+| T9 stale residue (loop line v12, All-20, R3=25 markers, `;)` typo) | Opus ledger-and-plan-stale-residue-after-t8-lesson (low); GLM plan-review-loop-line-version-residue (low) | adopted — loop line made version-less; L226 → 18 labeled; L152/L173 superseded markers; typo fixed; grep gate clean | PLAN, LEDGER |
+| T10 PARITY `migrations` key uncovered | GLM parity-defaults-key-migrations-uncovered (low) | adopted — D12 row added (sign-off entry added R14) | PARITY §6, N2 |
+
+## Round 14 → v15 (9 themes from 14 labeled findings: Cursor 5 + Opus 5 + GLM 4)
+
+All three: FINDINGS on frozen v14 @ 41be63c. Dominant finding: the R13 ledger table itself was missing (implementer omission — the exact class R12's preamble warned about). Signature-validation rewrite (T2) replaces v14's file-hash pin, which `mygo build --force` nested re-signing makes unsatisfiable.
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 R13 ledger section missing | Cursor ledger-r13-unitemized (high); Opus ledger-r13-table-missing (med); GLM ledger-r13-unitemized (high) | adopted — R13 table added (above); index through R14 | LEDGER |
+| T2 LV-loss SHA-pin unsatisfiable after nested re-sign | Opus lv-loss-sha-pin-unsatisfiable-after-nested-resign (med-high) | adopted — `--force` re-sign (resources.go:707-797) rewrites dylib signature ⇒ file hash ≠ embedded constant; validation = `SecStaticCodeCheckValidity` on the private 0700 copy against the pinned requirement; PRE-M1 probe added (shasum vs constant, expected differ) | PLAN §3.6, M1 #9a/#16 |
+| T3 LV-loss item-11 entitlement contradiction + N1 branch conditioning | Cursor lv-loss-voids-gate11-without-alternate (med); GLM lv-loss-branch-item11-entitlement-contradiction (med) | adopted — item 11 (both sites) LV-loss alternate = exactly `cs.disable-library-validation` (D13); N1 Resources-only sentence branch-conditioned | PLAN §3.6, M1 #11, N1 |
+| T4 LV-loss load unplaced in main order | Cursor lv-loss-load-unplaced-in-main-order (med) | adopted — step ③c in the pinned order (verify→copy→validate→Setenv), asserted by the 12b seam when active | PLAN N1 |
+| T5 `set`-verb threat model undefined | Opus set-verb-threat-model-not-propagated (low-med); GLM cli-set-verb-allowlist-undefined-d1-scope-stale (med) | adopted — closed display-only allowlist; capture/ignore-chain prefs + size/clearOnQuit/updater/socket prefs excluded; own socket opt-in; D1/D5 rows + §3.7 semantics updated; gate #10 non-allowlisted-`set` reject | PLAN §3.7, PARITY D1/D5 |
+| T6 D12 outside N2 range + unsigned | Cursor n2-deviation-range-stale-vs-d12 (med); Opus d12-outside-n2-range-and-signoff (low); GLM n2-deviation-range-stale-d12 (med) | adopted — N2 → D1–D13; D12 sign-off entry (decision #10, non-blocking); D13 registered (decision #11) | PLAN N2, PARITY §6, LEDGER |
+| T7 gate 10 SSOT omits new negatives | Cursor gate10-ssot-omits-adhoc-dr-negative (low-med) | adopted — item 10 enumerates ad-hoc reject + pinned-DR assert + set-reject | PLAN M1 #10 |
+| T8 CI textual check bypassable | Opus ci-native-new-textual-check-bypassable (low) | adopted — `go/ast` analyzer (KeyValueExpr, true ident, direct `native.New` literal) + constructor unit test | PLAN N1 |
+| T9 (covered in T3/T4/T6) | — | — | — |
+
+All 14 labeled findings adopted; no rejections.
+
 
 
