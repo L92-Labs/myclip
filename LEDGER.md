@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4). Code-phase ledger entries appended below as PRs proceed. NOTE: R2 GLM `HOTKEY-SCOPE-UNVERIFIED` disposition ("all 4 ⇒ global") is **superseded by R3/R4**: only `popup` is global.
+Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). Code-phase ledger entries appended below as PRs proceed. NOTE: R2 GLM `HOTKEY-SCOPE-UNVERIFIED` disposition ("all 4 ⇒ global") is **superseded by R3/R4**: only `popup` is global.
 
 ## Round 1 → v2 (44 findings)
 
@@ -95,7 +95,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4). Code-phase
 
 **Blocking M1 start:**
 1. CI runner: fix L92-Labs Actions billing / self-hosted Mac runner / no-CI mode (local test transcripts as PR evidence).
-2. D1 automation CLI (default-off, code-signed peer) — approve.
+2. D1 automation CLI — default-off; **residual: once enabled, any same-user process can read/clear history (SecCode peer check = tamper tripwire, not confidentiality); destructive verbs keep in-app confirm even with --yes** — approve with that understanding.
 3. D5 no `defaults write` CLI (MyClip CLI replaces) — approve.
 4. D6 size caps / DB budget — approve or drop.
 
@@ -156,3 +156,25 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4). Code-phase
 | Opus | parity-§4-header-contradicts-scope-rows | low | adopted (same as §4 header) | PARITY §4 |
 | Opus | updater-n1-gate-partial | low-med | adopted — SetAutomaticChecks(false) every launch, plugin-window writes allowed, harness named | PLAN N1 |
 | Opus | n4-pass-criterion-not-binary | low-med | adopted — numeric gates vs same-host Maccy baseline | PLAN acceptance |
+
+## Round 5 → v6 (17 findings + 1 rejection)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | paste-stack-multiselect-omitted | high | **rejected with evidence** — `AppState.swift:11` `let multiSelectionEnabled = false` @ `eb03eba` ⇒ `startPasteStack` guard unreachable; PasteStack = disabled dead code in 2.7.1 (fetch-verified this session); noted as future feature if upstream enables | PLAN §3.3 |
+| Cursor | ignore-only-next-semantics-wrong | high | adopted — exact coupling ported + 3 tests | PLAN §3.3 |
+| Cursor | d1-parity-contradicts-plan-destructive-and-residual | high | adopted — D1 rewritten to match PLAN §3.7 | PARITY D1, LEDGER decisions |
+| Cursor | n1-updater-force-false-vs-owned-opt-in | med | adopted — SetAutomaticChecks(myclipPref) sequenced apply | PLAN N1 |
+| Cursor | cli-socket-m1-tests-without-m1-deliverable | med | adopted — minimal socket+CLI skeleton in M1 | PLAN §3.7, M1 |
+| GLM | parity-2b-missing-readme-documented-behaviors | med | adopted — 4 rows added | PARITY §2b |
+| GLM | capture-chain-is-remote-clipboard-union-ambiguous | med | adopted — user-setting only | PLAN §3.3 |
+| GLM | d1-signoff-summary-missing-residual | med | adopted | PARITY D1, LEDGER #2 |
+| GLM | sandbox-posture-and-container-path-undeclared | med | adopted — non-sandboxed declared, real paths, entitlements none | PLAN §3.6–3.7 |
+| GLM | ledger-r3-count-fix-introduces-new-mismatch | low | adopted — R3 = 25 (Cursor 9 + Opus 16) | LEDGER R3 |
+| GLM | n4-binary-size-gate-feasibility-unvalidated | low | adopted — measure-then-lock | PLAN acceptance |
+| Opus | resign-after-build-stales-dmg-notarize-update-archive | high | adopted — no post-sign; signingIdentity in mygo.json; extracted-artifact codesign gate | PLAN §3.6, M1/M5 |
+| Opus | updater-optin-reset-every-launch | med | adopted (same as pref-apply) | PLAN N1 |
+| Opus | n1-updater-spike-hedge-obsolete | low | adopted — hedge dropped, concrete pre-seed test | PLAN N1 |
+| Opus | parity-d1-contradicts-plan-on-yes-and-residual | med | adopted (same as D1 rewrite) | PARITY D1 |
+| Opus | own-write-marker-not-excluded-from-reps-and-equality | med | adopted — marker = metadata; 2 tests | PLAN §3.2 |
+| Opus | socket-path-undefined-for-nonsandboxed-app | low | adopted — pinned path + fchmod + sun_path check | PLAN §3.7 |

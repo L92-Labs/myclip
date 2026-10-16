@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v4)
+# MyClip ⇄ Maccy parity inventory (v5)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -75,6 +75,9 @@
 | delete | ⌥⌫ | **local** (same) | M2/M4 |
 | togglePreview | ⌃Space | **local** (same; global would collide with input-source switching) | M2/M4 |
 | hold-to-cycle popup (Observables/Popup.swift) | hold hotkey → `.cycle` highlight advance; modifier release → select | same; acceptance: hold-cycle + release-select | M2 |
+| per-item quick select | ⌘n / ⌥n (paste) / ⌥⇧n (paste plain), n=1..9 | same | M2 |
+| clear chords | ⌥⌘⌫ clear unpinned; ⇧⌥⌘⌫ clear all incl. pins (pins preserved on the first) | same; pin-preservation asserted in clear tests | M2 |
+| full text on hover | wait ~2s ⇒ tooltip/preview shows full text | preview panel per hover-delay row | M2 |
 
 M1 pre-task: re-verify each name's handler wiring at `eb03eba`. M2 acceptance: popup closed ⇒ ⌥P types π in TextEdit.
 
@@ -88,7 +91,7 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 
 | # | Deviation | Status |
 |---|---|---|
-| D1 | Automation via local CLI over unix socket, **disabled by default**; peer = code-signing check (audit token → SecCode → designated requirement), not just UID; `select` never pastes from CLI; destructive = in-app confirm, `--yes` only while enabled; used from Shortcuts "Run Shell Script"; no native App Intents | **user sign-off pending — blocks M1** |
+| D1 | Automation via local CLI over unix socket, **disabled by default** (listener not bound); peer = code-signing check (SecCode designated requirement) — **tamper tripwire, NOT a confidentiality boundary**: any same-user process can spawn the signed CLI, so once enabled, any same-user process can read/clear history (DB is same-UID-readable anyway). `get` + destructive verbs have their own opt-ins; `clear`/`delete` require in-app confirmation **even with `--yes`**; `select` never pastes from CLI; residual surfaced in settings UI + this sign-off; Shortcuts via "Run Shell Script"; no native App Intents | **user sign-off pending — blocks M1 (sign off with residual in mind)** |
 | D2 | Translations: EN, FR, ES (third changeable until M4 start) vs Maccy full set | user directive |
 | D3 | Updater: `DisableAutomaticChecks: true` + opt-in menu item vs Sparkle | adopted (N1) |
 | D4 | `lastReviewRequestedAt`, `numberOfUsages` skipped | adopted (anti-features) |
