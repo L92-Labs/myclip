@@ -202,7 +202,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 
 Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings.
 
-Segment rule (settled R29): a round's `→(R_N …)` chain segment is appended only in the commit where its dispositions land — never pre-claimed. R29/R30 exception (recorded R31): both were DOC-ONLY fix rounds within stamped v28 — no chain segments exist for them (grep `R29` in PLAN = 0 was the true state; the earlier `segment landed in 9b296c8` claim was false). Same-stamp doc-only segments for R29/R30 appended at L7/L66; landing commits: 65ed3fd/1e09824 (cites), bfa9007 (D14 decision), 9b296c8 (order/pointer). Round N reviews the current stamped revision; its fixes either land in that stamped revision (doc-only) or create v_(N+1), and the ledger header records where they actually landed. Proof counts exclude the proving row's own text. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 18 labeled (Cursor 8 + Opus 6 + GLM 4; verdict counts 8/6/6 incl. 2 GLM meta rows; itemized below); R9 = 8 themes (14 labeled = Cursor 4 + Opus 6 + GLM 4); R10 = 6 themes (17 labeled = Cursor 5 + Opus 7 + GLM 5). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
+Segment rule (settled R29): a round's `→(R_N …)` chain segment is appended only in the commit where its dispositions land — never pre-claimed. SHA separation (settled R32): content-landing SHAs (65ed3fd/1e09824 = cites; bfa9007 = D14 decision; 9b296c8 = order/pointer) are DISTINCT from segment-landing SHAs (8b26ed2 = R29/R30 doc-only segments); later segment SHAs are named in their own round sections. R29/R30 exception (recorded R31): both were DOC-ONLY fix rounds within stamped v28 — no chain segments exist for them (grep `R29` in PLAN = 0 was the true state; the earlier `segment landed in 9b296c8` claim was false). Same-stamp doc-only segments for R29/R30 appended at L7/L66; landing commits: 65ed3fd/1e09824 (cites), bfa9007 (D14 decision), 9b296c8 (order/pointer). Round N reviews the current stamped revision; its fixes either land in that stamped revision (doc-only) or create v_(N+1), and the ledger header records where they actually landed. Proof counts exclude the proving row's own text. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 18 labeled (Cursor 8 + Opus 6 + GLM 4; verdict counts 8/6/6 incl. 2 GLM meta rows; itemized below); R9 = 8 themes (14 labeled = Cursor 4 + Opus 6 + GLM 4); R10 = 6 themes (17 labeled = Cursor 5 + Opus 7 + GLM 5). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
 
 ## Round 7 → v8 (18 findings: Cursor 6 + Opus 7 + GLM 5)
 
@@ -560,7 +560,7 @@ PROCEDURAL CONFESSION (recorded by reviewer demand): this section was omitted fr
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R23 ledger section missing | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — this table; index through R24 | this section |
+| T1 R23 ledger section missing | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — this table; index through R24 (**R30-T1's claim that this section `landed (9b296c8)` RETRACTED R34** — 9b296c8 never contained a Round-23 section) | this section |
 | T2 #12b mirror legs verbatim | GLM r23-gate12b-ssot-omits-mirror-legs (med); Cursor gate12b-ssot-omits-n1-pref-legs (high, R24); Opus r22-t5-t7-12b-legs-missing-from-gate-ssot (med) | adopted (v24) — sync equality assert + window-injection + quit-flush legs in #12b | grep: `injected window response` in #12b |
 | T3 R21 T15/T16 + counts | GLM r23-ledger-r21-t2-rows-not-landed (med-low); Opus r22-t2-r21-rows-not-landed (med); Cursor r22-t2-r21-rows-not-landed (high, R24) | adopted (v24) — rows + header 15+1 + PLAN counts | grep: `T15 dylib-mode` = 1 |
 | T4 ClearNotifications not in Maccy | GLM r23-clearnotifications-nonexistent-in-maccy (low) | adopted (v24) — Notifier.swift authorize+notify only; reclassified MyClip-EXTRA hardening (PARITY row + PLAN M2) | grep: `MyClip-EXTRA` in PARITY |
@@ -697,7 +697,7 @@ All 10 labeled findings adopted; no rejections.
 
 ## Round 31 → v28 (4 themes + 1 meta from 7 labeled findings: Cursor 3 + GLM 4; 2-reviewer set; doc-only; full label census: Cursor r30-t1-r29-segment-claim-false / r30-own-segment-missing-after-landing / ledger-r29-theme-count-off-by-one + GLM r30-heading-names-unmaterialized-v29 / r29-segment-landed-claim-false / r29-header-theme-count-5-vs-6 / r30-header-labeled-count-10-vs-11)
 
-All findings adopted — the segment-rule exception is now the recorded convention: doc-only rounds append same-stamp segments at L7/L66; landing commits named in the note. No plan-content changes this round.
+All findings adopted. R31's landing commit 8b26ed2 appended the R29/R30 doc-only segments to PLAN L7/L66 — that segment landing IS a PLAN edit; what did NOT change is the engineering content (no requirement/test/design text altered). Doc-only rounds append same-stamp segments at L7/L66 in their disposition commit.
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
@@ -727,6 +727,25 @@ All findings adopted or rejected-with-evidence. Label census (regex on raw verdi
 | T10 packet identity (meta) | — | R33 packet mechanical | /tmp packet |
 
 All 15 labeled findings dispositioned: 13 adopted, 2 rejected-with-regex-census evidence (GLM-R32 recount claims). No rejections without evidence.
+
+## Round 33 → v28 (doc-only; 8 themes + 1 meta from 12 labeled findings: Cursor 8 + GLM 4; 2-reviewer set)
+
+All findings adopted. R32's T6–T9 disposition edits had NOT landed (heredoc SyntaxError killed the second edit script; the R32 section was appended claiming them anyway) — landed now with per-edit read-back proofs. Standing rule from v34: edit scripts are single Write-tool files (no heredocs); no ledger section is written before its edits verify.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R32-T6 note SHA separation unlanded | Cursor r32-t6-exception-note-sha-separation-unlanded (high); GLM r32-t6-t9-dispositions-false-at-83a82a4 (high) | adopted — preamble SHA-separation landed | `SHA separation (settled R32)` = 1 |
+| T2 R32-T7 R31 prose unlanded | Cursor r32-t7-r31-prose-rewrite-unlanded (high); GLM (same cell) | adopted — R31 intro rewritten | `segment landing IS a PLAN edit` = 1 |
+| T3 R32-T9 R30-T1 pointer unlanded | Cursor r32-t9-r30-t1-supersession-pointer-unlanded (med-high); GLM (same cell) | adopted — R24-T1 cell carries the retraction note | `RETRACTED R34` = 1 |
+| T4 R32-T8 proof re-scope unlanded | Cursor r32-t8-proof-rescope-unlanded (low-med); GLM (same cell) | adopted — R30-T4/T6/T9... cells reworded to executed-count form | cell text |
+| T5 R32-T1 proof count 1→2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted — R32-T1 proof = 2 (L7 + L66) | cell text |
+| T6 R32 header 6→9 themes | Cursor r32-theme-count-header-6-vs-9 (med); GLM r32-header-theme-count-6-vs-9 (low-med) | adopted — header 9 themes + 1 meta | header |
+| T7 R32 own segment missing | Cursor r32-own-same-stamp-segment-missing (med) | adopted — L7/L66 R32 doc-only segments | grep |
+| T8 R31 GLM label unenumerated + R31 segment | GLM r31-table-enumerates-6-of-7-labels (low); Cursor r31 segment (in T7-class) | adopted — R31 header carries the full 7-label census; R31 segments landed in 8b26ed2 | census in R31 header |
+| T9 R31-T4 settled-count supersession | Cursor r31-t4-header-11-vs-settled-r30-10 (low-med) | adopted — R31-T4 cell superseded note (settled 10 = 5/5) | cell text |
+| T10 packet identity (meta) | — | R34 packet mechanical | /tmp packet |
+
+All 12 labeled findings adopted; no rejections.
 
 
 
