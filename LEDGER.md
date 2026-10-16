@@ -2,7 +2,7 @@
 
 Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). Code-phase ledger entries appended below as PRs proceed. NOTE: R2 GLM `HOTKEY-SCOPE-UNVERIFIED` disposition ("all 4 ⇒ global") is **superseded by R3/R4**: only `popup` is global.
 
-## Round 1 → v2 (44 findings)
+## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
 |---|---|---|---|---|
@@ -106,7 +106,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 8. D10 copy sounds via MyGo audio — approve.
 9. M5 signing: Developer ID owner? (fallback: ad-hoc signed + hardened runtime)
 
-## Round 3 → v4 (25 findings: Cursor 9 + Opus 16; + GLM run incomplete/BLOCKED)
+## Round 3 → v4 (20 findings: Cursor 10 + Opus 10; + GLM run incomplete/BLOCKED)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
 |---|---|---|---|---|
@@ -157,7 +157,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 | Opus | updater-n1-gate-partial | low-med | adopted — SetAutomaticChecks(false) every launch, plugin-window writes allowed, harness named | PLAN N1 |
 | Opus | n4-pass-criterion-not-binary | low-med | adopted — numeric gates vs same-host Maccy baseline | PLAN acceptance |
 
-## Round 5 → v6 (17 findings + 1 rejection)
+## Round 5 → v6 (16 findings + 1 evidence-rejection)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
 |---|---|---|---|---|
@@ -196,4 +196,27 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 | Opus | seccode-peer-identity-by-pid-race | low | adopted — LOCAL_PEERTOKEN audit token + exec-after-connect test | PLAN §3.7 |
 | GLM | (no verdict — run incomplete ×2, infra SIGILL) | — | **BLOCKED** — retry R7 | — |
 
-Ledger-count audit (R6 reviewer claims vs file): R3 Opus table has 16 rows (total Opus rows 17+16+16+6 = 55 ✓); only the R3 header string and PLAN Review-tracking line were wrong — both fixed in v7.
+Ledger-count audit (final, R8 awk recount): R1 = 45 (14/17/14 — header previously said 44); R2 = 34 ✓; R3 = 20 (10/10 — earlier claims of 18 then 25 were both wrong); R4 = 20 ✓; R5 = 16 + 1 rejection ✓; R6 = 11 ✓. The v7 footnote claiming "16 Opus rows in R3 / 55 total" was false — GLM R7 awk was correct.
+
+## Round 7 → v8 (18 findings: Cursor 6 + Opus 7 + GLM 5)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | m1-update-archive-codesign-self-contradiction | high | adopted — single stance: updates config at M1 ⇒ archive exists ⇒ archive check at M1 | PLAN §3.6 |
+| Cursor | setpath-disposition-incomplete-vs-default-userdata | high | adopted — before-Run ordering + no-default-dir test (M1 gate list) | PLAN §3.4/§3.6 |
+| Cursor | d1-residual-still-overclaims-clear | med | adopted — "read + trigger requests; never completes without in-app confirm" | PLAN §3.7, PARITY D1, LEDGER #2 |
+| Cursor | d11-missing-from-parity-§6-and-n2 | med | adopted — D11 row (contingent) + N2 D1–D11 | PARITY §6, PLAN N2 |
+| Cursor | hold-cycle-carbon-vs-globalshortcut-exclusive-path | med | adopted — single exclusive owner, signature check, grep gate | PLAN §3.6 |
+| Cursor | cli-destructive-confirm-vs-shortcuts-automation | med | adopted — confirm UX contract (activation + modal, decline default) | PARITY D1 |
+| Opus | updater-pref-source-contradiction | med | adopted — pref only in MyClip store; differentiated tests | PLAN N1 |
+| Opus | sqlite-env-override-honored-in-packaged-app | med | adopted — Unsetenv on IsPackaged + resolved-path test | PLAN N1 |
+| Opus | n6-type-set-first-item-only | med-high | adopted — union of item types + 2-item test | PLAN §3.3 |
+| Opus | m1-update-archive-gate-contradiction | med | adopted (same as Cursor #1) | PLAN §3.6 |
+| Opus | m5-adhoc-hardened-runtime-fallback-infeasible | med | adopted — self-signed via production path as fallback | PLAN M5 |
+| Opus | hold-to-cycle-spike-criterion-wrong-event | med | adopted — modifier-release criterion, not key-up | PLAN §3.6 |
+| Opus | carbon-handler-collision-with-mygo-globalshortcut | med | adopted (same as exclusive owner) | PLAN §3.6 |
+| GLM | plan-§3.6-update-archive-gate-self-contradiction | med | adopted (same stance fix) | PLAN §3.6 |
+| GLM | r6-setpath-disposition-unimplemented | med | adopted — ordering + test + anchors fixed | PLAN §3.4/§3.6 |
+| GLM | r6-d1-residual-reword-not-applied | med | adopted — reword applied in all three spots | PLAN/PARITY/LEDGER |
+| GLM | ledger-r3-count-false-audit | med | adopted — awk recount; headers/footnote/PLAN corrected (R1=45, R3=20) | LEDGER headers |
+| GLM | m1-gate-list-incomplete-propagation | low-med | adopted — canonical M1 gate checklist enumerates everything | PLAN M1 |

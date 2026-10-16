@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v6)
+# MyClip ⇄ Maccy parity inventory (v7)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -92,7 +92,7 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 
 | # | Deviation | Status |
 |---|---|---|
-| D1 | Automation via local CLI over unix socket, **disabled by default** (listener not bound); peer = code-signing check (SecCode designated requirement) — **tamper tripwire, NOT a confidentiality boundary**: any same-user process can spawn the signed CLI, so once enabled, any same-user process can read/clear history (DB is same-UID-readable anyway). `get` + destructive verbs have their own opt-ins; `clear`/`delete` require in-app confirmation **even with `--yes`**; `select` never pastes from CLI; residual surfaced in settings UI + this sign-off; Shortcuts via "Run Shell Script"; no native App Intents | **user sign-off pending — blocks M1 (sign off with residual in mind)** |
+| D1 | Automation via local CLI over unix socket, **disabled by default** (listener not bound); peer = code-signing check via audit token (SecCode designated requirement) — **tamper tripwire, NOT a confidentiality boundary**: any same-user process can spawn the signed CLI, so once enabled any same-user process can **read history (and DB files) and trigger clear/delete requests — clear/delete never complete without in-app confirmation, even with `--yes`** (confirm = brief app activation + modal, decline default; headless destructive automation unsupported). `select` never pastes from CLI; residual surfaced in settings UI + this sign-off; Shortcuts via "Run Shell Script"; no native App Intents | **user sign-off pending — blocks M1 (sign off with residual in mind)** |
 | D2 | Translations: EN, FR, ES (third changeable until M4 start) vs Maccy full set | user directive |
 | D3 | Updater: `DisableAutomaticChecks: true` + opt-in menu item vs Sparkle | adopted (N1) |
 | D4 | `lastReviewRequestedAt`, `numberOfUsages` skipped | adopted (anti-features) |
@@ -102,3 +102,4 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D8 | If tray modifier-click spike fails: pause/ignore-next via tray menu items — and record that click-to-open popup is lost (MyGo: installed menu ⇒ plain click opens menu); spike must also prove left-click-popup + right-click-transient-menu coexistence | contingent on M1 spike |
 | D9 | No Vision OCR for image titles in v1 (image rows show placeholder title, unsearchable) — optional purego Vision spike later | **user sign-off pending** |
 | D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor |
+| D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
