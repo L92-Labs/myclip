@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v2)
+# MyClip ⇄ Maccy parity inventory (v4)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -66,7 +66,7 @@
 | ⌘V injection | CGEvent via purego; **Accessibility TCC only**; pre-popup frontmost capture → hide → bounded activate/wait → keycode → post; no osascript |
 | keyboard layout | TIS/UCKeyTranslate keycode; QWERTY force when layout name ends `⌘`; evidence QWERTY/AZERTY/Dvorak |
 
-## 4. Hotkeys (scope: global via KeyboardShortcuts framework in Maccy — all four are KeyboardShortcuts.Name; in-popup bindings local)
+## 4. Hotkeys (all four are KeyboardShortcuts.Name for recording; **only `popup` is globally registered** — Maccy disables unused global hotkeys in AppDelegate and matches pin/delete/preview locally in the popup)
 
 | Maccy | Default | Scope | MS |
 |---|---|---|---|
@@ -74,8 +74,11 @@
 | pin | ⌥P | **local** — matched inside popup key handler; global would hijack ⌥P system-wide | M2/M4 |
 | delete | ⌥⌫ | **local** (same) | M2/M4 |
 | togglePreview | ⌃Space | **local** (same; global would collide with input-source switching) | M2/M4 |
+| hold-to-cycle popup (Observables/Popup.swift) | hold hotkey → `.cycle` highlight advance; modifier release → select | same; acceptance: hold-cycle + release-select | M2 |
 
 M1 pre-task: re-verify each name's handler wiring at `eb03eba`. M2 acceptance: popup closed ⇒ ⌥P types π in TextEdit.
+
+M1/M2 pre-task (behavior-diff vs **running** Maccy 2.7.1 popup — the Defaults.Keys method is blind to non-pref behaviors): right-click context menu per item, drag-out of item to target app, modifier-click semantics, hold-cycle — add rows here or record deviations; no silent drops (N2).
 
 ## 5. Settings panes (M4) — every control gets a row before M4 starts
 
@@ -90,7 +93,7 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D3 | Updater: `DisableAutomaticChecks: true` + opt-in menu item vs Sparkle | adopted (N1) |
 | D4 | `lastReviewRequestedAt`, `numberOfUsages` skipped | adopted (anti-features) |
 | D5 | No NSUserDefaults `defaults write` editing; Advanced shell recipes replaced by MyClip CLI (covers ignoreEvents/ignore-next) | **user sign-off pending — blocks M1** |
-| D6 | Per-item size cap + total DB budget, oversized skipped+recorded (Maccy: unbounded) | **user sign-off pending** |
+| D6 | Per-item size cap + total DB budget, oversized skipped+recorded (Maccy: unbounded) | **user sign-off pending — blocks M1** |
 | D7 | Poll interval floor 100ms (Maccy allows any) | minor — user sign-off pending |
 | D8 | If tray modifier-click spike fails: pause/ignore-next via tray menu items — and record that click-to-open popup is lost (MyGo: installed menu ⇒ plain click opens menu); spike must also prove left-click-popup + right-click-transient-menu coexistence | contingent on M1 spike |
 | D9 | No Vision OCR for image titles in v1 (image rows show placeholder title, unsearchable) — optional purego Vision spike later | **user sign-off pending** |

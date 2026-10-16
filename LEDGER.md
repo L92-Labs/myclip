@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions. Rounds: R1 (plan v1, 2026-10-16), R2 (plan v2). Code-phase ledger entries appended below as PRs proceed.
+Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4). Code-phase ledger entries appended below as PRs proceed. NOTE: R2 GLM `HOTKEY-SCOPE-UNVERIFIED` disposition ("all 4 ⇒ global") is **superseded by R3/R4**: only `popup` is global.
 
 ## Round 1 → v2 (44 findings)
 
@@ -131,3 +131,28 @@ Per-finding dispositions. Rounds: R1 (plan v1, 2026-10-16), R2 (plan v2). Code-p
 | Opus | n1-grep-gate-misses-real-knob | low | adopted — SetAutomaticChecks gate + fresh-state test | PLAN N1 |
 | Opus | db-file-mode-unspecified | low | adopted — O_EXCL 0600 pre-create + sidecar asserts | PLAN §3.4 |
 | GLM | (no verdict emitted — distill SIGILL mid-run) | — | **BLOCKED** — retry round 4 | — |
+
+## Round 4 → v5 (20 findings)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | doc-version-identity-mismatch | high | adopted — headers/revisions bumped (this revision) | PLAN/PARITY/LEDGER headers |
+| Cursor | parity-popup-hold-cycle-absent | high | adopted — PARITY §2b row (M2) | PARITY §2b |
+| Cursor | parity-§4-header-still-asserts-global-scope | med | adopted — header reworded | PARITY §4 |
+| Cursor | cli-socket-fs-boundary-regressed | med | adopted — container 0700 / socket 0600 / disabled = not bound | PLAN §3.7 |
+| Cursor | cli-seccode-m1-test-outside-m1-gate | med | adopted — socket+SecCode evidence in M1 bullets | PLAN §3.7, M1 |
+| GLM | plan-parity-version-labels-stale | med | adopted (same as headers) | PLAN/PARITY headers |
+| GLM | cli-seccode-peer-boundary-overclaim-and-dr-pinning | med | adopted — honest residual (tripwire not confidentiality), spawn-the-CLI threat in text | PLAN §3.7 |
+| GLM | r2-f6-socket-mode-disposition-regressed | med | adopted (same as socket fs boundary) | PLAN §3.7 |
+| GLM | n1-updater-gate-mygo-api-unverified | med | adopted — M1 API probe + MyClip-owns-state fallback | PLAN N1 |
+| GLM | parity-inventory-defaults-keys-blindspot | med | adopted — behavior-diff pre-task | PARITY §2b note |
+| GLM | own-write-merge-tests-skip-2-preserve-fields | low | adopted — firstCopiedAt/title asserts | PLAN §3.2 |
+| GLM | db-precreate-o-excl-existing-file-unspecified | low | adopted — EEXIST fstat+fchmod or refuse | PLAN §3.4 |
+| GLM | parity-s4-header-contradicts-scope-table | low | adopted (same as §4 header) | PARITY §4 |
+| GLM | r3-finding-count-mismatch | low | adopted — counts fixed (R3 = 18 findings: Cursor 9 + Opus 9; GLM run incomplete; ledger-check rows are not findings) | LEDGER R3 header |
+| Opus | hardened-runtime-and-library-validation-not-produced-by-mygo | high | adopted — post-build re-sign step + sqlite-under-LV spike + Team ID escalation path | PLAN §3.6, M1, PRE-M1 |
+| Opus | cli-seccode-peer-check-satisfied-by-launching-the-bundled-cli | high | adopted — honest residual + per-verb opt-ins + in-app confirm even with --yes + D1/UI surfacing | PLAN §3.7, PARITY D1 |
+| Opus | artifact-version-labels-stale | low | adopted (headers) + D6 "blocks M1" | headers, PARITY D6 |
+| Opus | parity-§4-header-contradicts-scope-rows | low | adopted (same as §4 header) | PARITY §4 |
+| Opus | updater-n1-gate-partial | low-med | adopted — SetAutomaticChecks(false) every launch, plugin-window writes allowed, harness named | PLAN N1 |
+| Opus | n4-pass-criterion-not-binary | low-med | adopted — numeric gates vs same-host Maccy baseline | PLAN acceptance |
