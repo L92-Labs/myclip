@@ -1,7 +1,7 @@
 # NOTICE
 
 MyClip is a Go implementation of a clipboard manager for macOS whose feature
-set targets parity with [Maccy](https://github.com/p0deje/Maccy) by Aleksey
+set targets parity with [Maccy](https://github.com/p0deje/Maccy) by Alex
 Rodionov and contributors, released under the MIT License. MyClip consults
 Maccy's documentation, source, and behavior as its specification; MyClip does
 not distribute Maccy source code. All credit for the original design belongs

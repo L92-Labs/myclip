@@ -91,10 +91,43 @@ Per-finding dispositions. Rounds: R1 (plan v1, 2026-10-16), R2 (plan v2). Code-p
 | Opus | F15 n6-test-seam | low | adopted — fake + named pasteboard | PLAN §3.1 |
 | Opus | F16 signing-dependency | low | adopted — M5 decision item | PLAN M5 |
 
-## Open user decisions (blocking nothing before M1; needed before M3/M5)
+## Open user decisions
 
-1. D6 size caps / DB budget — approve or drop.
-2. D7 poll floor 100ms — approve.
-3. D9 Vision OCR skip in v1 — approve or add spike.
-4. D2 third language: ES ok?
-5. M5 signing: Developer ID owner? Actions billing or local release builds?
+**Blocking M1 start:**
+1. CI runner: fix L92-Labs Actions billing / self-hosted Mac runner / no-CI mode (local test transcripts as PR evidence).
+2. D1 automation CLI (default-off, code-signed peer) — approve.
+3. D5 no `defaults write` CLI (MyClip CLI replaces) — approve.
+4. D6 size caps / DB budget — approve or drop.
+
+**Before M3/M5:**
+5. D7 poll floor 100ms — approve.
+6. D9 Vision OCR skip in v1 — approve or add spike.
+7. D2 third language: ES ok?
+8. D10 copy sounds via MyGo audio — approve.
+9. M5 signing: Developer ID owner? (fallback: ad-hoc signed + hardened runtime)
+
+## Round 3 → v4 (18 findings + 1 BLOCKED)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | n1-sqlite-nettop-vs-unpackaged-download | high | adopted — N1 evidence packaged-only; IsPackaged runtime gate | PLAN N1 |
+| Cursor | n1-updater-state-defeats-disable-grep | high | adopted — updater.New pinned, Plugin forbidden, fresh-state test, SetAutomaticChecks only from toggle | PLAN N1 |
+| Cursor | capture-pipeline-omits-ignoreEvents | high | adopted — early-exit step 1 | PLAN §3.3, PARITY §1 |
+| Cursor | enabled-types-disjoint-missing | high | adopted — chain step 2 | PLAN §3.3 |
+| Cursor | own-write-merge-incomplete-vs-History.add | high | adopted — full field matrix + pinned test | PLAN §3.2, PARITY §1 |
+| Cursor | compared-types-list-claimed-but-absent | med | adopted — M1 pre-task port exact list | PARITY §1 |
+| Cursor | n2-deviation-range-stale | med | adopted — D1–D10 | PLAN N2 |
+| Cursor | d1-cli-destructive-confirm-nontty | med | adopted — in-app confirm / gated --yes | PLAN §3.7 |
+| Cursor | d1-d5-signoff-orphaned | med | adopted — open decisions updated, D1/D5/D6 block M1 | LEDGER open decisions |
+| Cursor | notice-intro-still-Aleksey | (ledger-check) | adopted — name split across lines fixed | NOTICE.md |
+| Opus | cli-confused-deputy-tcc | high | adopted — default-off socket, SecCode peer check, select-never-pastes, threat model + rejection test | PLAN §3.7 |
+| Opus | in-popup-hotkeys-registered-globally | high | adopted — only popup global; others local; π test | PLAN §3.6, PARITY §4 |
+| Opus | m1-gate-depends-on-blocked-actions | high | adopted — runner decision = PRE-M1 blocking | PLAN M1 |
+| Opus | sqlite-system-lib-fallback-impossible + download-not-compile-time | med | adopted — fallback dropped, packaged-only evidence, MYGO_SQLITE_LIBRARY dev-only asserted | PLAN N1 |
+| Opus | tcc-grant-inheritance-no-hardened-runtime | med | adopted — hardened runtime + library validation from M1 + injection-refusal spike | PLAN §3.6, M5 |
+| Opus | d8-fallback-kills-tray-click-popup | med | adopted — coexistence spike + D8 loss recording | PARITY §1, §6 |
+| Opus | os-matrix-omits-current-macos | med | adopted — 27 in acceptance matrix; hardware named pre-M1 | PLAN acceptance |
+| Opus | sign-off-list-inconsistent | low | adopted — N2 D1–D10; D1/D5/D10 in decisions; D1/D6 blocking | LEDGER |
+| Opus | n1-grep-gate-misses-real-knob | low | adopted — SetAutomaticChecks gate + fresh-state test | PLAN N1 |
+| Opus | db-file-mode-unspecified | low | adopted — O_EXCL 0600 pre-create + sidecar asserts | PLAN §3.4 |
+| GLM | (no verdict emitted — distill SIGILL mid-run) | — | **BLOCKED** — retry round 4 | — |
