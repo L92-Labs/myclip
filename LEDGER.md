@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -708,5 +708,25 @@ All findings adopted — the segment-rule exception is now the recorded conventi
 | T5 packet identity (meta) | — | R32 packet mechanical | /tmp packet |
 
 All 7 labeled findings adopted; no rejections.
+
+## Round 32 → v28 (6 themes + 1 meta from 15 labeled findings: Cursor 8 + GLM 7; 2-reviewer set)
+
+All findings adopted or rejected-with-evidence. Label census (regex on raw verdicts): R30 = 10 (Cursor 5 + GLM 5 — GLM-R32's "11 = GLM 6" recount wrong; T9 is a ledger-check row per the counting rule); R31 = 7 (Cursor 3 + GLM 4 — Cursor-R32's "should be 5 = 2/3" recount wrong; it re-derived from ledger cells instead of raw outputs).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R30 settled-count + L7/L66 alignment | GLM plan-l7-r30-glm-count-5-vs-6 (low); GLM r30-labeled-count-header-vs-closing-vs-counting-rule (med); Cursor plan-l7-r30-split-arith-false (med-high, R32) | REJECTED the 11/5-6 recount (raw-label regex: Cursor 5 + GLM 5 = 10); L7/L66/LEDGER all state 10 = 5/5; T9 marked ledger-check | grep `10 labeled = Cursor 5 + GLM 5` in PLAN = 1 |
+| T2 R30 theme count L66 12->7 | GLM plan-l66-r30-theme-count-12 (low) | adopted — L66 = 7 themes + 1 meta (T8 verified-residual + T9 ledger-check + T10 meta excluded) | grep `R30 7 themes` = 1 |
+| T3 R31 before R30 (order) | Cursor ledger-r31-before-r30-section-order (med); GLM ledger-r31-before-r30-order (low) | adopted — ascending order restored | heading order |
+| T4 R31 unenumerated labels (2) + census in header | Cursor ledger-r31-labeled-count-arith (med); GLM r31-labeled-count-7-vs-5-enumerated (med) | adopted — T1 cell gains Cursor r30-own-segment-missing-after-landing; header carries the full 7-label census | header census |
+| T5 R31 own segment missing | Cursor r31-missing-own-same-stamp-segment (med); GLM r31-segment-absent-own-convention (med) | adopted — L7/L66 carry the R31 doc-only segment | grep `R31: 7 labeled` = 1 |
+| T6 exception-note SHA conflation | Cursor exception-note-segment-landing-sha-conflation (med) | adopted — note separates content-landing SHAs (65ed3fd/1e09824 cites; bfa9007 D14; 9b296c8 order/pointer) from segment-landing SHA (8b26ed2) | note text |
+| T7 "no plan-content" vs segment-landing contradiction | Cursor r31-no-plan-content-claim-contradicts-t1 (med) | adopted — R31 prose rewritten: segment landing IS a PLAN edit; "no content changes" = engineering content only | prose |
+| T8 proof-cell self-quote (R30-T4/T6) + L66 12-themes | Cursor r30-proof-cells-self-quote-false (low); Cursor l66-r30-theme-count-12-vs-table (low-med) | adopted — proof cells re-scoped; L66 fixed (T2) | scoped greps |
+| T9 R30-T1 stale landing claim | GLM r30-t1-stale-segment-landing-claim (low) | adopted — supersession pointer appended to R30-T1 cell | cell text |
+| T10 packet identity (meta) | — | R33 packet mechanical | /tmp packet |
+
+All 15 labeled findings dispositioned: 13 adopted, 2 rejected-with-regex-census evidence (GLM-R32 recount claims). No rejections without evidence.
+
 
 
