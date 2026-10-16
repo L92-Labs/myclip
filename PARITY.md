@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v10)
+# MyClip ⇄ Maccy parity inventory (v11)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -104,3 +104,4 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D9 | No Vision OCR for image titles in v1 (image rows show placeholder title, unsearchable) — optional purego Vision spike later | **user sign-off pending** |
 | D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor |
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
+| D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation |

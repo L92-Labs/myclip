@@ -149,7 +149,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 | GLM | own-write-merge-tests-skip-2-preserve-fields | low | adopted — firstCopiedAt/title asserts | PLAN §3.2 |
 | GLM | db-precreate-o-excl-existing-file-unspecified | low | adopted — EEXIST fstat+fchmod or refuse | PLAN §3.4 |
 | GLM | parity-s4-header-contradicts-scope-table | low | adopted (same as §4 header) | PARITY §4 |
-| GLM | r3-finding-count-mismatch | low | adopted — **superseded by R5 recount**: R3 = 25 (Cursor 9 + Opus 16); GLM run incomplete; ledger-check rows are not findings | LEDGER R3 header |
+| GLM | r3-finding-count-mismatch | low | adopted — **superseded twice (R5 recount, then the R10 audit): final R3 = 19 = Cursor 9 + Opus 10**; GLM run incomplete; ledger-check rows are not findings | LEDGER R3 header |
 | Opus | hardened-runtime-and-library-validation-not-produced-by-mygo | high | adopted — post-build re-sign step + sqlite-under-LV spike + Team ID escalation path | PLAN §3.6, M1, PRE-M1 |
 | Opus | cli-seccode-peer-check-satisfied-by-launching-the-bundled-cli | high | adopted — honest residual + per-verb opt-ins + in-app confirm even with --yes + D1/UI surfacing | PLAN §3.7, PARITY D1 |
 | Opus | artifact-version-labels-stale | low | adopted (headers) + D6 "blocks M1" | headers, PARITY D6 |
@@ -170,7 +170,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 | GLM | capture-chain-is-remote-clipboard-union-ambiguous | med | adopted — user-setting only | PLAN §3.3 |
 | GLM | d1-signoff-summary-missing-residual | med | adopted | PARITY D1, LEDGER #2 |
 | GLM | sandbox-posture-and-container-path-undeclared | med | adopted — non-sandboxed declared, real paths, entitlements none | PLAN §3.6–3.7 |
-| GLM | ledger-r3-count-fix-introduces-new-mismatch | low | adopted — R3 = 25 (Cursor 9 + Opus 16) | LEDGER R3 |
+| GLM | ledger-r3-count-fix-introduces-new-mismatch | low | adopted at the time — **superseded by the R10 audit: R3 = 19 (Cursor 9 + Opus 10)** | LEDGER R3 |
 | GLM | n4-binary-size-gate-feasibility-unvalidated | low | adopted — measure-then-lock | PLAN acceptance |
 | Opus | resign-after-build-stales-dmg-notarize-update-archive | high | adopted — no post-sign; signingIdentity in mygo.json; extracted-artifact codesign gate | PLAN §3.6, M1/M5 |
 | Opus | updater-optin-reset-every-launch | med | adopted (same as pref-apply) | PLAN N1 |
@@ -223,7 +223,7 @@ Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are 
 
 ## Round 8 → v9 (18 labeled findings: Cursor 8 + Opus 6 + GLM 4 + 2 meta rows; verdicts reported 8/6/6)
 
-Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 20 adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
+Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 18 labeled adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
 
 ## Round 8 → v9 — itemized (18 labeled findings: Cursor 8 + Opus 6 + GLM 4 + 2 meta rows; verdicts reported 8/6/6)
 
