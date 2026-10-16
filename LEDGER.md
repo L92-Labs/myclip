@@ -504,7 +504,7 @@ All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof proc
 
 All 19 labeled findings adopted; no rejections.
 
-## Round 21 → v22 (14 themes + 1 meta from 20 labeled findings: Cursor 5 + Opus 11 + GLM 4)
+## Round 21 → v22 (15 themes + 1 meta from 20 labeled findings: Cursor 5 + Opus 11 + GLM 4; T15/T16 added R23)
 
 All three: FINDINGS on frozen v21 @ a523a0a. Headline: Opus falsified v20's OnChange rationale from source — `update()` snapshots `u.changes` and skips callbacks when state is unchanged (updater.go:325-336), so ⑥'s own writes never reach a ⑥b-registered callback; the "fire for ⑥'s own writes" claim and its vacuous 12b leg are gone. Cursor's findings were entirely propagation/precision class on v20's additions.
 
@@ -524,6 +524,8 @@ All three: FINDINGS on frozen v21 @ a523a0a. Headline: Opus falsified v20's OnCh
 | T12 PLAN R19 theme count 15→14 | Cursor T11-r19-count-PLAN-residue (med); GLM plan-ledger-r19-theme-count-divergence (low) | adopted — both PLAN sites = 14 themes + 1 meta | counts match LEDGER |
 | T13 proof cells garbled / self-quote matches | Opus r20-proofs-not-as-claimed (low); GLM r20-proof-cells-not-verbatim (low-med) | adopted — proofs re-recorded as executed command + count; self-quotes excluded from counts (proof strings never appear in the proving row's own text) | this table's proofs ran post-edit |
 | T14 packet identity (meta) | — | R22 packet generated mechanically from headers | /tmp packet |
+| T15 dylib-mode residue (fixed in PLAN, row omitted) | Cursor T1-dylib-mode-residue (high) | adopted — PLAN wording fixed in v22 (dir 0700 / file 0600 everywhere); row omitted from R21 table — added now | PLAN N1 ③c, §3.6 |
+| T16 R20 proof-verbatim overclaim | Cursor R20-proof-verbatim-overclaim (low) | adopted — verbatim-claims removed (R20 proofs are command+count records) | LEDGER R20 |
 
 All 20 labeled findings adopted; no rejections.
 
