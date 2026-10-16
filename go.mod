@@ -1,4 +1,4 @@
-module myclip
+module github.com/L92-Labs/myclip
 
 go 1.27.2
 

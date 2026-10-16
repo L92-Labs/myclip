@@ -1,6 +1,6 @@
 {
   "name": "myclip",
-  "identifier": "com.example.myclip",
+  "identifier": "com.l92labs.myclip",
   "version": "0.1.0",
   "out": "build"
 }

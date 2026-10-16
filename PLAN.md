@@ -1,69 +1,50 @@
-# MyClip — Implementation Plan (v1)
+# MyClip — Implementation Plan (v2)
 
-Lightweight, open-source, 100%-local clipboard manager for macOS. **Feature parity target: Maccy (p0deje/Maccy, MIT).** Stack: Go + [MyGo](https://mygo.egoist.dev) v0.5.5 (pure Go, no cgo, native GPU UI, tray, global shortcuts, clipboard APIs, SQLite plugin, updater).
+Lightweight, open-source, 100%-local clipboard manager for macOS. **Parity contract: Maccy 2.7.1 — see `PARITY.md` (authoritative inventory; the matrix in v1 was superseded).** Stack: Go + [MyGo](https://mygo.egoist.dev) v0.5.5 (pure Go, no cgo, native GPU UI, tray, global shortcuts, clipboard APIs, SQLite plugin, updater).
 
-Repo: `L92-Labs/myclip` (private now; public later). License: MIT. Maccy is MIT — behavior porting + attribution permitted (`NOTICE.md`).
+Repo: `L92-Labs/myclip` (private now; public later). License: MIT + `NOTICE.md` crediting Maccy. Bundle ID: `com.l92labs.myclip` (locked; never change after first TCC grant). Go module: `github.com/L92-Labs/myclip`.
+
+Revision history: v1 → v2 after adversarial plan review (Cursor Auto, Claude Opus 5.5, OpenCode GLM-5.3-Flash; all FINDINGS, ledger consolidated below).
 
 ## Non-negotiable constraints
 
-- N1: No cloud, no telemetry, no network calls except optional update check (user-triggered/disabled by default config).
-- N2: 100% feature parity with Maccy (matrix below is the contract; gaps tracked as findings, not silently dropped).
-- N3: Fully open source (MIT), attribution to Maccy preserved.
-- N4: Lightweight: binary ≤ ~15MB, idle RAM ≤ ~60MB, 0% idle CPU (poll interval bounded).
-- N5: Review gates per `feature-review-loop` skill on every PR. Model routing (user directive): **heavy Cursor Agent (Auto)**; **lighter Claude / ChatGPT** (minimum required by skill only).
+- N1: No cloud, no telemetry, no unsolicited network. Updater compiled with `DisableAutomaticChecks: true` + explicit opt-in "Check for Updates" (grep gate in CI: `DisableAutomaticChecks` present, default-on absent).
+- N2: Behavioral parity with Maccy 2.7.1 per `PARITY.md` — every row maps to a milestone or an approved deviation (D1–D5). Gaps found later = findings; never silent drops.
+- N3: Open source (MIT); Maccy MIT notice included (we consult Maccy source, so no "clean-room" claim); THIRD_PARTY_NOTICES generated at M5.
+- N4: Lightweight, measurable per milestone evidence gate: binary size, idle RSS, idle CPU% over ≥5min — "no busy-wait; resource envelope comparable to Maccy side-by-side in Activity Monitor" (literal "0% CPU" dropped as unmeasurable for a poller).
+- N5: Review gates per `feature-review-loop` skill. Every gate reviewer gets a full fresh-defect pass on the final revision — gate minimums are not reduced by model routing. Routing preference (user): Cursor Agent Auto does the deep/heavy passes; Claude/ChatGPT used at skill-required minimum. cgo is a hard non-goal; if a capability is impossible via purego, the fallback decision is explicit in the plan, never silent.
+- N6: Security: raw-UTI ignore filter runs **before** any pasteboard data is read (concealed/transient types may be renamed/dropped by MIME-mapped APIs — read `NSPasteboard.types` raw via purego). Secrets never enter the DB (test: concealed item never read into memory).
 
-## Parity matrix (source: Maccy README + defaults keys; verify exact behavior against Maccy source per milestone)
+## Architecture (review-driven corrections)
 
-| # | Maccy feature | MyClip plan | Miletone |
-|---|---|---|---|
-| 1 | Menu bar icon → popup | MyGo tray + popup window at cursor | M2 |
-| 2 | Global hotkey opens popup (default ⇧⌘C, configurable/clearable) | `GlobalShortcut.Register` + prefs | M2 |
-| 3 | History of copies (text, RTF/HTML, images, files) | poll `Clipboard` + data-transfer model, SQLite store | M1 |
-| 4 | Dedup + most-recent-first, configurable history size | store layer | M1 |
-| 5 | Search-as-you-type | list filter (substring + fuzzy) | M2 |
-| 6 | Enter / click / ⌘n selects item (copies back to clipboard) | list interactions | M2 |
-| 7 | ⌥Enter / ⌥click / ⌥n selects **and pastes** | M3 paste-back | M2+M3 |
-| 8 | ⌥⇧Enter / ⌥⇧click pastes **without formatting** (plain text) | write plain text + paste-back | M3 |
-| 9 | ⌥⌫ deletes item; ⌥⌘⌫ clears unpinned; ⇧⌥⌘⌫ clears all incl. pinned | list + store | M2 |
-| 10 | Pin (⌥P) with permanent per-item shortcut, pinned on top | store flag + shortcut map | M2 |
-| 11 | Tooltip with full text after delay | list tooltip | M2 |
-| 12 | Footer: count / Clear / Quit; hideable (showFooter) | window footer + pref | M2/M4 |
-| 13 | "Paste automatically" pref (paste on select) | pref + paste-back | M3 |
-| 14 | Paste-back via simulated ⌘V; needs Accessibility TCC; returns focus to previous app | CGEvent via purego; fallback osascript System Events; refocus prev app | M3 |
-| 15 | Poll interval config (default 500ms, min 100ms) | poll loop param | M1/M4 |
-| 16 | Disable capturing (ignoreEvents; ⌥click tray icon) + ignore next copy (⌥⇧click) | tray modifiers + state | M2 |
-| 17 | Ignored pasteboard types: org.nspasteboard.{Transient,Concealed,AutoGenerated}Type + defaults (1Password, Keeweb, TransientPasteboard…) + custom list + com.apple.is-remote-clipboard | type filter set, prefs editor | M1/M4 |
-| 18 | Settings window (⌘,): General / Appearance / Ignore / Advanced | MyGo settings window | M4 |
-| 19 | Launch at login | launchers/login-item API | M4 |
-| 20 | Auto-update | MyGo Updater plugin (signed) | M5 |
-| 21 | Translations (Maccy: Weblate; MyClip: ≥3 languages, EN/FR/+1) | MyGo i18n | M4 |
-| 22 | DMG + code signing + notarization | mygo build + GH Actions macOS runner | M5 |
-| 23 | Lightweight/fast/secure/local | N4 budget + tests | all |
+1. **Purego darwin shim layer** (`internal/darwin`): `changeCount` (no public MyGo API; internal-only today), raw pasteboard UTI enumeration, `frontmostApplication` bundle ID, keycode-from-layout (TIS/UCKeyTranslate; QWERTY force when layout name ends `⌘`), CGEvent posting, tray `NSEvent.modifierFlags` probe inside `OnClick` (MyGo exposes only Clicked/RightClicked — spike; if impossible: menu-item fallback for pause/ignore-next and PARITY row demoted with finding tag).
+2. **Item model**: one history item, N representations (raw UTI + bytes), source bundle ID, firstCopiedAt/lastCopiedAt, numberOfCopies, pin, title override. Dedup/equality over representation set; copy-back = write full representation set; paste-plain = write text representation only.
+3. **Poller**: `changeCount` watermark; own writes carry marker UTI `com.l92labs.myclip.own-write` and are skipped (prevents recapture churn); ignore chain order: raw UTIs (enabled types → ignored types → always-ignore trio) → source app (ignoredApps/allowlist) → regex on text → capture.
+4. **Storage**: SQLite (MyGo plugin). 0600 file in 0700 app-support dir; secure_delete on delete/clear/clearOnQuit; per-item cap + total budget; oversized items skipped gracefully. Dev/CI: pin SQLite native lib (`MYGO_SQLITE_LIBRARY` pre-fetch; no runtime downloads → keeps N1).
+5. **App shell**: accessory app (no Dock icon / `ActivationPolicyAccessory` per MyGo menubar examples; non-activating popup per M2 spike gate). Focus model: capture frontmost app before popup shows; paste targets captured app; do not become "previous app" ourselves.
+6. **Paste-back**: CGEvent-only (no osascript fallback — it adds an Automation TCC prompt for no added capability). Sequence: hide popup → bounded activate/wait on captured app → resolve keycode for current layout → post ⌘V. Both failure paths (no Accessibility grant; activation timeout) have explicit UX.
 
-Out of scope unless discovered in Maccy source during milestones → added to matrix with finding tag.
+## Milestones (hard gates between them)
 
-## Milestones (each = branch → PR → code gate → evidence gate → PR-feedback gate)
-
-- **M1 engine**: poller (interval, change detection, ignore types, ignoreEvents), storage (SQLite; history size; pin flag), capture of text/HTML/RTF/image/files, dedup. Tests: headless `go test` for store + filter + ignore logic. Spike: read-back of all types from real clipboard on macOS.
-- **M2 UI**: tray + icon, popup window (native UI), history list, search, keyboard map (#5,6,9,10,11,12,16), hotkey config. Spike: popup-at-cursor + tray modifiers.
-- **M3 paste-back**: ⌘V injection + Accessibility prompt + focus restoration; plain-text paste; "paste automatically". **Highest technical risk — begin spike in M1.**
-- **M4 prefs + i18n**: settings window, all prefs persisted, launch-at-login, i18n EN/FR/+1.
-- **M5 ship**: packaging, signing, notarization, updater, README/website copy, CI (cross-build from Linux; sign on macOS runner).
+- **M1 engine + spikes (macOS-gated)**: shim layer items 1,2,3 + store + capture round-trip spike (RTF/TIFF/private UTI/multi-file; concealed-type-never-read test) + **paste-back spike** (CGEvent + TCC + focus + 3 layouts). Gate: macOS CI job (build + darwin-tagged tests) green AND both spikes demonstrated (Agentdrop evidence) **before any M2 merge**.
+- **M2 UI**: accessory shell, tray (+modifier spike), popup (position/screen), list (all §2 toggles), search modes + highlight, keyboard map, pins, clear/alert, footer, preview slideout, i18n keys wired from first string (no retrofit).
+- **M3 paste integration**: pasteByDefault, removeFormattingByDefault, plain-paste, focus edge cases (inactive/capture-failed), TCC grant/refresh UX.
+- **M4 settings + i18n**: all six panes per PARITY §5, hotkey recorder, launch-at-login, 3 languages.
+- **M5 ship**: packaging (DMG), signing + notarization (macOS runner), opt-in updater, THIRD_PARTY_NOTICES, README, release CI. Public flip = user decision, after parity audit.
 
 ## Acceptance criteria (global)
 
-- Every matrix row demonstrably matches Maccy behavior (side-by-side with Maccy on macOS; screenshots per evidence gate).
-- `go vet` + `go test` clean on CI (Linux runner; macOS artifact job on M5).
-- No network permission in app config; secrets never committed.
+- Every PARITY.md row demonstrably matches Maccy 2.7.1 side-by-side on macOS 14/15 (evidence matrix: OS × behavior × screenshot; per milestone).
+- CI: Linux `go vet`/`go test` (logic) + macOS job (darwin build + darwin tests) from M1 onward.
+- N1 proof: zero outbound connections during scripted idle + normal session (nettop capture) in M5 evidence.
+- N4 proof per milestone: binary size + RSS + idle CPU% recorded in PR evidence.
 
-## Risks
+## Consolidated review ledger (plan phase, v1→v2)
 
-- R1: Paste-back in pure Go (purego CGEvent) — spike M1; fallback osascript; worst case small cgo shim (violates cross-compile only, not product).
-- R2: MyGo 0.x API churn — pin go.mod version; upgrade deliberately.
-- R3: Tray/popup UX fidelity vs AppKit menus — verify early in M2 spike.
+All 44 findings (Cursor 13, Opus 17, GLM 14) dispositioned: adopted into v2 above (matrix rebuilt from Defaults.Keys @ 2.7.1; own-write marker; changeCount/raw-UTI/frontmost/keycode shims; bundle ID + module path locked; updater opt-in; N1/N2/N4/N5/N6 reworded; macOS CI from M1; paste-back CGEvent-only + layout spec; item model; storage security; i18n from M2; NOTICE corrected). Rejected with evidence: GLM "default hotkey ⌥⌘C" — Maccy 2.7.1 `KeyboardShortcuts.Name+Shortcuts.swift` sets popup default ⇧⌘C.
 
-## Review & routing
+## Review & routing (per N5)
 
-- Plan gate: this doc v1 → reviewers: Cursor Agent Auto (lead), OpenCode GLM-5.3-Flash, Claude Opus 5.5 (third, per skill authorship table). Repeat until all CLEAR same version.
-- Code gate per PR: same reviewer set; Cursor Auto does full-feature review each round; Claude/ChatGPT kept to skill minimum (user routing directive).
-- Evidence: Agentdrop @ drop.l92-labs.com; before/after or new-behavior screenshots; external links only in PR description.
+- Plan gate round 2: this v2 + PARITY.md → Cursor Auto (deep), Claude Opus 5.5, OpenCode GLM-5.3-Flash. Repeat until all CLEAR on same version.
+- Code gate per PR: same set; full fresh pass each on final revision; Cursor Auto additionally does interim deep passes. ChatGPT/Codex enters via PR-feedback gate per skill.
+- Evidence: Agentdrop @ drop.l92-labs.com, external links only in PR descriptions; review artifacts in /tmp, never in-repo.
