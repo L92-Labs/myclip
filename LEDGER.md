@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -107,6 +107,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
+13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width.
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -433,7 +434,7 @@ All three: FINDINGS on frozen v17 @ 58ce152. Dominant: the R16-T6 disposition cl
 
 All 18 labeled findings adopted; no rejections.
 
-## Round 18 → v19 (14 themes from 20 labeled findings: Cursor 5 + Opus 8 + GLM 6)
+## Round 18 → v19 (14 themes + 1 meta from 19 labeled findings: Cursor 5 + Opus 8 + GLM 6; T15 meta excluded)
 
 All three: FINDINGS on frozen v18 @ 4d98573. Dominant: the flock recipe as v18 wrote it (O_EXCL semantics) would brick relaunch after a crash — Opus high; the R17-T4 pre-seed extension again claimed-but-not-landed (third occurrence of the class — every future disposition must carry its grep proof); GLM's fresh Maccy source fetch found three real parity bugs in §3.3/§3.4 (regex per-item scope, Word-link `.pdf` subtraction, plain-paste fileURL preservation).
 
@@ -455,7 +456,32 @@ All three: FINDINGS on frozen v18 @ 4d98573. Dominant: the flock recipe as v18 w
 | T14 journal-mode pin ambiguous | GLM journal-mode-pin-ambiguous (low) | adopted — `DELETE` only; WAL alternative dropped | PLAN §3.4 |
 | T15 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R19 packet regenerated from headers | /tmp packet |
 
-All 20 labeled findings adopted; no rejections.
+All 27 labeled findings adopted; no rejections.
+
+## Round 19 → v20 (15 themes + 1 meta from 27 labeled findings: Cursor 10 + Opus 11 + GLM 6)
+
+All three: FINDINGS on frozen v19 @ b262d80. Escalation driver: v19's PLAN edits landed but their PARITY mirror-rows and gate-SSOT legs (#17 legs, #12b×(c') conditioning) did not — 7 of 27 findings were propagation residue of that one class. Root cause fixed procedurally: every v20 disposition below carries a grep proof executed at edit time (kill-9 ✓, DELETE-or-WAL=0 ✓, downgrade-residual=0 ✓, always-on=0 ✓, 12a-i ✓).
+
+| Theme | Findings | Disposition | Grep proof |
+|---|---|---|---|
+| T1 #17 kill-9 + fresh-HOME legs missing | Cursor r18-t1-gate17-kill9-not-landed (high); Cursor r18-t2-gate17-fresh-home-leg-missing (med); Opus r18-t1-t2-gate17-legs-not-landed (med); GLM r18-t1-kill9-leg-not-landed (med-low) | adopted — both legs verbatim in #17 | `kill -9` + `fresh HOME` present |
+| T2 PARITY journal WAL residue | Cursor r18-t14-parity-journal-wal-residue (med-high); Opus r18-t14-journal-pin-parity-residue (low-med); GLM parity-data-at-rest-wal-hedge (low) | adopted — PARITY row: DELETE only | `DELETE or WAL` = 0 in PARITY |
+| T3 §3.7 listener "always-on" stale | Cursor r18-t7-section37-listener-threat-stale (med); Opus s37-mygo-listener-always-on-stale (low-med) | adopted — listener never bound (②b ban); handlers never registered | `always-on` = 0 in PLAN |
+| T4 D13 "downgrade" lexeme (PARITY opening) | Cursor r18-t9-d13-downgrade-lexeme-residue (med); Opus r18-t9-parity-d13-downgrade-not-landed (low-med); GLM parity-d13-downgrade-lexeme-residue (low) | adopted — opening = "code-injection residual" | `downgrade residual` = 0 in PARITY |
+| T5 12a check/install leg split | Opus gate12a-downloads-setup-contradicts-n1-pref-on-leg (med); GLM 12a-downloads-pref-vs-n1-check-leg-pin (low-med) | adopted — 12a-i check leg pins downloads OFF (run() auto-installs, updater.go:495-505); 12a-ii install leg adds asset hosts | `12a-i` present |
+| T6 #12b swap-race vs (c') branch | Cursor r18-t6-12b-swap-race-ignores-c-prime (med); Opus cdhash-spike-no-fail-branch (med) | adopted — swap leg conditional on (c') success; N/A+sign-off on failure | text present |
+| T7 flock fstat mode fail-closed bricks | Opus flock-fstat-mode-fail-closed-bricks (low-med) | adopted — drifted mode ⇒ fchmod 0600 + continue; fail closed only on non-regular/foreign-uid | text present |
+| T8 regex-scope wording residue | Cursor r18-t12-regex-scope-wording-residue (med) | adopted — capture-level clause dropped; PARITY row gains per-item scope | text present |
+| T9 PARITY word/pdf row | Cursor r18-t13-parity-word-pdf-omission (med) | adopted — 3-type subtraction + no-PDF-rep test in PARITY row | text present |
+| T10 R18 count arithmetic (5+8+6=19, not 20) + meta label | Opus ledger-r18-count-arithmetic (low); Cursor r18-meta-count-unlabeled (low); GLM ledger-r18-header-meta-label (low) | adopted — R18 = 19 labeled; header/meta labels aligned at all sites | counts consistent |
+| T11 R16 T9 supersession unmarked | Cursor r16-t9-ledger-supersession-unmarked (low) | adopted — marker added (superseded by R17-T6/R18-T7: RequestSingleInstanceLock removed) | marker present |
+| T12 (c') absent from decision list | Opus c-prime-spike-absent-from-decision-list (low) | adopted — decision #13 added (conditional) | `#13` present |
+| T13 lib/ dir + mode asserts in D13 branch | GLM d13-branch-copy-modes-unasserted (low) | adopted — ③c creates lib/ 0700 + copy 0600; #9a/#11 assert path+modes when D13 active | text present |
+| T14 PARITY stamp rule | Opus parity-version-stamp-stale (low) | adopted — header now carries the stamp rule ("last plan revision touching PARITY") | header text |
+| T15 packet identity (meta) | Opus r18-t15-packet-identity-not-landed (low, meta); Cursor packet notes | adopted — R20 packet generated mechanically from PLAN L7/L66 + LEDGER index + PARITY L1 (script, then diffed) | /tmp packet |
+
+All 27 labeled findings adopted; no rejections.
+
 
 
 
