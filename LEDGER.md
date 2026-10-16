@@ -95,7 +95,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 
 **Blocking M1 start:**
 1. CI runner: fix L92-Labs Actions billing / self-hosted Mac runner / no-CI mode (local test transcripts as PR evidence).
-2. D1 automation CLI — default-off; **residual: once enabled, any same-user process can read/clear history (SecCode peer check = tamper tripwire, not confidentiality); destructive verbs keep in-app confirm even with --yes** — approve with that understanding.
+2. D1 automation CLI — default-off; **residual: once enabled, any same-user process can read history (and DB files) and trigger clear/delete requests — requests never complete without in-app confirmation, even with --yes (SecCode peer check = tamper tripwire, not confidentiality)** — approve with that understanding.
 3. D5 no `defaults write` CLI (MyClip CLI replaces) — approve.
 4. D6 size caps / DB budget — approve or drop.
 
@@ -104,7 +104,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
 8. D10 copy sounds via MyGo audio — approve.
-9. M5 signing: Developer ID owner? (fallback: ad-hoc signed + hardened runtime)
+9. M5 signing: Developer ID owner? (fallback: self-signed identity via the production signing path — emits hardened runtime; plain ad-hoc only as recorded deviation)
 
 ## Round 3 → v4 (20 findings: Cursor 10 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -220,3 +220,7 @@ Ledger-count audit (final, R8 awk recount): R1 = 45 (14/17/14 — header previou
 | GLM | r6-d1-residual-reword-not-applied | med | adopted — reword applied in all three spots | PLAN/PARITY/LEDGER |
 | GLM | ledger-r3-count-false-audit | med | adopted — awk recount; headers/footnote/PLAN corrected (R1=45, R3=20) | LEDGER headers |
 | GLM | m1-gate-list-incomplete-propagation | low-med | adopted — canonical M1 gate checklist enumerates everything | PLAN M1 |
+
+## Round 8 → v9 (20 findings: Cursor 8 + Opus 6 + GLM 6)
+
+Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 20 adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
