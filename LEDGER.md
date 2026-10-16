@@ -106,7 +106,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 8. D10 copy sounds via MyGo audio — approve.
 9. M5 signing: Developer ID owner? (fallback: ad-hoc signed + hardened runtime)
 
-## Round 3 → v4 (18 findings + 1 BLOCKED)
+## Round 3 → v4 (25 findings: Cursor 9 + Opus 16; + GLM run incomplete/BLOCKED)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
 |---|---|---|---|---|
@@ -149,7 +149,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 | GLM | own-write-merge-tests-skip-2-preserve-fields | low | adopted — firstCopiedAt/title asserts | PLAN §3.2 |
 | GLM | db-precreate-o-excl-existing-file-unspecified | low | adopted — EEXIST fstat+fchmod or refuse | PLAN §3.4 |
 | GLM | parity-s4-header-contradicts-scope-table | low | adopted (same as §4 header) | PARITY §4 |
-| GLM | r3-finding-count-mismatch | low | adopted — counts fixed (R3 = 18 findings: Cursor 9 + Opus 9; GLM run incomplete; ledger-check rows are not findings) | LEDGER R3 header |
+| GLM | r3-finding-count-mismatch | low | adopted — **superseded by R5 recount**: R3 = 25 (Cursor 9 + Opus 16); GLM run incomplete; ledger-check rows are not findings | LEDGER R3 header |
 | Opus | hardened-runtime-and-library-validation-not-produced-by-mygo | high | adopted — post-build re-sign step + sqlite-under-LV spike + Team ID escalation path | PLAN §3.6, M1, PRE-M1 |
 | Opus | cli-seccode-peer-check-satisfied-by-launching-the-bundled-cli | high | adopted — honest residual + per-verb opt-ins + in-app confirm even with --yes + D1/UI surfacing | PLAN §3.7, PARITY D1 |
 | Opus | artifact-version-labels-stale | low | adopted (headers) + D6 "blocks M1" | headers, PARITY D6 |
@@ -178,3 +178,22 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 | Opus | parity-d1-contradicts-plan-on-yes-and-residual | med | adopted (same as D1 rewrite) | PARITY D1 |
 | Opus | own-write-marker-not-excluded-from-reps-and-equality | med | adopted — marker = metadata; 2 tests | PLAN §3.2 |
 | Opus | socket-path-undefined-for-nonsandboxed-app | low | adopted — pinned path + fchmod + sun_path check | PLAN §3.7 |
+
+## Round 6 → v7 (11 findings + GLM run incomplete ×2)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | pathuserdata-vs-pinned-bundle-dir | high | adopted — SetPath(PathUserData, pinned dir) before Run + no-default-dir test | PLAN §3.4 |
+| Cursor | m1-hard-gate-omits-cli-socket | med | adopted — socket/CLI bullets in M1 gate checklist | PLAN §3.7, M1 |
+| Cursor | m1-update-archive-codesign-gate-infeasible | med | adopted — DMG-only at M1; update-archive check at M5 | PLAN §3.6 |
+| Cursor | d1-residual-overclaims-silent-clear | med | adopted — residual reworded (request ≠ silent clear) | PLAN §3.7, PARITY D1 |
+| Opus | updater-n1-gate-vacuous-without-updates-config | high | adopted — updates config + Enabled()==true precondition, else explicit N/A→M5 | PLAN §3.6 |
+| Opus | mygo-userdata-dir-diverges-from-pinned-data-dir | med | adopted (same as SetPath) | PLAN §3.4 |
+| Opus | hold-to-cycle-unimplementable-on-mygo-globalshortcut | med | adopted — M1 Carbon/flagsChanged spike + D11 escalation | PLAN §3.6, PARITY §4 |
+| Opus | ignore-next-coupling-as-written-is-a-noop | med | adopted — verbatim source quote pre-task + CLI verb semantics + unpaused test | PLAN §3.3, PARITY §1 |
+| Opus | copy-notification-content-escapes-forensics-and-clear | med | adopted — ClearNotifications on clear; usernoted documented as system-level parity | PARITY §1, PLAN acceptance |
+| Opus | cli-skeleton-missing-from-m1-gate-list | low | adopted (same as M1 bullets) | PLAN M1 |
+| Opus | seccode-peer-identity-by-pid-race | low | adopted — LOCAL_PEERTOKEN audit token + exec-after-connect test | PLAN §3.7 |
+| GLM | (no verdict — run incomplete ×2, infra SIGILL) | — | **BLOCKED** — retry R7 | — |
+
+Ledger-count audit (R6 reviewer claims vs file): R3 Opus table has 16 rows (total Opus rows 17+16+16+6 = 55 ✓); only the R3 header string and PLAN Review-tracking line were wrong — both fixed in v7.
