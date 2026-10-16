@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -577,16 +577,6 @@ All three: FINDINGS on frozen v22 @ 3b0639d. NOTE: the R21 itemized table landed
 
 All 20 labeled findings adopted; no rejections.
 
-
-
-
-
-
-
-
-
-
-
 ## Round 24 → v25 (14 labeled = Cursor 9 + GLM 5; first round with the 2-reviewer set)
 
 Opus discarded unprocessed (user decision). All findings adopted:
@@ -604,10 +594,22 @@ Opus discarded unprocessed (user decision). All findings adopted:
 | 9 | Cursor r22-theme-count-arith-residue (low); GLM (in T13) | adopted — 12+1 | header |
 | 10 | GLM item16-packaged-trace-mechanism-unspecified (low) | adopted — myclipgatetrace hook | grep |
 
+All 14 labeled findings adopted; no rejections.
+
 ## Round 25 → v26 (8 themes + 1 meta from 14 labeled findings: Cursor 8 + GLM 6; 2-reviewer set)
 
-All findings adopted: count-site sweep (PLAN L7 R23/R22 segments, L66 R22 — 12+1); loop line → two-reviewer set; D7 physically under Blocking M1 (list item 5) + L110 note rewritten; R24 heading dup; findSimilarItem proof scope (=2, both §3.2); stamp-in-commit convention recorded. Proof counts exclude the proving row's own text.
-| 11 | Opus R23 residual themes (settings-loss, unpause latch, launch method, lastCheck, downloads-pref, 12a-ii, item16-env) | adopted (v24) — see Round 23 T15/T16 | PLAN text |
+All findings adopted (count-site sweep + hygiene). Executed proofs: `same three reviewers`=0; `R23: 27 labeled`=1; R22 `dedup 12 themes`=1; `→ v25 → v25`=0; D7 blocking-list item=1. Proof counts exclude the proving row's own text.
+
+| Theme | Findings | Disposition |
+|---|---|---|
+| T1 count-site sweep (L7 R23 20→27/9/10/8 + R22 13→12; L66 R22 13→12) | Cursor r23-count-residue-revisions-line (med); r24-d9-r22-theme-count-unlanded (med); GLM plan-r23-revision-chain-count-stale (low); r22-theme-count-plan-residue (low) | adopted — all sites aligned, grep-proven |
+| T2 loop line 3-reviewer stale | Cursor reviewer-loop-set-contradiction (high); GLM review-loop-line-stale-3-reviewer-set (med-low) | adopted — two-reviewer set + CLEAR rule |
+| T3 D7 heading physical move + L110 note | Cursor r24-d4-d7-heading-not-moved (med); GLM d7-blocking-missing-from-ledger-decision-list (med) | adopted — D7 = blocking item 5; note rewritten |
+| T4 R24 heading dup | GLM ledger-r24-header-version-duplicated (low) | adopted — single arrow |
+| T5 findSimilarItem proof scope | Cursor r23-t5-findsimilaritem-count-proof-false (low-med); GLM dispute | adopted — cell states =2 with scope (both §3.2); grep = 2 |
+| T6 M5 decision framing | GLM m5-signing-decision-framing-divergence (low) | resolved — decision commit post-dated the reviewed revision; PLAN M5 carries DECIDED text (verified) |
+| T7 stamp-in-commit hygiene | Cursor plan-header-identity-miss (high); GLM plan-header-version-stamp-at-reviewed-commit (low) | adopted — convention recorded in PLAN Review tracking (stamps land in the revision commit) |
+| T8 packet identity (meta) | — | R26 packet mechanical |
 
 All 14 labeled findings adopted; no rejections.
 
@@ -617,11 +619,27 @@ All findings adopted. Executed proofs: `same three reviewers`=0; R23/R22 L7 segm
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R25 section landed inside R24 table (dup heading + orphan row 11) | Cursor ledger-r25-section-duplicated-garbled (high); GLM ledger-r25-section-inserted-inside-r24-table (med) | adopted — dup heading removed; row 11 + R24 closing restored; single R25 section after R24 | headings=1; row11+closing intact |
+| T1 R25 section landed inside R24 table (dup heading + orphan row 11) | Cursor ledger-r25-section-duplicated-garbled (high); GLM ledger-r25-section-inserted-inside-r24-table (med) | adopted — **MISAPPLIED at first attempt (R27 correction): the dedup deleted the intact T1–T8 table and kept garbled prose; restored verbatim from 0cd5808, row 11 deleted as dup of R23 T15/T16 (credited discarded Opus), R24 closing after row 10, single clean R25 section** | headings=1; T1–T8 table present; row11=0 |
 | T2 index stops at R24 | Cursor ledger-rounds-index-stale-stops-at-r24 (med); GLM ledger-rounds-index-missing-r25 (low) | adopted — index through R26 | index text |
 | T3 D7 ghost row under Before M3/M5 | Cursor r25-t3-d7-ghost-row-under-before (med); GLM d7-double-listed-decision-items (low) | adopted — ghost deleted; D7 only under Blocking item 5 | grep `BEFORE M1 implementation` = 0 |
 | T4 M1 lock still offered Developer ID | Cursor m1-dev-signing-or-developer-id-contradicts-r25-c (med) | adopted — M1 lock = self-signed only (Developer ID deferred to public flip) | `Developer ID deferred to public flip` = 1 |
 | T5 packet identity (meta) | — | R27 packet mechanical | /tmp packet |
 
 All 7 labeled findings adopted; no rejections.
+
+## Round 27 → v28 (4 themes + 1 meta from 8 labeled findings: Cursor 4 + GLM 4; 2-reviewer set)
+
+All findings adopted. R26-T1's misapplied dedup corrected (R25 T1–T8 table restored verbatim from 0cd5808; row 11 deleted as dup; R24 closing after row 10).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 PLAN stamp v27 not in revision commit | Cursor plan-header-v27-stamp-unlanded (high); GLM plan-title-stamp-v27-not-applied (high) | adopted — title v27 + L7/L66 R26 segments land in THIS commit with the R27 ledger (stamp-in-commit rule honored from here) | header + segments in this commit |
+| T2 R25 itemized table destroyed by R26 fix | Cursor r26-t1-kept-garbled-r25-deleted-theme-table (high); GLM ledger-r25-itemized-table-deleted-by-r26-fix (high) | adopted — T1–T8 table restored verbatim from 0cd5808; garbled prose block deleted; single R25 section | headings=1; table present |
+| T3 row 11/closing not as described | GLM r26-t1-row11-closing-not-restored-as-described (med) | adopted — row 11 deleted as dup (duplicates R23 T15/T16 + credits Opus, discarded at R24); R24 closing after row 10 | row11=0; closing present |
+| T4 §3.6 Developer-ID escalation residue | Cursor r26-t4-lv-spike-developer-id-escalate-residue (med); GLM s36-developer-id-escalation-clause-contradicts-r25-c (med) | adopted — LV-fail ⇒ D13 branch only; Developer ID revisited before public flip | `escalates to PRE-M1` = 0 |
+| T5 R26-T3 proof cell false (self-quote scope) | Cursor r26-t3-proof-false-despite-ghost-removed (low-med) | adopted — proof re-scoped to the decisions block (no D7 under `**Before M3/M5:**`); LEDGER self-quote hits (L519/R21-T7 rationale + R26 proof cell) are not decision-surface | scoped grep in decisions block |
+| T6 packet identity (meta) | — | R28 packet mechanical | /tmp packet |
+
+All 8 labeled findings adopted; no rejections.
+
 
