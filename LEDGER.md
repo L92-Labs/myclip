@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -397,12 +397,12 @@ All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propaga
 | Theme | Findings | Disposition | Anchor |
 |---|---|---|---|
 | T1 D1/D5 "display-only" residue | Cursor parity-d1-d5-display-only-stale-vs-r15-t5 (med); Opus parity-d1-d5-set-allowlist-stale-vs-r15-t5 (low); GLM t5-reclassification-parity-display-only-residue (low) | adopted — "closed non-security set (display + range-validated cadence)"; PARITY §1 clipboardCheckInterval row names the set surface | PARITY D1/D5, §1 |
-| T2 cadence max unnamed — soft-disable | Cursor clipboardCheckInterval-max-unnamed-soft-disables-capture (med-high) | adopted — max pinned 3600s; above-max ⇒ rejected (soft-disable of capture forbidden) | PLAN §3.7, M1 #10 |
+| T2 cadence max unnamed — soft-disable | Cursor clipboardCheckInterval-max-unnamed-soft-disables-capture (med-high) | adopted — max pinned 3600s; above-max ⇒ rejected (soft-disable of capture forbidden) (**superseded by R20-T6**: CLI max 5s, larger via Advanced pane) | PLAN §3.7, M1 #10 |
 | T3 #9a injection-leg DR untyped | Cursor gate9a-injection-alternate-pinned-requirement-vs-dylib-dr (med) | adopted — "pinned dylib DR" in both 9a legs | PLAN M1 #9a |
 | T4 D13 row singular DR | Cursor parity-d13-singular-dr-omits-separate-dylib-dr (med) | adopted — distinct dylib DR named; residual reworded (T6) | PARITY D13 |
 | T5 gate-10 dylib-DR unconditional | Cursor gate10-dylib-dr-assert-unconditional-vs-d13 (low-med); Opus gate10-dylib-dr-unconditional (low) | adopted — #10 asserts CLI peer DR only; dylib DR evidence lives in #9a (D13 active) | PLAN M1 #10 |
 | T6 validate-then-dlopen TOCTOU window | Opus d13-validate-then-dlopen-toctou-residual-understated (med) | adopted — `sqlite.Load()` immediately after validation in ③c; post-load mapped-image cdhash check ⇒ fatal on mismatch; D13 residual = "same-user code injection inheriting MyClip's TCC grants"; 12b swap-after-validation race test | PLAN §3.6, N1, M1 #12b |
-| T7 settings-read fail-open | Opus settings-read-failure-fails-open (low-med) | adopted — ④ read error ⇒ pref=false, ⑥ still runs; pre-seeded true can never win | PLAN N1 ④ |
+| T7 settings-read fail-open | Opus settings-read-failure-fails-open (low-med) | adopted — ④ read error ⇒ pref=false, ⑥ still runs; pre-seeded true can never win (**superseded in part by R21-T3**: capture-safe mode + ignore-chain fail-safe added) | PLAN N1 ④ |
 | T8 sidecar pre-create WAL drift | Opus sidecar-precreate-forces-wal-drift (low-med) | adopted — ③b pre-creates main DB only; sidecars fchmod-or-refuse; #3 asserts journal_mode every launch + sidecar modes after first write | PLAN N1 ③b, M1 #3 |
 | T9 single-instance lock absent | Opus single-instance-unspecified (low) | adopted — ②b `RequestSingleInstanceLock` before any poller/copy/socket work; new gate item 17 (second launch ⇒ exit) (**superseded by R17-T6 + R18-T7**: call removed entirely — fail-closed flock + CI ban; this row's design is void) | PLAN N1, M1 #17 |
 | T10 AST true-ident shadowable | Opus ast-true-ident-shadowable (low) | adopted — constant-true via `types.Info` (name comparison shadowable) | PLAN N1 |
@@ -424,8 +424,8 @@ All three: FINDINGS on frozen v17 @ 58ce152. Dominant: the R16-T6 disposition cl
 | T3 Load vs Open vocabulary contradiction | Cursor n1-sqlite-load-vs-open-order-contradiction (med) | adopted — dylib bind ≠ DB open; ③b before any DB open; 12b asserts no DB open before ③b, Load only inside ③c | PLAN N1, M1 #12b |
 | T4 AutomaticDownloads asymmetric fail-open | Cursor automaticdownloads-asymmetric-fail-open (low-med) | adopted — ⑥ forces `SetAutomaticDownloads(false)` unless MyClip-owned pref; pre-seed test extended | PLAN N1 ⑥ |
 | T5 settings backend undefined (MyGo has NO settings API) | Cursor settings-db-0600-precreate-unsequenced (low-med); Opus settings-store-backend-undefined (low-med) | adopted — settings store = MyClip-owned sqlite `settings.db`, §3.4 recipe, pre-created in ③b; void probe removed | PLAN N1 ④, ③b |
-| T6 single-instance fail-open + scope | Opus single-instance-lock-fail-open-and-scope (med); GLM mygo-single-instance-fail-open-unrecorded (low) | adopted — MyClip-owned fail-closed flock `<dataRoot>/run/myclip.lock`; MyGo lock = arg-forwarding only; fail-open semantics recorded as residual; #17 + dev+packaged concurrent test | PLAN N1 ②b, M1 #17 |
-| T7 single-instance listener unauth ingress | Opus single-instance-listener-unauthenticated-ingress (low) | adopted — §3.7 threat model records the always-on listener; handlers = focus-popup only; CI rule forbids verb wiring | PLAN §3.7 |
+| T6 single-instance fail-open + scope | Opus single-instance-lock-fail-open-and-scope (med); GLM mygo-single-instance-fail-open-unrecorded (low) | adopted — MyClip-owned fail-closed flock `<dataRoot>/run/myclip.lock`; MyGo lock = arg-forwarding only (**superseded by R18-T7**: call removed entirely); fail-open semantics recorded as residual; #17 + dev+packaged concurrent test | PLAN N1 ②b, M1 #17 |
+| T7 single-instance listener unauth ingress | Opus single-instance-listener-unauthenticated-ingress (low) | adopted — §3.7 threat model records the always-on listener; handlers = focus-popup only; CI rule forbids verb wiring (**superseded by R18-T7/R19-T3**: listener never bound — call banned) | PLAN §3.7 |
 | T8 journal-mode drift no remediation | Opus journal-mode-drift-no-remediation (low) | adopted — stray `-wal`: checkpoint(TRUNCATE) → re-pin DELETE → assert → fail closed only on re-pin failure; stray-wal launch test in #3 | PLAN M1 #3 |
 | T9 D13 downgrade residue (PARITY + decision #11) | Opus d13-downgrade-residue (low-med) | adopted — both sites carry the R16-T6 wording | PARITY D13, LEDGER #11 |
 | T10 R16 header meta unlabeled | Opus ledger-r16-count-meta-unlabeled (low) | adopted — "13 themes + 1 meta (T14 excluded)" at all sites | LEDGER, PLAN L7/L66 |
@@ -493,7 +493,7 @@ All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof proc
 | T3 AST allowlist bans own API | Opus ast-uses-allowlist-bans-own-api (med) | adopted — OnChange/getters added; `_test.go` exempt | text present |
 | T4 OnChange registration unpinned | Opus onchange-registration-unpinned (low-med) | adopted — pinned step ⑥b; callback-time read; 12b pre-seed leg | text present |
 | T5 updater.json 0644 unasserted | Opus updater-json-mode-unasserted (low) | adopted — accepted residual recorded + asserted at both gate sites | text present |
-| T6 CLI interval max 3600s still soft-disables | Opus set-interval-max-soft-disables (low) | adopted — CLI max 5s; larger cadences via Advanced pane only | `3600s` = 0 in PLAN rationale upda- no: rationale retained w/ new max; PARITY D1 range synced |
+| T6 CLI interval max 3600s still soft-disables | Opus set-interval-max-soft-disables (low) | adopted — CLI max 5s; larger cadences via Advanced pane only | `3600s` = 1 in PLAN (rationale clause only, intentional); PARITY = 0 |
 | T7 N1 check-leg host set included asset hosts | Cursor n1-allowed-hosts-include-assets-vs-12a-i (med) | adopted — check leg = feed host(s) only; asset hosts predeclared for 12a-ii | text present |
 | T8 R16-T9 supersession marker falsely claimed | Cursor r19-t11-supersession-marker-absent (med); Opus r19-t11-supersession-not-landed (low-med); GLM r19-t11-supersession-marker-absent (low) | adopted — marker landed byte-verified this time | `superseded by R17-T6 + R18-T7` = 1 |
 | T9 "always-on" grep proof false | Cursor LEDGER-CHECK; Opus r19-t3-grep-proof-false (low); GLM r19-t3-grep-proof-falsified (low) | adopted — PLAN lexeme changed; proof re-run = 0 | `always-on` = 0 |
@@ -526,6 +526,29 @@ All three: FINDINGS on frozen v21 @ a523a0a. Headline: Opus falsified v20's OnCh
 | T14 packet identity (meta) | — | R22 packet generated mechanically from headers | /tmp packet |
 
 All 20 labeled findings adopted; no rejections.
+
+## Round 22 → v23 (13 themes + 1 meta from 20 labeled findings: Cursor 6 + Opus 11 + GLM 3)
+
+All three: FINDINGS on frozen v22 @ 3b0639d. NOTE: the R21 itemized table landed post-hoc (commit after the reviewed one) — R22 reviewers flagged it; from R23 on, the ledger section for round N is committed in the SAME commit as plan revision N+1, before reviewers launch. Procedural fix for the marker class: v23's supersession edits carry PER-ROW read-back proofs executed inside the edit script (output below, verbatim).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 markers falsely claimed 3rd time (R16-T2/R17-T6/R17-T7) + R16-T7 part | Cursor r21-t10-supersession-markers-selfquote-false (med); Opus r21-t10-supersession-markers-false-proof (med); GLM ledger-r21-t10-supersession-markers-falsely-claimed (med-low) | adopted — 4 markers landed ON the target rows; per-row read-back proof in edit script (PROOF OK ×4 printed above) | in-script read-back |
+| T2 R21 ledger dropped 2 Cursor findings + count | Opus r21-ledger-drops-cursor-findings (med) | adopted — T15 (dylib-mode residue, fixed in PLAN w/o row) + T16 (verbatim overclaim) rows added; R21 = 20 labeled (5/11/4), 15 themes + 1 meta | LEDGER R21 table |
+| T3 12a-i/ii host sets vs N1 (both directions) | Cursor n1-12ai-host-set-self-contradiction (med); Opus gate12a-i-host-set-contradicts-n1 (med) | adopted — gate copies N1 per-feed-form sets verbatim (plain ⇒ feed only; TaggedFeed ⇒ +api.github.com+redirects); 12a-ii = manifest archive URLs + redirects | text present |
+| T4 capture-safe semantics undefined (fresh-install trap) | Cursor settings-failsafe-trigger-ambiguous (high); Opus r21-t3-capture-safe-not-in-gate-and-ambiguous (med) | adopted — absent key/empty store ⇒ defaults (NOT an error); I/O/parse/schema ⇒ capture-safe; recovery = reset-settings confirmation + resume test; gate #2 legs | text present |
+| T5 #12b pref legs verbatim | Cursor gate12b-ssot-omits-6-assert-and-window-mirror (med) | adopted — sync assert (equality form) + window-injection legs enumerated in #12b | text present |
+| T6 ⑥b assert unconditional wording | Opus post6-assert-unconditional-wording (low) | adopted — equality assert, #12b-scoped under pref=false precondition | text present |
+| T7 OnChange async-loss UX residual | Opus onchange-mirror-async-loss (low) | adopted — quit-hook flush (re-read + persist before exit); 12b leg: window response + immediate quit ⇒ next-launch pref matches | text present |
+| T8 settings.db same-uid writable unrecorded | Opus settings-db-same-uid-writable-threat-model (low) | adopted — §3.7 + D1: allowlist = confused-deputy hardening only | text present |
+| T9 D7 heading + PRE-M1 (b) + PARITY statuses + L110 note | Cursor d7-signoff-section-vs-before-m1 (low); Opus r21-t7-signoff-timing-partial (low-med) | adopted — D7 under blocking (PARITY "blocks M1"); D10 before M2; L110 note rewritten; PARITY stamp v19 | PARITY header |
+| T10 garble second copy | Cursor n1-ci-allowlist-garbled-duplicate (low); Opus r21-t6-garble-not-fixed (low) | adopted — duplicate re-export note deleted | single occurrence |
+| T11 R20-T6/R21-T3 proof cells re-recorded | GLM ledger-r20-t6-proof-cell-still-garbled (low); GLM ledger-r21-t3-proof-lexeme-imprecise (low) | adopted — executed counts with rationale carve-outs + exact lexemes | cells updated |
+| T12 R21 preamble "verbatim" overclaim | Opus r21-ledger-drops-cursor-findings (part) | adopted — claim removed; proofs are recorded as command+count, not "verbatim transcripts" | text present |
+| T13 packet identity (meta) | Cursor LIMITATIONS note | adopted — R23 packet mechanical from headers | /tmp packet |
+
+All 20 labeled findings adopted; no rejections.
+
 
 
 

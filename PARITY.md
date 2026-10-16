@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v18; stamp = plan revision whose edits touched PARITY: v21)
+# MyClip ⇄ Maccy parity inventory (v19; stamp = plan revision whose edits touched PARITY: v23)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/Observables/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -99,10 +99,10 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D4 | `lastReviewRequestedAt`, `numberOfUsages` skipped | adopted (anti-features) |
 | D5 | No NSUserDefaults `defaults write` editing; Advanced shell recipes replaced by MyClip CLI (covers ignoreEvents/ignore-next + `set` on the closed non-security allowlist — display + validated cadence, §3.7) | **user sign-off pending — blocks M1** |
 | D6 | Per-item size cap + total DB budget, oversized skipped+recorded (Maccy: unbounded) | **user sign-off pending — blocks M1** |
-| D7 | Poll interval floor 100ms (Maccy allows any) | minor — user sign-off pending |
+| D7 | Poll interval floor 100ms (Maccy allows any) | **user sign-off pending — blocks M1** (poll loop ships at M1) |
 | D8 | If tray modifier-click spike fails: pause/ignore-next via tray menu items — and record that click-to-open popup is lost (MyGo: installed menu ⇒ plain click opens menu); spike must also prove left-click-popup + right-click-transient-menu coexistence | contingent on M1 spike |
 | D9 | No Vision OCR for image titles in v1 (image rows show placeholder title, unsearchable) — optional purego Vision spike later | **user sign-off pending** |
-| D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor |
+| D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor — user sign-off before M2 |
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
 | D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation — user sign-off pending (non-blocking) |
 | D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user code-injection residual (inheriting MyClip's TCC grants); bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a 'downgrade'); post-load mapped-image cdhash tripwire is best-effort and contingent on the PRE-M1 (c') attestation spike | contingent — user sign-off if triggered |
