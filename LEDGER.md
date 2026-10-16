@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -560,7 +560,7 @@ PROCEDURAL CONFESSION (recorded by reviewer demand): this section was omitted fr
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R23 ledger section missing | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — this table; index through R24 (**R30-T1's claim that this section `landed (9b296c8)` RETRACTED R34** — 9b296c8 never contained a Round-23 section) | this section |
+| T1 R23 ledger section missing | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — this table; index through R24 (**R30-T1's claim that this section `landed (9b296c8)` correction recorded R35** — 9b296c8 never contained a Round-23 section) | this section |
 | T2 #12b mirror legs verbatim | GLM r23-gate12b-ssot-omits-mirror-legs (med); Cursor gate12b-ssot-omits-n1-pref-legs (high, R24); Opus r22-t5-t7-12b-legs-missing-from-gate-ssot (med) | adopted (v24) — sync equality assert + window-injection + quit-flush legs in #12b | grep: `injected window response` in #12b |
 | T3 R21 T15/T16 + counts | GLM r23-ledger-r21-t2-rows-not-landed (med-low); Opus r22-t2-r21-rows-not-landed (med); Cursor r22-t2-r21-rows-not-landed (high, R24) | adopted (v24) — rows + header 15+1 + PLAN counts | grep: `T15 dylib-mode` = 1 |
 | T4 ClearNotifications not in Maccy | GLM r23-clearnotifications-nonexistent-in-maccy (low) | adopted (v24) — Notifier.swift authorize+notify only; reclassified MyClip-EXTRA hardening (PARITY row + PLAN M2) | grep: `MyClip-EXTRA` in PARITY |
@@ -682,7 +682,7 @@ Cursor first pass BLOCKED (connection lost, no verdict) — retried once, FINDIN
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R29 dispositions not at reviewed SHA (multi-commit landing) | Cursor r29-dispositions-not-in-reviewed-sha (high); GLM r29-chain-segment-never-landed-segment-rule-self-violated (med) | adopted — R29 segment + exception note landed (9b296c8); convention recorded: ledger section for round N commits with the disposition landing commits, packet SHA = tip containing them | preamble exception note |
+| T1 R29 dispositions not at reviewed SHA (multi-commit landing) | Cursor r29-dispositions-not-in-reviewed-sha (high); GLM r29-chain-segment-never-landed-segment-rule-self-violated (med) | adopted — R29 segment + exception note landed (9b296c8) — **RETRACTED (recorded R35)**: 9b296c8 = order/pointer only, never contained the segment; segments landed 8b26ed2. Convention recorded: ledger section for round N commits with the disposition landing commits, packet SHA = tip containing them | preamble exception note |
 | T2 PLAN M2 cite 141-144 residue | Cursor r29-t5-plan-cite-unlanded (med); GLM stale-cites-in-plan-after-t5-adoption (low-med) | adopted — PLAN:50 → 141-146 clear()-body cite | grep `141-144` in PLAN = 0 |
 | T3 L7 R28 segment elided vs L66 | Cursor l7-r28-segment-elided-vs-l66 (med) | adopted — L7 records R28 (same-stamp form: → v28, no v29) | grep `R28: 5 labeled` in PLAN = 1 |
 | T4 R29-T1/T5 proof scoping + preamble-at-SHA | Cursor r29-t1-ledger-preamble-false-at-65ed3fd (med) | adopted — proof cells scoped (`outside proof cells`); preamble exception note names the landing commit | grep `outside proof cells` = 1 |
@@ -709,7 +709,7 @@ All findings adopted. R31's landing commit 8b26ed2 appended the R29/R30 doc-only
 
 All 7 labeled findings adopted; no rejections.
 
-## Round 32 → v28 (6 themes + 1 meta from 15 labeled findings: Cursor 8 + GLM 7; 2-reviewer set)
+## Round 32 → v28 (9 themes + 1 meta from 15 labeled findings: Cursor 8 + GLM 7; 2-reviewer set)
 
 All findings adopted or rejected-with-evidence. Label census (regex on raw verdicts): R30 = 10 (Cursor 5 + GLM 5 — GLM-R32's "11 = GLM 6" recount wrong; T9 is a ledger-check row per the counting rule); R31 = 7 (Cursor 3 + GLM 4 — Cursor-R32's "should be 5 = 2/3" recount wrong; it re-derived from ledger cells instead of raw outputs).
 
@@ -736,16 +736,32 @@ All findings adopted. R32's T6–T9 disposition edits had NOT landed (heredoc Sy
 |---|---|---|---|
 | T1 R32-T6 note SHA separation unlanded | Cursor r32-t6-exception-note-sha-separation-unlanded (high); GLM r32-t6-t9-dispositions-false-at-83a82a4 (high) | adopted — preamble SHA-separation landed | `SHA separation (settled R32)` = 1 |
 | T2 R32-T7 R31 prose unlanded | Cursor r32-t7-r31-prose-rewrite-unlanded (high); GLM (same cell) | adopted — R31 intro rewritten | `segment landing IS a PLAN edit` = 1 |
-| T3 R32-T9 R30-T1 pointer unlanded | Cursor r32-t9-r30-t1-supersession-pointer-unlanded (med-high); GLM (same cell) | adopted — R24-T1 cell carries the retraction note | `RETRACTED R34` = 1 |
-| T4 R32-T8 proof re-scope unlanded | Cursor r32-t8-proof-rescope-unlanded (low-med); GLM (same cell) | adopted — R30-T4/T6/T9... cells reworded to executed-count form | cell text |
+| T3 R32-T9 R30-T1 pointer unlanded | Cursor r32-t9-r30-t1-supersession-pointer-unlanded (med-high); GLM (same cell) | adopted — **correction (recorded R35)**: the R32-T9 target was the R30-T1 cell (R24-T1 addresses a distinct Round-23-absence claim); pointer landed on R30-T1 in R35; R24-T1 note relabeled (recorded R35) | pointer on R30-T1 |
+| T4 R32-T8 proof re-scope unlanded | Cursor r32-t8-proof-rescope-unlanded (low-med); GLM (same cell) | adopted — R30-T4/T6 cells reworded to executed-count form (**landed R35**) | cell text |
 | T5 R32-T1 proof count 1→2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted — R32-T1 proof = 2 (L7 + L66) | cell text |
 | T6 R32 header 6→9 themes | Cursor r32-theme-count-header-6-vs-9 (med); GLM r32-header-theme-count-6-vs-9 (low-med) | adopted — header 9 themes + 1 meta | header |
 | T7 R32 own segment missing | Cursor r32-own-same-stamp-segment-missing (med) | adopted — L7/L66 R32 doc-only segments | grep |
 | T8 R31 GLM label unenumerated + R31 segment | GLM r31-table-enumerates-6-of-7-labels (low); Cursor r31 segment (in T7-class) | adopted — R31 header carries the full 7-label census; R31 segments landed in 8b26ed2 | census in R31 header |
-| T9 R31-T4 settled-count supersession | Cursor r31-t4-header-11-vs-settled-r30-10 (low-med) | adopted — R31-T4 cell superseded note (settled 10 = 5/5) | cell text |
+| T9 R31-T4 settled-count supersession | Cursor r31-t4-header-11-vs-settled-r30-10 (low-med) | adopted — R31-T4 cell carries the supersession note (**landed R35**: settled census 10 = Cursor 5 + GLM 5) | cell text |
 | T10 packet identity (meta) | — | R34 packet mechanical | /tmp packet |
 
 All 12 labeled findings adopted; no rejections.
+
+## Round 34 → v28 (doc-only; 7 themes + 1 meta from 9 labeled findings: Cursor 5 + GLM 4; 2-reviewer set; label census: Cursor r33-t4/t5/t6/t9 + GLM r33-t4/t5/t6/t9-dedup)
+
+All findings adopted — this round LANDED R33's four unlanded edits plus the identity/bookkeeping fixes.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R32-T6/T7/T8/T9 dispositions actually landed | Cursor r33-t4-t5-t6-t9-dispositions-false (high); GLM r33-t4/t5/t6/t9-dispositions-false-at-430c5a9 (high) | adopted — the 4 edits landed in THIS commit with read-back proofs | greps below |
+| T2 R30-T1 retraction on the right cell + R24-T1 relabel | Cursor r33-t3-wrong-cell-r30-t1-still-stale (high); GLM r33-t3-retraction-mislocated-and-target-cell-still-stale (med) | adopted — pointer on R30-T1 (recorded R35); R24-T1 distinct-claim note relabeled (recorded R35) | both cells |
+| T3 R33 own segment + index | Cursor r33-own-segment-and-index-missing (med); GLM r33-own-segment-and-index-missing (med) | adopted — L7/L66 R33 doc-only segments; index R33 | grep |
+| T4 R32 header 9 themes | Cursor r33-header-theme-count-8-vs-9 (med); GLM (T6) | adopted | header |
+| T5 R32-T1 proof = 2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted | cell |
+| T6 packet identity (meta) | — | R35 packet mechanical | /tmp packet |
+
+All 9 labeled findings adopted; no rejections.
+
 
 
 
