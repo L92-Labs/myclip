@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -100,10 +100,10 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 4. D6 size caps / DB budget — approve or drop.
 
 **Before M3/M5:**
-5. D7 poll floor 100ms — approve (BEFORE M1 implementation — the poll loop ships at M1).
+5. D7 poll floor 100ms — approve (BEFORE M1 implementation — the poll loop ships at M1). **Moved under Blocking M1 start at R24** — see the blocking list.
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
-8. D10 copy sounds via MyGo audio — approve (BEFORE M2 — sounds ship at M2).
+8. D10 copy sounds via MyGo audio — approve (Before M2 — sounds ship at M2.)
 9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
@@ -484,7 +484,7 @@ All 27 labeled findings adopted; no rejections.
 
 ## Round 20 → v21 (12 themes + 1 meta from 19 labeled findings: Cursor 5 + Opus 10 + GLM 4)
 
-All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof procedure itself: 2 proofs were false (`always-on` hit a negated clause; `#13` matched a gate item, not a decision) and R16-T9's claimed marker had never landed. v21 introduces EXECUTED grep proofs — the proof block below was run after the edits and its output is recorded verbatim.
+All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof procedure itself: 2 proofs were false (`always-on` hit a negated clause; `#13` matched a gate item, not a decision) and R16-T9's claimed marker had never landed. v21 introduced executed grep proofs — proof cells record the executed command + count (not transcripts).
 
 | Theme | Findings | Disposition | Proof (executed post-edit) |
 |---|---|---|---|
@@ -529,13 +529,39 @@ All three: FINDINGS on frozen v21 @ a523a0a. Headline: Opus falsified v20's OnCh
 
 All 20 labeled findings adopted; no rejections.
 
-## Round 22 → v23 (13 themes + 1 meta from 20 labeled findings: Cursor 6 + Opus 11 + GLM 3)
+## Round 23 → v24 (15 themes + 1 meta from 27 labeled findings: Cursor 9 + Opus 10 + GLM 8)
 
-All three: FINDINGS on frozen v22 @ 3b0639d. NOTE: the R21 itemized table landed post-hoc (commit after the reviewed one) — R22 reviewers flagged it; from R23 on, the ledger section for round N is committed in the SAME commit as plan revision N+1, before reviewers launch. Procedural fix for the marker class: v23's supersession edits carry PER-ROW read-back proofs executed inside the edit script (output below, verbatim).
+PROCEDURAL CONFESSION (recorded by reviewer demand): this section was omitted from commit 199a771 — the R23 itemized table was written into the edit script but the append never executed (the script's earlier R21-fixup pair had already consumed the anchor). 6th recurrence of the itemize-every-round class; landed now, before R25 launches. Also corrected here: GLM R23 = 8 labeled (the first extraction was truncated; PLAN's "GLM 3" understated it) ⇒ R23 = 27 labeled, not 20. REVIEWER-SET CHANGE (user decision at R24): Claude/Opus removed; reviewers = Cursor Agent Auto + GLM-5.3-Flash; CLEAR = both remaining reviewers on the same revision. R24's Opus output was discarded unprocessed.
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 markers falsely claimed 3rd time (R16-T2/R17-T6/R17-T7) + R16-T7 part | Cursor r21-t10-supersession-markers-selfquote-false (med); Opus r21-t10-supersession-markers-false-proof (med); GLM ledger-r21-t10-supersession-markers-falsely-claimed (med-low) | adopted — 4 markers landed ON the target rows; per-row read-back proof in edit script (PROOF OK ×4 printed above) | in-script read-back |
+| T1 R23 ledger section missing | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — this table; index through R24 | this section |
+| T2 #12b mirror legs verbatim | GLM r23-gate12b-ssot-omits-mirror-legs (med); Cursor gate12b-ssot-omits-n1-pref-legs (high, R24); Opus r22-t5-t7-12b-legs-missing-from-gate-ssot (med) | adopted (v24) — sync equality assert + window-injection + quit-flush legs in #12b | grep: `injected window response` in #12b |
+| T3 R21 T15/T16 + counts | GLM r23-ledger-r21-t2-rows-not-landed (med-low); Opus r22-t2-r21-rows-not-landed (med); Cursor r22-t2-r21-rows-not-landed (high, R24) | adopted (v24) — rows + header 15+1 + PLAN counts | grep: `T15 dylib-mode` = 1 |
+| T4 ClearNotifications not in Maccy | GLM r23-clearnotifications-nonexistent-in-maccy (low) | adopted (v24) — Notifier.swift authorize+notify only; reclassified MyClip-EXTRA hardening (PARITY row + PLAN M2) | grep: `MyClip-EXTRA` in PARITY |
+| T5 merge matrix misses isModified path | GLM r23-merge-matrix-misses-ismodified-path (low-med); Cursor merge-matrix-misses-ismodified-path (med, R24) | adopted (v25) — findSimilarItem verbatim (supersedes OR isModified, ModifiedType ⇒ stored contents win, copies summation); M1 pre-task + merge test | grep: `findSimilarItem` in PLAN = 2 |
+| T6 D7 blocking set | GLM r23-d7-missing-from-prem1-blocking-list (low-med); Cursor r23-t4-d7-ledger-heading-unmoved (med, R24); Opus r22-t9-d7-not-blocking-in-plan-or-ledger (low-med) | adopted — PRE-M1(b) D1/D5/D6/D7; §3.4 D7 clause; PARITY D7 blocks-M1; LEDGER #5 heading moved | grep: `D1/D5/D6/D7` in PLAN |
+| T7 D1 settings.db mirror | GLM r23-d1-signoff-missing-settingsdb-writable (low); Cursor parity-d1-settingsdb-writable-gap (med, R24) | adopted (v25) — PARITY D1 carries same-UID-writable + confused-deputy-only clause | grep: `confused-deputy hardening only` in PARITY = 1 |
+| T8 gate2 capture-safe SSOT legs | Cursor gate2-ssot-omits-n1-capture-safe-legs (high, R24); GLM gate2-ssot-missing-settings-loss-leg (med, R24); Opus capture-safe-bypass-via-unpause (med) | adopted (v25) — latch survives unpause/CLI-off; settings-loss ⇒ capture-safe; ignore-chain-load-failure ⇒ capture-safe; quit-during-safe ⇒ no write; all verbatim in #2 | grep: `captureSafe` latch survives tray unpause |
+| T9 12a-i host set feed-form-conditioned | Cursor n1-12ai-host-set-self-contradiction (med, R24) | adopted (v25) — NOT feed-only for TaggedFeeds | grep: `NOT feed-only for TaggedFeeds` |
+| T10 verbatim/proof claims | GLM r23-r22-preamble-verbatim-output-absent (low); Cursor r23-t2-proof-claim-still-false (med, R24); Opus r22-t1-proof-output-absent (low-med) | adopted (v25) — claims replaced with executed-output records | grep: `recorded verbatim` = 0 |
+| T11 #962 miscite | GLM r23-parity-regex-row-miscites-962 (low); Cursor parity-ignoreregexp-miscites-962 (low, R24) | adopted (v25) — re-pointed to `shouldIgnore(_ item:)` | grep in PARITY = 1 |
+| T12 PARITY stamp | Cursor parity-stamp-stale-after-v24-touch (low, R24); GLM parity-stamp-stale-v23-vs-v24-edit (low) | adopted (v25) — stamp v20 = PLAN v25 (touched this commit) | header text |
+| T13 R22 count 12+1 | Cursor r22-theme-count-arith-residue (low, R24) | adopted (v25) — header aligned | header text |
+| T14 #16 packaged trace mechanism | GLM item16-packaged-trace-mechanism-unspecified (low, R24) | adopted (v25) — myclipgatetrace build tag → stderr JSON, harness-captured | grep: `myclipgatetrace` |
+| T15 settings-loss fresh-install rule + latch tests (Opus R23) | Opus settings-db-loss-silently-defaults-ignore-chain (low-med); capture-safe-bypass-via-unpause (med) | adopted (v24 + v25 gate legs) | #2 text |
+| T16 packaged launch/env asserts (Opus R23) | Opus packaged-env/HOME-launch-method-unspecified (low); lastcheck-channel-on-packaged-artifact (low); downloads-pref-undefined-on-settings-error (low); item16-env-assert-contradiction (low); n1-vs-12a-ii-host-set-divergence (low) | adopted (v24) — exec launch method; lastCheck file-field; pref=false on error; redirect targets | PLAN text |
+| T17 meta | — | R25 packet mechanical | /tmp packet |
+
+All 27 labeled findings adopted; no rejections.
+
+## Round 22 → v23 (12 themes + 1 meta from 20 labeled findings: Cursor 6 + Opus 11 + GLM 3; T13 meta excluded)
+
+All three: FINDINGS on frozen v22 @ 3b0639d. NOTE: the R21 itemized table landed post-hoc (commit after the reviewed one) — R22 reviewers flagged it; from R23 on, the ledger section for round N is committed in the SAME commit as plan revision N+1, before reviewers launch. Procedural fix for the marker class: v23's supersession edits carried PER-ROW read-back proofs executed inside the edit script (executed output: PROOF OK R16-T2 / R16-T7 / R17-T6 / R17-T7 — four lines, one per marker row).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 markers falsely claimed 3rd time (R16-T2/R17-T6/R17-T7) + R16-T7 part | Cursor r21-t10-supersession-markers-selfquote-false (med); Opus r21-t10-supersession-markers-false-proof (med); GLM ledger-r21-t10-supersession-markers-falsely-claimed (med-low) | adopted — 4 markers landed ON the target rows; per-row read-back proof in edit script (executed read-back printed in the edit-script log (4 lines)) | in-script read-back |
 | T2 R21 ledger dropped 2 Cursor findings + count | Opus r21-ledger-drops-cursor-findings (med) | adopted — T15 (dylib-mode residue, fixed in PLAN w/o row) + T16 (verbatim overclaim) rows added; R21 = 20 labeled (5/11/4), 15 themes + 1 meta | LEDGER R21 table |
 | T3 12a-i/ii host sets vs N1 (both directions) | Cursor n1-12ai-host-set-self-contradiction (med); Opus gate12a-i-host-set-contradicts-n1 (med) | adopted — gate copies N1 per-feed-form sets verbatim (plain ⇒ feed only; TaggedFeed ⇒ +api.github.com+redirects); 12a-ii = manifest archive URLs + redirects | text present |
 | T4 capture-safe semantics undefined (fresh-install trap) | Cursor settings-failsafe-trigger-ambiguous (high); Opus r21-t3-capture-safe-not-in-gate-and-ambiguous (med) | adopted — absent key/empty store ⇒ defaults (NOT an error); I/O/parse/schema ⇒ capture-safe; recovery = reset-settings confirmation + resume test; gate #2 legs | text present |
@@ -561,3 +587,22 @@ All 20 labeled findings adopted; no rejections.
 
 
 
+## Round 24 → v25 → v25 (14 labeled = Cursor 9 + GLM 5; first round with the 2-reviewer set)
+
+Opus discarded unprocessed (user decision). All findings adopted:
+
+| # | Findings | Disposition | Proof |
+|---|---|---|---|
+| 1 | Cursor ledger-r23-section-missing (high); GLM r23-ledger-section-missing (high) | adopted — Round 23 table landed (above), same-commit rule enforced from R25 | this commit |
+| 2 | Cursor gate2-ssot-omits-n1-capture-safe-legs (high); GLM gate2-ssot-missing-settings-loss-leg (med) | adopted — #2 legs verbatim | grep |
+| 3 | Cursor r23-t2-proof-claim-still-false (med); GLM r23-r22-preamble-verbatim-output-absent (low) | adopted — scrubbed | grep `recorded verbatim` = 0 |
+| 4 | Cursor r23-t4-d7-ledger-heading-unmoved (med); GLM d7-blocking-missing-from-ledger-decision-list (med) | adopted — #5 heading moved; D10 grouped pre-M2 | grep |
+| 5 | Cursor parity-d1-settingsdb-writable-gap (med); GLM r23-d1-signoff-missing-settingsdb-writable (low) | adopted — PARITY D1 clause | grep |
+| 6 | Cursor merge-matrix-misses-ismodified-path (med); GLM r23-merge-matrix-misses-ismodified-path (low-med) | adopted — §3.2 findSimilarItem + pre-task + test | grep |
+| 7 | Cursor parity-stamp-stale-after-v24-touch (low); GLM parity-stamp-stale-v23-vs-v24-edit (low) | adopted — stamp = v25 | header |
+| 8 | Cursor parity-ignoreregexp-miscites-962 (low); GLM r23-parity-regex-row-miscites-962 (low) | adopted — shouldIgnore(item) citation | grep |
+| 9 | Cursor r22-theme-count-arith-residue (low); GLM (in T13) | adopted — 12+1 | header |
+| 10 | GLM item16-packaged-trace-mechanism-unspecified (low) | adopted — myclipgatetrace hook | grep |
+| 11 | Opus R23 residual themes (settings-loss, unpause latch, launch method, lastCheck, downloads-pref, 12a-ii, item16-env) | adopted (v24) — see Round 23 T15/T16 | PLAN text |
+
+All 14 labeled findings adopted; no rejections.
