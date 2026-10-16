@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v7), R7 (v8), R8 (v9), R9 (v10), R10 (v11), R11 (v12).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -104,7 +104,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
 8. D10 copy sounds via MyGo audio — approve.
-9. M5 signing: Developer ID owner? (fallback: self-signed identity via the production signing path — emits hardened runtime; plain ad-hoc only as recorded deviation)
+9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -254,7 +254,7 @@ Root cause recorded: several R7 disposition edits silently failed to match in th
 
 All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
 
-## Round 9 → v10 — itemized (15 labeled findings = 9 themes: Cursor 5 + Opus 6 + GLM 4)
+## Round 9 → v10 — itemized (14 labeled findings = 8 themes: Cursor 4 + Opus 6 + GLM 4)
 
 | Reviewer | Label | Sev | Theme | Disposition | Anchor |
 |---|---|---|---|---|---|
@@ -283,7 +283,7 @@ Gate-9 rows (m1-gate-9-na-overbroad / m1-gate-9-waiver-overbroad / m1-gate-na-br
 | T2 acceptance N1 split mirror | Cursor acceptance-n1-ignores-opt-in-split (med) | adopted — mirrored | PLAN acceptance |
 | T3 acceptance CI branches on runner decision | Cursor acceptance-ci-contradicts-no-ci-mode (med) | adopted | PLAN acceptance |
 | T4 socket path recipe (tilde + run/ mkdir) | Cursor socket-path-tilde-and-run-mkdir-undercorrected (med) | adopted — Join(dataRoot,"run") + MkdirAll | PLAN §3.7 |
-| T5 ledger bookkeeping | Cursor ledger-count-and-index-still-diverged (low-med); Opus ledger-r9-not-itemized (med); Opus ledger-r8-itemization-incomplete + round-mislabels (low-med); Opus ledger-rounds-index-stale regression (low); Opus r3-count-self-contradiction (low); GLM r3-revision-count-stale-in-plan-header (low); GLM r9-count-arithmetic-does-not-sum (low); GLM ledger-rounds-index-still-stops-at-r5 (low); GLM r9-ledger-unitemized (low) | adopted — R3=19 everywhere; R9 itemized (15→9); R8 meta rows relabeled (18 labeled); index through R10 | LEDGER, PLAN headers |
+| T5 ledger bookkeeping | Cursor ledger-count-and-index-still-diverged (low-med); Opus ledger-r9-not-itemized (med); Opus ledger-r8-itemization-incomplete + round-mislabels (low-med); Opus ledger-rounds-index-stale regression (low); Opus r3-count-self-contradiction (low); GLM r3-revision-count-stale-in-plan-header (low); GLM r9-count-arithmetic-does-not-sum (low); GLM ledger-rounds-index-still-stops-at-r5 (low); GLM r9-ledger-unitemized (low) | adopted — R3=19 everywhere; R9 itemized (14 labeled = 8 themes, settled R11 from raw reviewer outputs); R8 meta rows relabeled (18 labeled); index through R10 | LEDGER, PLAN headers |
 | T6 updater init sequence + nettop host | Opus updater-init-sequence-underspecified (low-med); Opus nettop-pref-on-host-set-wrong (low-med) | adopted — pinned 8-step main() order + M1 test; feed-host-pinned egress | PLAN N1, §3.6 |
 
 ## Round 11 → v12 (13 themes + 1 meta from 20 labeled findings: Cursor 4 + Opus 10 + GLM 6)
@@ -308,4 +308,29 @@ Context: first R11 launch lost Cursor (0B) + GLM (killed mid-stream) to a sessio
 | T14 grep third clause non-greppable | GLM n1-grep-third-clause-nongreppable (low) | adopted — `updater.New(` banned outright; `native.New(` clause via statement-level slurped CI check | PLAN N1 |
 
 All 20 labeled findings adopted; no rejections this round. Packet template (T10) was an implementer artifact, corrected for R12.
+
+## Round 12 → v13 (15 themes from 22 labeled findings: Cursor 6 + Opus 8 + GLM 8)
+
+All three: FINDINGS on frozen v12 @ 484738e. T9-class residue (R9 counts in PLAN Review-tracking line + LEDGER itemized header + R10 T5 text) survived v11's fix because the anchors named in R11-T9's disposition (PLAN L7, LEDGER L199/L253) were narrower than the divergence surface — recurring lesson: fix ALL count sites, then grep-verify zero stale counts in one pass.
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 §3.6 placeholder build vs N1 real-feed requirement | Opus updates-feed-placeholder-contradicts-n1-real-feed (med) | adopted — M1 gate build names `updates` = local signed test feed; items 9b/12a/16 run on that artifact | PLAN §3.6 |
+| T2 item-12 waiver scope: Enabled() precondition + vacuous branch | Opus m1-waiver-scope-vs-enabled-precondition (med); GLM gate12-waiver-scope-infeasible-branch-contradiction (med) | adopted — 12a (updates-dependent: Enabled, pref=on leg, install leg) waivable; 12b (pre-seed file-assert, opt-in file-assert, main()-order test) unconditional — SetAutomaticChecks persists updater.json regardless of enabled() (updater.go:138-141/288-291/319-352) | PLAN M1, §3.6 |
+| T3 hidden prefs unreachable under D5 | Opus hidden-prefs-unreachable-under-d5 (med) | adopted — verified README Advanced defaults-write set; hidden-prefs inventory pre-task in gate #15 (surface or recorded deviation) | PLAN M1 #15 |
+| T4 settings-store ordering + unverified API | Opus settings-store-open-precedes-db-precreate (low-med); GLM n1-step4-mygo-settings-api-unverified (low) | adopted — step ③b DB pre-create before any sqlite load; PRE-M1 settings-API probe + recorded fallback order | PLAN N1 |
+| T5 LV-loss SHA-pin TOCTOU + env conflict | Opus lv-loss-sha-pin-toctou-and-env-conflict (low-med) | adopted — private 0700 copy, hash the copy, load via env set after ③ Unsetenv; LibraryPath fallback (library.go:83-95) noted; residual = same-user downgrade | PLAN §3.6 |
+| T6 ResolveFeed overgeneralized + allowlist not written + install leg ungated | Opus github-feed-multihost-overgeneralized (low); Cursor n1-allowed-host-set-still-unenumerated (med) | adopted — verified github.go:52-64 (API only for TaggedFeed); allowlist derived from feed form + M1 transcript enumeration (DefaultClient follows redirects); install leg = gate 12a | PLAN N1 |
+| T7 own-write marker visibility contradiction | Opus own-write-marker-visibility-contradiction (low) | adopted — marker IS on the pasteboard for own-write detection (.fromMaccy model); never persisted/restored | PLAN §3.2 |
+| T8 R9 count residue + index versions + R4 order | Opus ledger-bookkeeping-residue (low); Cursor t9-r9-count-disposition-incomplete (med); GLM plan-r9-count-residue-l64 (low); GLM ledger-r9-itemized-header-stale (low) | adopted — PLAN Review-tracking line, LEDGER itemized header, R10 T5 text → 14/8; LEDGER index → reviewed-version convention (R6 (v6)…R12 (v12)); R4 order → Cursor 5 + GLM 9 + Opus 6 | PLAN L7/L63, LEDGER |
+| T9 mid-read "zero reads" contradiction | Cursor n6-mid-read-zero-reads-contradicts-protocol (med) | adopted — sandwich protocol (c0→union→ignore→c1→read→c2); c1 path zero reads; c2 path zero rows + discard; gate #5 wording split | PLAN N6, M1 #5 |
+| T10 9a carve-out under LV-loss | Cursor m1-9a-no-acceptance-path-under-lv-loss (med); GLM gate9a-unconditional-vs-lv-loss-voiding (low-med) | adopted — 9a states its LV-loss alternate evidence (pre-load SHA-256 pin verify) | PLAN M1 #9 |
+| T11 N1 assert channel stale vs T6 | Cursor n1-automaticchecks-assert-channel-stale-vs-t6 (low-med) | adopted — N1 packaged assert → file-read channel; in-process getter only in unit/harness | PLAN N1 |
+| T12 import-alias CI bypass | Cursor ci-native-new-import-alias-bypass (low-med) | adopted — canonical-name rule for plugins/updater/native imports | PLAN N1 |
+| T13 gate 11 asserts not enumerated | GLM gate11-omits-asserts-claimed-by-§3.6 (low-med) | adopted — all 4 asserts written into item 11 | PLAN M1 #11 |
+| T14 decision #9 timing unowned | GLM dev-id-decision-timing-mismatch (low) | adopted — conditional timing (PRE-M1 on LV-spike failure, else before M5) | LEDGER #9 |
+| T15 M5 notarization impossible in fallback | GLM m5-notarization-fallback-impossible (low) | adopted — notarization only in Developer ID branch; self-signed ⇒ N/A documented | PLAN M5 |
+
+All 22 labeled findings adopted; no rejections.
+
 
