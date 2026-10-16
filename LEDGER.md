@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -627,22 +627,7 @@ All findings adopted. Executed proofs: `same three reviewers`=0; R23/R22 L7 segm
 
 All 7 labeled findings adopted; no rejections.
 
-## Round 28 → v29 (4 themes + 1 meta from 5 labeled findings: Cursor 2 + GLM 3; 2-reviewer set)
-
-All findings adopted. Headline: v25's isModified contents-winner attribution was INVERTED vs source — Maccy `History.add`: `if isModified(item) == nil { item.contents = existingHistoryItem.contents }` ⇒ supersedes branch keeps STORED contents; isModified branch keeps the modifier's incoming bytes. v25 asserted the opposite and its M1 test oracle greened the divergence. Fixed in §3.2 + PARITY + test oracle. Also: 2 uninventoried Maccy micro-behaviors added to PARITY (N2).
-
-| Theme | Findings | Disposition | Proof |
-|---|---|---|---|
-| T1 R27 version identity (arrow v28 under v27 stamp) | Cursor r27-arrow-v28-vs-plan-stamp-v27 (high); GLM ledger-r27-version-identity-conflict (high) | adopted — option (a): title v28 + L7/L66 R27 segment lands in this commit (stamp-in-commit rule) | header + segments this commit |
-| T2 R27 theme count 4→5 | Cursor r27-theme-count-arith (med) | adopted — header 5 themes + 1 meta | header |
-| T3 isModified contents-winner inverted | GLM ismodified-contents-winner-inverted (high) | adopted — §3.2 + PARITY dedup row inverted per source (`isModified(item)==nil` gate); M1 oracle: supersedes ⇒ stored preserved, isModified ⇒ modifier bytes kept | `MODIFIER'S contents stored` = 1 |
-| T4 Maccy micro-behaviors uninventoried | GLM maccy-microbehavior-parity-uninventoried (low) | adopted — universalClipboard item-model special-casing (fileURLs suppressed when universalClipboardText; imageData falls back to jpeg from file URL) + `Clipboard.sync()` (copyInMaccy activate/hide quirk) → PARITY rows/deviation | PARITY rows |
-| T5 packet identity (meta) | — | R29 packet mechanical; fact (r) corrected | /tmp packet |
-
-All 5 labeled findings adopted; no rejections.
-
-
-## Round 27 → v28 (4 themes + 1 meta from 8 labeled findings: Cursor 4 + GLM 4; 2-reviewer set)
+## Round 27 → v28 (5 themes + 1 meta from 8 labeled findings: Cursor 4 + GLM 4; 2-reviewer set; count fixed R29)
 
 All findings adopted. R26-T1's misapplied dedup corrected (R25 T1–T8 table restored verbatim from 0cd5808; row 11 deleted as dup; R24 closing after row 10).
 
@@ -656,5 +641,20 @@ All findings adopted. R26-T1's misapplied dedup corrected (R25 T1–T8 table res
 | T6 packet identity (meta) | — | R28 packet mechanical | /tmp packet |
 
 All 8 labeled findings adopted; no rejections.
+
+
+## Round 28 → v28 (4 themes + 1 meta from 5 labeled findings: Cursor 2 + GLM 3; 2-reviewer set; dispositions landed in v28-stamped d319850)
+
+All findings adopted. Headline: v25's isModified contents-winner attribution was INVERTED vs source — Maccy `History.add`: `if isModified(item) == nil { item.contents = existingHistoryItem.contents }` ⇒ supersedes branch keeps STORED contents; isModified branch keeps the modifier's incoming bytes. v25 asserted the opposite and its M1 test oracle greened the divergence. Fixed in §3.2 + PARITY + test oracle. Also: 2 uninventoried Maccy micro-behaviors added to PARITY (N2).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R27 version identity (arrow v28 under v27 stamp) | Cursor r27-arrow-v28-vs-plan-stamp-v27 (high); GLM ledger-r27-version-identity-conflict (high) | adopted — option (a): title v28 + L7/L66 R27 segment lands in this commit (stamp-in-commit rule) | header + segments this commit |
+| T2 R27 theme count 4→5 | Cursor r27-theme-count-arith (med) | adopted — header 5 themes + 1 meta | header |
+| T3 isModified contents-winner inverted | GLM ismodified-contents-winner-inverted (high) | adopted — §3.2 + PARITY dedup row inverted per source (`isModified(item)==nil` gate); M1 oracle: supersedes ⇒ stored preserved, isModified ⇒ modifier bytes kept | `MODIFIER'S contents stored` = 1 |
+| T4 Maccy micro-behaviors uninventoried | GLM maccy-microbehavior-parity-uninventoried (low) | adopted — universalClipboard item-model special-casing (fileURLs suppressed when universalClipboardText; imageData falls back to jpeg from file URL) + `Clipboard.sync()` (copyInMaccy activate/hide quirk) → PARITY rows/deviation | PARITY rows |
+| T5 packet identity (meta) | — | R29 packet mechanical; fact (r) corrected | /tmp packet |
+
+All 5 labeled findings adopted; no rejections.
 
 
