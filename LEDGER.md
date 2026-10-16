@@ -98,6 +98,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 2. D1 automation CLI — default-off; **residual: once enabled, any same-user process can read history (and DB files) and trigger clear/delete requests — requests never complete without in-app confirmation, even with --yes (SecCode peer check = tamper tripwire, not confidentiality)** — approve with that understanding.
 3. D5 no `defaults write` CLI (MyClip CLI replaces) — approve.
 4. D6 size caps / DB budget — approve or drop.
+5. D7 poll floor 100ms — approve (blocks M1; the poll loop ships at M1).
 
 **Before M3/M5:**
 5. D7 poll floor 100ms — approve (BEFORE M1 implementation — the poll loop ships at M1). **Moved under Blocking M1 start at R24** — see the blocking list.
@@ -107,7 +108,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 9. M5 signing: **DECIDED (user, R25): self-signed for now** — self-signed identity via the production signing path (emits hardened runtime; notarization N/A; documented Gatekeeper/quarantine/TCC steps); Developer ID revisited before public flip. The §3.6 LV sqlite-dylib spike still runs PRE-M1 and gates the D13 branch (identity choice does not preempt it). Plain ad-hoc only as recorded deviation.
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
-13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width. (NOTE: numeric #12 intentionally unused — PRE-M1 blocking decisions are lettered (a)/(b)/(c)/(c'); this numeric list covers non-PRE-M1 items.)
+13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width. (NOTE: numeric #12 intentionally unused. Items 1–5 = PRE-M1 (a)/(b) blocking; #13 = PRE-M1 (c'); the rest gate later milestones.)
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -587,7 +588,7 @@ All 20 labeled findings adopted; no rejections.
 
 
 
-## Round 24 → v25 → v25 (14 labeled = Cursor 9 + GLM 5; first round with the 2-reviewer set)
+## Round 24 → v25 (14 labeled = Cursor 9 + GLM 5; first round with the 2-reviewer set)
 
 Opus discarded unprocessed (user decision). All findings adopted:
 
@@ -598,11 +599,33 @@ Opus discarded unprocessed (user decision). All findings adopted:
 | 3 | Cursor r23-t2-proof-claim-still-false (med); GLM r23-r22-preamble-verbatim-output-absent (low) | adopted — scrubbed | grep `recorded verbatim` = 0 |
 | 4 | Cursor r23-t4-d7-ledger-heading-unmoved (med); GLM d7-blocking-missing-from-ledger-decision-list (med) | adopted — #5 heading moved; D10 grouped pre-M2 | grep |
 | 5 | Cursor parity-d1-settingsdb-writable-gap (med); GLM r23-d1-signoff-missing-settingsdb-writable (low) | adopted — PARITY D1 clause | grep |
-| 6 | Cursor merge-matrix-misses-ismodified-path (med); GLM r23-merge-matrix-misses-ismodified-path (low-med) | adopted — §3.2 findSimilarItem + pre-task + test | grep |
+| 6 | Cursor merge-matrix-misses-ismodified-path (med); GLM r23-merge-matrix-misses-ismodified-path (low-med) | adopted — §3.2 findSimilarItem + pre-task + test | grep `findSimilarItem` = 2 in PLAN (merge rule + pre-task sentence, both §3.2) |
 | 7 | Cursor parity-stamp-stale-after-v24-touch (low); GLM parity-stamp-stale-v23-vs-v24-edit (low) | adopted — stamp = v25 | header |
 | 8 | Cursor parity-ignoreregexp-miscites-962 (low); GLM r23-parity-regex-row-miscites-962 (low) | adopted — shouldIgnore(item) citation | grep |
 | 9 | Cursor r22-theme-count-arith-residue (low); GLM (in T13) | adopted — 12+1 | header |
 | 10 | GLM item16-packaged-trace-mechanism-unspecified (low) | adopted — myclipgatetrace hook | grep |
+
+## Round 25 → v26 (8 themes + 1 meta from 14 labeled findings: Cursor 8 + GLM 6; 2-reviewer set)
+
+All findings adopted (count-site sweep + hygiene). Executed proofs: `same three reviewers`=0; `R23: 27 labeled`=1; R22 `dedup 12 themes`=1; `→ v25 → v25`=0; D7 blocking-list item=1. Proof counts exclude the proving row's own text.
+
+| Theme | Findings | Disposition |
+|---|---|---|
+| T1 count-site sweep (L7 R23 20→27/9/10/8 + R22 13→12; L66 R22 13→12) | Cursor r23-count-residue-revisions-line (med); r24-d9-r22-theme-count-unlanded (med); GLM plan-r23-revision-chain-count-stale (low); r22-theme-count-plan-residue (low) | adopted — all sites aligned, grep-proven |
+| T2 loop line 3-reviewer stale | Cursor reviewer-loop-set-contradiction (high); GLM review-loop-line-stale-3-reviewer-set (med-low) | adopted — two-reviewer set + CLEAR rule |
+| T3 D7 heading physical move + L110 note | Cursor r24-d4-d7-heading-not-moved (med); GLM d7-blocking-missing-from-ledger-decision-list (med) | adopted — D7 = blocking item 5; note rewritten |
+| T4 R24 heading dup | GLM ledger-r24-header-version-duplicated (low) | adopted — single arrow |
+| T5 findSimilarItem proof scope | Cursor r23-t5-findsimilaritem-count-proof-false (low-med); GLM dispute | adopted — cell states =2 with scope (both §3.2); grep = 2 |
+| T6 M5 decision framing | GLM m5-signing-decision-framing-divergence (low) | resolved — decision commit post-dated the reviewed revision; PLAN M5 carries DECIDED text (verified) |
+| T7 stamp-in-commit hygiene | Cursor plan-header-identity-miss (high); GLM plan-header-version-stamp-at-reviewed-commit (low) | adopted — convention recorded in PLAN Review tracking (stamps land in the revision commit) |
+| T8 packet identity (meta) | — | R26 packet mechanical |
+
+All 14 labeled findings adopted; no rejections.
+
+
+## Round 25 → v26 (8 themes + 1 meta from 14 labeled findings: Cursor 8 + GLM 6; 2-reviewer set)
+
+All findings adopted: count-site sweep (PLAN L7 R23/R22 segments, L66 R22 — 12+1); loop line → two-reviewer set; D7 physically under Blocking M1 (list item 5) + L110 note rewritten; R24 heading dup; findSimilarItem proof scope (=2, both §3.2); stamp-in-commit convention recorded. Proof counts exclude the proving row's own text.
 | 11 | Opus R23 residual themes (settings-loss, unpause latch, launch method, lastCheck, downloads-pref, 12a-ii, item16-env) | adopted (v24) — see Round 23 T15/T16 | PLAN text |
 
 All 14 labeled findings adopted; no rejections.
