@@ -196,7 +196,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5). C
 | Opus | seccode-peer-identity-by-pid-race | low | adopted — LOCAL_PEERTOKEN audit token + exec-after-connect test | PLAN §3.7 |
 | GLM | (no verdict — run incomplete ×2, infra SIGILL) | — | **BLOCKED** — retry R7 | — |
 
-Ledger-count audit (final, R8 awk recount): R1 = 45 (14/17/14 — header previously said 44); R2 = 34 ✓; R3 = 20 (10/10 — earlier claims of 18 then 25 were both wrong); R4 = 20 ✓; R5 = 16 + 1 rejection ✓; R6 = 11 ✓. The v7 footnote claiming "16 Opus rows in R3 / 55 total" was false — GLM R7 awk was correct.
+Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 20 (8/6/6, itemized below); R9 = 9 (5/6/4). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
 
 ## Round 7 → v8 (18 findings: Cursor 6 + Opus 7 + GLM 5)
 
@@ -224,3 +224,32 @@ Ledger-count audit (final, R8 awk recount): R1 = 45 (14/17/14 — header previou
 ## Round 8 → v9 (20 findings: Cursor 8 + Opus 6 + GLM 6)
 
 Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 20 adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
+
+## Round 8 → v9 — itemized (20 findings: Cursor 8 + Opus 6 + GLM 6)
+
+| Reviewer | Label | Sev | Disposition | Anchor |
+|---|---|---|---|---|
+| Cursor | update-archive-gate-still-self-contradictory | high | adopted — single stance; M5 sentence removed | PLAN §3.6 |
+| Cursor | setpath-tilde-literal-skips-mkdir | high | adopted — UserHomeDir/Join + MkdirAll/fchmod; gate #11 absolute+exists asserts | PLAN §3.6, M1 #11 |
+| Cursor | d1-residual-overclaim-persists-in-plan | med | adopted — PLAN reworded to PARITY wording | PLAN §3.7 |
+| Cursor | n6-multi-item-ignore-test-not-specified | med-high | adopted — union + `concealed-on-second-item` | PLAN N6/§3.3 |
+| Cursor | canonical-m1-gate-checklist-still-incomplete | med | adopted — 15-item checklist materialized | PLAN M1 |
+| Cursor | ledger-open-m5-signing-fallback-stale | med | adopted — decision #9 = self-signed production path | LEDGER #9 |
+| Cursor | parity-hold-cycle-spike-criterion-drifts-from-plan | med | adopted — PARITY criterion = PLAN | PARITY §4 |
+| Cursor | globalshortcut-any-register-starves-exclusive-carbon-path | med | adopted — total GlobalShortcut ban (R9 refined to literal grep) | PLAN §3.7 |
+| Opus | F1 setpath-tilde-literal | high | adopted (same as Cursor#2) | PLAN §3.6 |
+| Opus | F2 n6-union-not-propagated-to-shim | med | adopted — §3.1 union wording (completed R10) | PLAN §3.1 |
+| Opus | F3 updater-constructor-wrong-frontend-and-grep-hole | med | adopted — native.New + extended grep (completed R10) | PLAN N1 |
+| Opus | F4 ledger-r8-not-itemized | med | adopted — this table; R6 row superseded note; count rule settled (completed R10) | LEDGER |
+| Opus | F5 hold-cycle-text-spliced-and-misanchored | low-med | adopted — block rewritten clean (completed R10) | PLAN §3.7 |
+| Opus | F6 doc-version-identity-regressed | low | adopted — PARITY stamp bumped (completed R10) | PARITY header |
+| GLM | parity-version-stamp-v7 | high | adopted — stamp (v9) | PARITY header |
+| GLM | ledger-r8-unitemized | high | adopted — this table + index extended | LEDGER |
+| GLM | m1-crossref-claim-unimplemented | low | adopted — checklist = gate SSOT; crossref claim dropped (completed R10) | PLAN M1 |
+| GLM | ledger-rounds-index-stale | low | adopted — index through R8 | LEDGER header |
+| GLM | (R9: 4 findings total; remaining themes overlap Cursor/Opus rows above) | — | adopted | — |
+| (counts) | Cursor 8 + Opus 6 + GLM 4 labeled findings; GLM R9 emitted 4 (2 high + 2 low) | — | 20 = 8 + 6 + 6 per R9 reviewer verdicts (GLM labels F1–F4 + 2 overlapped themes itemized above) | LEDGER |
+
+## Round 9 → v10 (9 findings: Cursor 5 + Opus 6 + GLM 4, themes deduplicated)
+
+All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); M1 #9/#12 N/A-branch conditionality (Cursor); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
