@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v20; stamp = plan revision whose edits touched PARITY: v25)
+# MyClip ⇄ Maccy parity inventory (v28; stamp = plan revision whose edits touched PARITY: v28)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/Observables/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
