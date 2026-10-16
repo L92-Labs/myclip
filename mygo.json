@@ -1,0 +1,6 @@
+{
+  "name": "myclip",
+  "identifier": "com.example.myclip",
+  "version": "0.1.0",
+  "out": "build"
+}
