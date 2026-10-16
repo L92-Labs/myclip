@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v15)
+# MyClip ⇄ Maccy parity inventory (v16)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/Observables/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -64,7 +64,7 @@
 | Behavior | Plan |
 |---|---|
 | `pasteByDefault` (false) | select ⇒ copy (+paste if enabled) |
-| `removeFormattingByDefault` (false) + ⌥⇧ paste plain | write only text representation |
+| `removeFormattingByDefault` (false) + ⌥⇧ paste plain | string + fileURL representations preserved on plain paste (Maccy clearFormatting keeps both — Clipboard.swift #962); M3 test: plain-paste of a copied file writes the file URL |
 | ⌘V injection | CGEvent via purego; **Accessibility TCC only**; pre-popup frontmost capture → hide → bounded activate/wait → keycode → post; no osascript |
 | keyboard layout | TIS/UCKeyTranslate keycode; QWERTY force when layout name ends `⌘`; evidence QWERTY/AZERTY/Dvorak |
 
@@ -95,7 +95,7 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 |---|---|---|
 | D1 | Automation via local CLI over unix socket, **disabled by default** (listener not bound); peer = code-signing check via audit token (SecCode designated requirement) — **tamper tripwire, NOT a confidentiality boundary**: any same-user process can spawn the signed CLI, so once enabled any same-user process can **read history (and DB files) and trigger clear/delete requests — clear/delete never complete without in-app confirmation, even with `--yes`** (confirm = brief app activation + modal, decline default; headless destructive automation unsupported). `select` never pastes from CLI; `set` allowlist = closed non-security set (display prefs + range-validated capture-cadence prefs, e.g. `clipboardCheckInterval` [100ms–3600s]) (capture/ignore-chain prefs, `size`, `clearOnQuit`, updater pref, socket opt-ins NEVER settable over the socket); `set` has its own socket opt-in; residual surfaced in settings UI + this sign-off; Shortcuts via "Run Shell Script"; no native App Intents | **user sign-off pending — blocks M1 (sign off with residual in mind)** |
 | D2 | Translations: EN, FR, ES (third changeable until M4 start) vs Maccy full set | user directive |
-| D3 | Updater: `DisableAutomaticChecks: true` + opt-in menu item vs Sparkle | adopted (N1) |
+| D3 | Updater: `DisableAutomaticChecks: true` + opt-in menu item vs Sparkle; `myclipDownloadsPref` (default false, M4 control, excluded from CLI `set`; update-window checkbox writes mirror into it via OnChange) | adopted (N1) |
 | D4 | `lastReviewRequestedAt`, `numberOfUsages` skipped | adopted (anti-features) |
 | D5 | No NSUserDefaults `defaults write` editing; Advanced shell recipes replaced by MyClip CLI (covers ignoreEvents/ignore-next + `set` on the closed non-security allowlist — display + validated cadence, §3.7) | **user sign-off pending — blocks M1** |
 | D6 | Per-item size cap + total DB budget, oversized skipped+recorded (Maccy: unbounded) | **user sign-off pending — blocks M1** |
@@ -105,4 +105,4 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor |
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
 | D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation — user sign-off pending (non-blocking) |
-| D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user downgrade residual; bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a mild 'downgrade'); post-load mapped-image cdhash tripwire is best-effort | contingent — user sign-off if triggered |
+| D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user downgrade residual; bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a 'downgrade'); post-load mapped-image cdhash tripwire is best-effort and contingent on the PRE-M1 (c') attestation spike | contingent — user sign-off if triggered |

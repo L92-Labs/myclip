@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -432,6 +432,31 @@ All three: FINDINGS on frozen v17 @ 58ce152. Dominant: the R16-T6 disposition cl
 | T12 PARITY hover-delay numeric drift | GLM parity-hover-delay-numeric-drift (low) | adopted — `previewDelay` (default 1500ms) | PARITY §2b |
 
 All 18 labeled findings adopted; no rejections.
+
+## Round 18 → v19 (14 themes from 20 labeled findings: Cursor 5 + Opus 8 + GLM 6)
+
+All three: FINDINGS on frozen v18 @ 4d98573. Dominant: the flock recipe as v18 wrote it (O_EXCL semantics) would brick relaunch after a crash — Opus high; the R17-T4 pre-seed extension again claimed-but-not-landed (third occurrence of the class — every future disposition must carry its grep proof); GLM's fresh Maccy source fetch found three real parity bugs in §3.3/§3.4 (regex per-item scope, Word-link `.pdf` subtraction, plain-paste fileURL preservation).
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 flock O_EXCL bricks relaunch | Opus flock-o-excl-bricks-relaunch (high); Cursor single-instance-lockfile-oexcl-vs-flock (med-low); GLM ②b-lock-brick-on-crash (low-med) | adopted — open(O_CREAT\|O_RDWR\|O_NOFOLLOW\|O_CLOEXEC,0600) → fstat sanity → flock(LOCK_EX\|LOCK_NB); never unlink; fd held for process; #17 kill-9 relaunch leg | PLAN N1 ②b, M1 #17 |
+| T2 run/ unsequenced before ②b | Opus run-dir-unsequenced-before-2b (med) | adopted — ① creates data root + `run/` subdir; 12b asserts; #17 fresh-HOME leg | PLAN N1 ① |
+| T3 R17-T4 preseed-downloads not landed | Cursor automaticdownloads-t4-incomplete-and-window-bypass (med-high); Opus r17-t4-preseed-downloads-not-landed (med) | adopted — #12b pre-seeds both keys, asserts both persisted false; grep-verified this time | PLAN M1 #12b |
+| T4 downloads pref undefined + window-write revert | Opus downloads-pref-undefined (med); Cursor window-bypass clause | adopted — `myclipDownloadsPref` defined (PARITY D3 row, default false, M4 control, set-excluded); OnChange mirrors window writes; #12a setup step named | PLAN N1 ⑥/12a, PARITY D3 |
+| T5 12b Load assert unconditional | Opus 12b-load-assert-unconditional-vs-non-d13 (low-med) | adopted — D13: Load only in ③c; else no earlier than ④ after ③ Unsetenv | PLAN M1 #12b |
+| T6 cdhash spike no fail branch | Cursor d13-swap-race-gate-depends-on-unproven-cdhash-spike (med); Opus cdhash-spike-no-fail-branch (med) | adopted — PRE-M1 (c') blocking item; failure branch = drop tripwire + widen residual + swap-test N/A w/ sign-off; race-injection seam = test-only build-tag hook | PLAN PRE-M1 |
+| T7 MyGo single-instance listener gratuitous | Opus single-instance-listener-gratuitous-and-order-unpinned (low) | adopted — `RequestSingleInstanceLock` NOT called (no args to forward); CI grep bans it; flock is the only exclusion | PLAN N1 ②b |
+| T8 R17-T5 stale sqlite hedge | Opus r17-t5-stale-sqlite-hedge (low) | adopted — ③b names history + settings.db; hedge removed | PLAN N1 ③b |
+| T9 D13 downgrade lexeme residue | Cursor parity-d13-downgrade-lexeme-residue (low) | adopted — opening clause rewritten; contingency on (c') noted | PARITY D13 |
+| T10 updater import gate bans own canonical import | GLM updater-import-gate-bans-own-canonical-import (med) | adopted — canonical imports allowed + Uses-restricted (native.go does not re-export Options) | PLAN N1 |
+| T11 plain-paste drops fileURL | GLM plain-paste-drops-maccy-fileurl-preservation (low) | adopted — string + fileURL preserved (#962); M3 plain-paste-file test | PARITY §3 |
+| T12 ignoreRegexp capture-level scope | GLM ignore-regexp-scope-capture-level (low) | adopted — per-item scope ported + 2-item M1 test | PLAN §3.3 |
+| T13 Word-link drop omits `.pdf` | GLM word-link-drop-omits-pdf-subtraction (low) | adopted — 3-type subtraction verbatim + no-PDF-rep test | PLAN §3.3 |
+| T14 journal-mode pin ambiguous | GLM journal-mode-pin-ambiguous (low) | adopted — `DELETE` only; WAL alternative dropped | PLAN §3.4 |
+| T15 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R19 packet regenerated from headers | /tmp packet |
+
+All 20 labeled findings adopted; no rejections.
+
 
 
 
