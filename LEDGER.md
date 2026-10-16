@@ -676,22 +676,7 @@ All findings adopted. Dominant: version-identity recurrence (R28's `→ v29` pre
 
 All 11 labeled findings adopted; no rejections.
 
-## Round 31 → v28 (4 themes + 1 meta from 7 labeled findings: Cursor 3 + GLM 4; 2-reviewer set; doc-only)
-
-All findings adopted — the segment-rule exception is now the recorded convention: doc-only rounds append same-stamp segments at L7/L66; landing commits named in the note. No plan-content changes this round.
-
-| Theme | Findings | Disposition | Proof |
-|---|---|---|---|
-| T1 R29 segment claim false + exception note unnamed-SHA | Cursor r30-t1-r29-segment-claim-false (high); GLM r29-segment-landed-claim-false (med) | adopted — option (a): real doc-only segments appended at L7/L66 (R29/R30, same-stamp v28); note rewritten with landing SHAs; false claims retracted | grep `R29: 11 labeled` + `R30:` in PLAN |
-| T2 R30 heading names unmaterialized v29 | GLM r30-heading-names-unmaterialized-v29 (med) | adopted — retitled `Round 30 → v28 (doc-only residue …)` | header |
-| T3 R29 theme count 5→6 | Cursor ledger-r29-theme-count-off-by-one (low-med) | adopted — header 6 themes + 1 meta | header |
-| T4 R30 labeled count 10→11 + unmarked T9 residue row | GLM r30-header-labeled-count-10-vs-11 (low) | adopted — T9 marked ledger-check; header 11 labeled (Cursor 5 + GLM 6) | header + row marker |
-| T5 packet identity (meta) | — | R32 packet mechanical | /tmp packet |
-
-All 7 labeled findings adopted; no rejections.
-
-
-## Round 30 → v28 (doc-only residue; 11 labeled = Cursor 5 + GLM 6; 2-reviewer set; landed across 65ed3fd/1e09824/bfa9007/9b296c8)
+## Round 30 → v28 (doc-only residue; 7 themes + 1 meta from 10 labeled findings: Cursor 5 + GLM 5; 2-reviewer set; landed across 65ed3fd/1e09824/bfa9007/9b296c8; T9 = ledger-check row)
 
 Cursor first pass BLOCKED (connection lost, no verdict) — retried once, FINDINGS. All findings adopted; landed across four commits due to a disk-full truncation incident mid-landing (PLAN/LEDGER restored from HEAD, edits replayed with executed proofs).
 
@@ -710,6 +695,18 @@ Cursor first pass BLOCKED (connection lost, no verdict) — retried once, FINDIN
 
 All 10 labeled findings adopted; no rejections.
 
+## Round 31 → v28 (4 themes + 1 meta from 7 labeled findings: Cursor 3 + GLM 4; 2-reviewer set; doc-only; full label census: Cursor r30-t1-r29-segment-claim-false / r30-own-segment-missing-after-landing / ledger-r29-theme-count-off-by-one + GLM r30-heading-names-unmaterialized-v29 / r29-segment-landed-claim-false / r29-header-theme-count-5-vs-6 / r30-header-labeled-count-10-vs-11)
 
+All findings adopted — the segment-rule exception is now the recorded convention: doc-only rounds append same-stamp segments at L7/L66; landing commits named in the note. No plan-content changes this round.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R29 segment claim false + exception note unnamed-SHA | Cursor r30-t1-r29-segment-claim-false (high); Cursor r30-own-segment-missing-after-landing (med); GLM r29-segment-landed-claim-false (med) | adopted — option (a): real doc-only segments appended at L7/L66 (R29/R30, same-stamp v28); note rewritten with landing SHAs; false claims retracted | grep `R29: 11 labeled` + `R30:` in PLAN |
+| T2 R30 heading names unmaterialized v29 | GLM r30-heading-names-unmaterialized-v29 (med) | adopted — retitled `Round 30 → v28 (doc-only residue …)` | header |
+| T3 R29 theme count 5→6 | Cursor ledger-r29-theme-count-off-by-one (low-med) | adopted — header 6 themes + 1 meta | header |
+| T4 R30 labeled count 10→11 + unmarked T9 residue row | GLM r30-header-labeled-count-10-vs-11 (low) | adopted — T9 marked ledger-check; header 11 labeled (Cursor 5 + GLM 6) | header + row marker |
+| T5 packet identity (meta) | — | R32 packet mechanical | /tmp packet |
+
+All 7 labeled findings adopted; no rejections.
 
 
