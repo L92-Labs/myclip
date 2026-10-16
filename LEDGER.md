@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -101,7 +101,6 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 5. D7 poll floor 100ms — approve (blocks M1; the poll loop ships at M1).
 
 **Before M3/M5:**
-5. D7 poll floor 100ms — approve (BEFORE M1 implementation — the poll loop ships at M1). **Moved under Blocking M1 start at R24** — see the blocking list.
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
 8. D10 copy sounds via MyGo audio — approve (Before M2 — sounds ship at M2.)
@@ -607,25 +606,22 @@ Opus discarded unprocessed (user decision). All findings adopted:
 
 ## Round 25 → v26 (8 themes + 1 meta from 14 labeled findings: Cursor 8 + GLM 6; 2-reviewer set)
 
-All findings adopted (count-site sweep + hygiene). Executed proofs: `same three reviewers`=0; `R23: 27 labeled`=1; R22 `dedup 12 themes`=1; `→ v25 → v25`=0; D7 blocking-list item=1. Proof counts exclude the proving row's own text.
-
-| Theme | Findings | Disposition |
-|---|---|---|
-| T1 count-site sweep (L7 R23 20→27/9/10/8 + R22 13→12; L66 R22 13→12) | Cursor r23-count-residue-revisions-line (med); r24-d9-r22-theme-count-unlanded (med); GLM plan-r23-revision-chain-count-stale (low); r22-theme-count-plan-residue (low) | adopted — all sites aligned, grep-proven |
-| T2 loop line 3-reviewer stale | Cursor reviewer-loop-set-contradiction (high); GLM review-loop-line-stale-3-reviewer-set (med-low) | adopted — two-reviewer set + CLEAR rule |
-| T3 D7 heading physical move + L110 note | Cursor r24-d4-d7-heading-not-moved (med); GLM d7-blocking-missing-from-ledger-decision-list (med) | adopted — D7 = blocking item 5; note rewritten |
-| T4 R24 heading dup | GLM ledger-r24-header-version-duplicated (low) | adopted — single arrow |
-| T5 findSimilarItem proof scope | Cursor r23-t5-findsimilaritem-count-proof-false (low-med); GLM dispute | adopted — cell states =2 with scope (both §3.2); grep = 2 |
-| T6 M5 decision framing | GLM m5-signing-decision-framing-divergence (low) | resolved — decision commit post-dated the reviewed revision; PLAN M5 carries DECIDED text (verified) |
-| T7 stamp-in-commit hygiene | Cursor plan-header-identity-miss (high); GLM plan-header-version-stamp-at-reviewed-commit (low) | adopted — convention recorded in PLAN Review tracking (stamps land in the revision commit) |
-| T8 packet identity (meta) | — | R26 packet mechanical |
-
-All 14 labeled findings adopted; no rejections.
-
-
-## Round 25 → v26 (8 themes + 1 meta from 14 labeled findings: Cursor 8 + GLM 6; 2-reviewer set)
-
 All findings adopted: count-site sweep (PLAN L7 R23/R22 segments, L66 R22 — 12+1); loop line → two-reviewer set; D7 physically under Blocking M1 (list item 5) + L110 note rewritten; R24 heading dup; findSimilarItem proof scope (=2, both §3.2); stamp-in-commit convention recorded. Proof counts exclude the proving row's own text.
 | 11 | Opus R23 residual themes (settings-loss, unpause latch, launch method, lastCheck, downloads-pref, 12a-ii, item16-env) | adopted (v24) — see Round 23 T15/T16 | PLAN text |
 
 All 14 labeled findings adopted; no rejections.
+
+## Round 26 → v27 (4 themes + 1 meta from 7 labeled findings: Cursor 4 + GLM 3; 2-reviewer set)
+
+All findings adopted. Executed proofs: `same three reviewers`=0; R23/R22 L7 segments aligned; `→ v25 → v25`=0; D7 ghost=`0`; blocking D7 item=1; PLAN M1 lock = self-signed only.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R25 section landed inside R24 table (dup heading + orphan row 11) | Cursor ledger-r25-section-duplicated-garbled (high); GLM ledger-r25-section-inserted-inside-r24-table (med) | adopted — dup heading removed; row 11 + R24 closing restored; single R25 section after R24 | headings=1; row11+closing intact |
+| T2 index stops at R24 | Cursor ledger-rounds-index-stale-stops-at-r24 (med); GLM ledger-rounds-index-missing-r25 (low) | adopted — index through R26 | index text |
+| T3 D7 ghost row under Before M3/M5 | Cursor r25-t3-d7-ghost-row-under-before (med); GLM d7-double-listed-decision-items (low) | adopted — ghost deleted; D7 only under Blocking item 5 | grep `BEFORE M1 implementation` = 0 |
+| T4 M1 lock still offered Developer ID | Cursor m1-dev-signing-or-developer-id-contradicts-r25-c (med) | adopted — M1 lock = self-signed only (Developer ID deferred to public flip) | `Developer ID deferred to public flip` = 1 |
+| T5 packet identity (meta) | — | R27 packet mechanical | /tmp packet |
+
+All 7 labeled findings adopted; no rejections.
+
