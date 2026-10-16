@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -106,7 +106,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 8. D10 copy sounds via MyGo audio — approve.
 9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
-11. D13 (contingent, LV-loss) entitlement delta + downgrade residual — approve if the §3.6 LV spike fails.
+11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
 
 ## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
@@ -389,7 +389,7 @@ All three: FINDINGS on frozen v15 @ e77d372. Dominant: R14's signature-validatio
 
 All 16 labeled findings adopted; no rejections.
 
-## Round 16 → v17 (13 themes from 16 labeled findings: Cursor 5 + Opus 8 + GLM 3)
+## Round 16 → v17 (13 themes + 1 meta from 16 labeled findings: Cursor 5 + Opus 8 + GLM 3; T14 meta excluded)
 
 All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propagation residue (PARITY D1/D5 "display-only"; #9a injection leg untyped DR; D13 row singular DR), plus Opus design-depth findings (validate-then-dlopen TOCTOU window, settings-read fail-open, sidecar pre-create WAL drift, single-instance lock absent).
 
@@ -411,6 +411,28 @@ All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propaga
 | T14 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R17 packet regenerated from PLAN/LEDGER headers | /tmp packet |
 
 All 16 labeled findings adopted; no rejections.
+
+## Round 17 → v18 (12 themes from 18 labeled findings: Cursor 5 + Opus 9 + GLM 4)
+
+All three: FINDINGS on frozen v17 @ 58ce152. Dominant: the R16-T6 disposition claimed a swap-after-validation race test that never landed in #12b (the R7/R8 silent-disposition class, again); plus depth findings on the ③c design (closure overclaim, Load/Open vocabulary, settings backend myth — MyGo ships NO settings API, both Opus and GLM verified the plugin list).
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 ③c closure overclaim + cdhash mechanism unnamed | Cursor d13-validate-then-dlopen-closure-overclaim (med-high); Opus post-load-cdhash-mechanism-unspecified (low-med) | adopted — "window closed" dropped (dyld initializers run before Load returns); post-load check = best-effort tripwire; mechanism = in-memory CodeDirectory via `_dyld_get_image_header`/`dladdr` purego (never path re-hash); unproven spike added to PRE-M1 LV probe | PLAN N1 ③c, §3.6 |
+| T2 swap-race test missing from 12b SSOT | Cursor r16-t6-swap-race-test-missing-from-ssot (med); Opus ledger-r16-t6-race-test-unpropagated (med); GLM r16-t6-12b-swap-race-test-omitted (low-med) | adopted — 12b now enumerates BOTH D13 tests (tamper ⇒ fatal; swap-copy-after-validation ⇒ cdhash-mismatch ⇒ fatal); grep-verified | PLAN M1 #12b |
+| T3 Load vs Open vocabulary contradiction | Cursor n1-sqlite-load-vs-open-order-contradiction (med) | adopted — dylib bind ≠ DB open; ③b before any DB open; 12b asserts no DB open before ③b, Load only inside ③c | PLAN N1, M1 #12b |
+| T4 AutomaticDownloads asymmetric fail-open | Cursor automaticdownloads-asymmetric-fail-open (low-med) | adopted — ⑥ forces `SetAutomaticDownloads(false)` unless MyClip-owned pref; pre-seed test extended | PLAN N1 ⑥ |
+| T5 settings backend undefined (MyGo has NO settings API) | Cursor settings-db-0600-precreate-unsequenced (low-med); Opus settings-store-backend-undefined (low-med) | adopted — settings store = MyClip-owned sqlite `settings.db`, §3.4 recipe, pre-created in ③b; void probe removed | PLAN N1 ④, ③b |
+| T6 single-instance fail-open + scope | Opus single-instance-lock-fail-open-and-scope (med); GLM mygo-single-instance-fail-open-unrecorded (low) | adopted — MyClip-owned fail-closed flock `<dataRoot>/run/myclip.lock`; MyGo lock = arg-forwarding only; fail-open semantics recorded as residual; #17 + dev+packaged concurrent test | PLAN N1 ②b, M1 #17 |
+| T7 single-instance listener unauth ingress | Opus single-instance-listener-unauthenticated-ingress (low) | adopted — §3.7 threat model records the always-on listener; handlers = focus-popup only; CI rule forbids verb wiring | PLAN §3.7 |
+| T8 journal-mode drift no remediation | Opus journal-mode-drift-no-remediation (low) | adopted — stray `-wal`: checkpoint(TRUNCATE) → re-pin DELETE → assert → fail closed only on re-pin failure; stray-wal launch test in #3 | PLAN M1 #3 |
+| T9 D13 downgrade residue (PARITY + decision #11) | Opus d13-downgrade-residue (low-med) | adopted — both sites carry the R16-T6 wording | PARITY D13, LEDGER #11 |
+| T10 R16 header meta unlabeled | Opus ledger-r16-count-meta-unlabeled (low) | adopted — "13 themes + 1 meta (T14 excluded)" at all sites | LEDGER, PLAN L7/L66 |
+| T11 gate order 17-before-16 | Opus gate-list-order (low); GLM m1-checklist-item-order-17-before-16 (low) | adopted — reordered 16 then 17 | PLAN M1 |
+| T12 PARITY hover-delay numeric drift | GLM parity-hover-delay-numeric-drift (low) | adopted — `previewDelay` (default 1500ms) | PARITY §2b |
+
+All 18 labeled findings adopted; no rejections.
+
 
 
 

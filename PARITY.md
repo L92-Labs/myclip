@@ -1,4 +1,4 @@
-# MyClip ⇄ Maccy parity inventory (v14)
+# MyClip ⇄ Maccy parity inventory (v15)
 
 **Contract target: Maccy 2.7.1 @ commit `eb03ebac3bbf24044c797c06f4304b74e3187835`** (p0deje/Maccy, MIT). Sources: `Maccy/Extensions/Defaults.Keys+Names.swift`, `Maccy/Extensions/KeyboardShortcuts.Name+Shortcuts.swift`, `Maccy/Settings/*`, `Maccy/Clipboard.swift`, `Maccy/Observables/History.swift`, `Maccy/Intents/*`, README @ that commit. Every row maps to a milestone (M1–M5) or an approved deviation (§6). MS tags: M1 engine, M2 UI, M3 paste, M4 settings/i18n, M5 ship.
 
@@ -79,7 +79,7 @@
 | hold-to-cycle popup (Observables/Popup.swift) | hold hotkey → `.cycle` highlight advance; modifier release → select | same; acceptance: hold-cycle + release-select (mechanics row above) | M2 |
 | per-item quick select | ⌘n / ⌥n (paste) / ⌥⇧n (paste plain), n=1..9 | same | M2 |
 | clear chords | ⌥⌘⌫ clear unpinned; ⇧⌥⌘⌫ clear all incl. pins (pins preserved on the first) | same; pin-preservation asserted in clear tests | M2 |
-| full text on hover | wait ~2s ⇒ tooltip/preview shows full text | preview panel per hover-delay row | M2 |
+| full text on hover | wait `previewDelay` (default 1500ms) ⇒ tooltip/preview shows full text | preview panel per hover-delay row | M2 |
 
 M1 pre-task: re-verify each name's handler wiring at `eb03eba`. M2 acceptance: popup closed ⇒ ⌥P types π in TextEdit.
 
@@ -105,4 +105,4 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor |
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
 | D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation — user sign-off pending (non-blocking) |
-| D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user downgrade residual; bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants | contingent — user sign-off if triggered |
+| D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user downgrade residual; bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a mild 'downgrade'); post-load mapped-image cdhash tripwire is best-effort | contingent — user sign-off if triggered |
