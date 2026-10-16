@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -321,12 +321,12 @@ All three: FINDINGS on frozen v12 @ 484738e. T9-class residue (R9 counts in PLAN
 | T2 item-12 waiver scope: Enabled() precondition + vacuous branch | Opus m1-waiver-scope-vs-enabled-precondition (med); GLM gate12-waiver-scope-infeasible-branch-contradiction (med) | adopted — 12a (updates-dependent: Enabled, pref=on leg, install leg) waivable; 12b (pre-seed file-assert, opt-in file-assert, main()-order test) unconditional — SetAutomaticChecks persists updater.json regardless of enabled() (updater.go:138-141/288-291/319-352) | PLAN M1, §3.6 |
 | T3 hidden prefs unreachable under D5 | Opus hidden-prefs-unreachable-under-d5 (med) | adopted — verified README Advanced defaults-write set; hidden-prefs inventory pre-task in gate #15 (surface or recorded deviation) | PLAN M1 #15 |
 | T4 settings-store ordering + unverified API | Opus settings-store-open-precedes-db-precreate (low-med); GLM n1-step4-mygo-settings-api-unverified (low) | adopted — step ③b DB pre-create before any sqlite load; PRE-M1 settings-API probe + recorded fallback order | PLAN N1 |
-| T5 LV-loss SHA-pin TOCTOU + env conflict | Opus lv-loss-sha-pin-toctou-and-env-conflict (low-med) | adopted — private 0700 copy, hash the copy, load via env set after ③ Unsetenv; LibraryPath fallback (library.go:83-95) noted; residual = same-user downgrade | PLAN §3.6 |
+| T5 LV-loss SHA-pin TOCTOU + env conflict | Opus lv-loss-sha-pin-toctou-and-env-conflict (low-med) | adopted — private 0700 copy, hash the copy, load via env set after ③ Unsetenv; LibraryPath fallback (library.go:83-95) noted; residual = same-user downgrade (**superseded by R14 T2** — signature validation) | PLAN §3.6 |
 | T6 ResolveFeed overgeneralized + allowlist not written + install leg ungated | Opus github-feed-multihost-overgeneralized (low); Cursor n1-allowed-host-set-still-unenumerated (med) | adopted — verified github.go:52-64 (API only for TaggedFeed); allowlist derived from feed form + M1 transcript enumeration (DefaultClient follows redirects); install leg = gate 12a | PLAN N1 |
 | T7 own-write marker visibility contradiction | Opus own-write-marker-visibility-contradiction (low) | adopted — marker IS on the pasteboard for own-write detection (.fromMaccy model); never persisted/restored | PLAN §3.2 |
 | T8 R9 count residue + index versions + R4 order | Opus ledger-bookkeeping-residue (low); Cursor t9-r9-count-disposition-incomplete (med); GLM plan-r9-count-residue-l64 (low); GLM ledger-r9-itemized-header-stale (low) | adopted — PLAN Review-tracking line, LEDGER itemized header, R10 T5 text → 14/8; LEDGER index → reviewed-version convention (R6 (v6)…R12 (v12)); R4 order → Cursor 5 + GLM 9 + Opus 6 | PLAN L7/L63, LEDGER |
 | T9 mid-read "zero reads" contradiction | Cursor n6-mid-read-zero-reads-contradicts-protocol (med) | adopted — sandwich protocol (c0→union→ignore→c1→read→c2); c1 path zero reads; c2 path zero rows + discard; gate #5 wording split | PLAN N6, M1 #5 |
-| T10 9a carve-out under LV-loss | Cursor m1-9a-no-acceptance-path-under-lv-loss (med); GLM gate9a-unconditional-vs-lv-loss-voiding (low-med) | adopted — 9a states its LV-loss alternate evidence (pre-load SHA-256 pin verify) | PLAN M1 #9 |
+| T10 9a carve-out under LV-loss | Cursor m1-9a-no-acceptance-path-under-lv-loss (med); GLM gate9a-unconditional-vs-lv-loss-voiding (low-med) | adopted — 9a states its LV-loss alternate evidence (pre-load SHA-256 pin verify) (**superseded by R14 T2** — signature validation) | PLAN M1 #9 |
 | T11 N1 assert channel stale vs T6 | Cursor n1-automaticchecks-assert-channel-stale-vs-t6 (low-med) | adopted — N1 packaged assert → file-read channel; in-process getter only in unit/harness | PLAN N1 |
 | T12 import-alias CI bypass | Cursor ci-native-new-import-alias-bypass (low-med) | adopted — canonical-name rule for plugins/updater/native imports | PLAN N1 |
 | T13 gate 11 asserts not enumerated | GLM gate11-omits-asserts-claimed-by-§3.6 (low-med) | adopted — all 4 asserts written into item 11 | PLAN M1 #11 |
@@ -388,6 +388,30 @@ All three: FINDINGS on frozen v15 @ e77d372. Dominant: R14's signature-validatio
 | T11 hidden-prefs `set` unconstrained | GLM hidden-prefs-set-surface-unconstrained (low) | adopted — #15 set option qualified to §3.7-allowlist-eligible keys | PLAN M1 #15 |
 
 All 16 labeled findings adopted; no rejections.
+
+## Round 16 → v17 (13 themes from 16 labeled findings: Cursor 5 + Opus 8 + GLM 3)
+
+All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propagation residue (PARITY D1/D5 "display-only"; #9a injection leg untyped DR; D13 row singular DR), plus Opus design-depth findings (validate-then-dlopen TOCTOU window, settings-read fail-open, sidecar pre-create WAL drift, single-instance lock absent).
+
+| Theme | Findings | Disposition | Anchor |
+|---|---|---|---|
+| T1 D1/D5 "display-only" residue | Cursor parity-d1-d5-display-only-stale-vs-r15-t5 (med); Opus parity-d1-d5-set-allowlist-stale-vs-r15-t5 (low); GLM t5-reclassification-parity-display-only-residue (low) | adopted — "closed non-security set (display + range-validated cadence)"; PARITY §1 clipboardCheckInterval row names the set surface | PARITY D1/D5, §1 |
+| T2 cadence max unnamed — soft-disable | Cursor clipboardCheckInterval-max-unnamed-soft-disables-capture (med-high) | adopted — max pinned 3600s; above-max ⇒ rejected (soft-disable of capture forbidden) | PLAN §3.7, M1 #10 |
+| T3 #9a injection-leg DR untyped | Cursor gate9a-injection-alternate-pinned-requirement-vs-dylib-dr (med) | adopted — "pinned dylib DR" in both 9a legs | PLAN M1 #9a |
+| T4 D13 row singular DR | Cursor parity-d13-singular-dr-omits-separate-dylib-dr (med) | adopted — distinct dylib DR named; residual reworded (T6) | PARITY D13 |
+| T5 gate-10 dylib-DR unconditional | Cursor gate10-dylib-dr-assert-unconditional-vs-d13 (low-med); Opus gate10-dylib-dr-unconditional (low) | adopted — #10 asserts CLI peer DR only; dylib DR evidence lives in #9a (D13 active) | PLAN M1 #10 |
+| T6 validate-then-dlopen TOCTOU window | Opus d13-validate-then-dlopen-toctou-residual-understated (med) | adopted — `sqlite.Load()` immediately after validation in ③c; post-load mapped-image cdhash check ⇒ fatal on mismatch; D13 residual = "same-user code injection inheriting MyClip's TCC grants"; 12b swap-after-validation race test | PLAN §3.6, N1, M1 #12b |
+| T7 settings-read fail-open | Opus settings-read-failure-fails-open (low-med) | adopted — ④ read error ⇒ pref=false, ⑥ still runs; pre-seeded true can never win | PLAN N1 ④ |
+| T8 sidecar pre-create WAL drift | Opus sidecar-precreate-forces-wal-drift (low-med) | adopted — ③b pre-creates main DB only; sidecars fchmod-or-refuse; #3 asserts journal_mode every launch + sidecar modes after first write | PLAN N1 ③b, M1 #3 |
+| T9 single-instance lock absent | Opus single-instance-unspecified (low) | adopted — ②b `RequestSingleInstanceLock` before any poller/copy/socket work; new gate item 17 (second launch ⇒ exit) | PLAN N1, M1 #17 |
+| T10 AST true-ident shadowable | Opus ast-true-ident-shadowable (low) | adopted — constant-true via `types.Info` (name comparison shadowable) | PLAN N1 |
+| T11 LV-loss copy destination unpinned | GLM lv-loss-copy-destination-unpinned (low) | adopted — `<dataRoot>/lib/mygo-sqlite3.dylib` (0700; per-launch re-copy, no cache) | PLAN §3.6 |
+| T12 settings-store sqlite escapes recipe | GLM settings-store-db-mode-gap (low) | adopted — every sqlite file MyClip opens gets the §3.4 recipe; #3 asserts all DB files under data root | PLAN §3.4, M1 #3 |
+| T13 R12 superseded markers missing | Opus ledger-r12-superseded-markers-missing (low) | adopted — R12 T5/T10 rows marked superseded-by-R14-T2 | LEDGER R12 |
+| T14 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R17 packet regenerated from PLAN/LEDGER headers | /tmp packet |
+
+All 16 labeled findings adopted; no rejections.
+
 
 
 
