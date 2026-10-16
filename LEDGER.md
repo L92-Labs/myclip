@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -675,6 +675,26 @@ All findings adopted. Dominant: version-identity recurrence (R28's `→ v29` pre
 | T7 packet identity (meta) | — | R30 packet mechanical | /tmp packet |
 
 All 11 labeled findings adopted; no rejections.
+
+## Round 30 → v29-residue (10 labeled = Cursor 5 + GLM 5; 2-reviewer set; landed across 65ed3fd/1e09824/bfa9007/9b296c8)
+
+Cursor first pass BLOCKED (connection lost, no verdict) — retried once, FINDINGS. All findings adopted; landed across four commits due to a disk-full truncation incident mid-landing (PLAN/LEDGER restored from HEAD, edits replayed with executed proofs).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R29 dispositions not at reviewed SHA (multi-commit landing) | Cursor r29-dispositions-not-in-reviewed-sha (high); GLM r29-chain-segment-never-landed-segment-rule-self-violated (med) | adopted — R29 segment + exception note landed (9b296c8); convention recorded: ledger section for round N commits with the disposition landing commits, packet SHA = tip containing them | preamble exception note |
+| T2 PLAN M2 cite 141-144 residue | Cursor r29-t5-plan-cite-unlanded (med); GLM stale-cites-in-plan-after-t5-adoption (low-med) | adopted — PLAN:50 → 141-146 clear()-body cite | grep `141-144` in PLAN = 0 |
+| T3 L7 R28 segment elided vs L66 | Cursor l7-r28-segment-elided-vs-l66 (med) | adopted — L7 records R28 (same-stamp form: → v28, no v29) | grep `R28: 5 labeled` in PLAN = 1 |
+| T4 R29-T1/T5 proof scoping + preamble-at-SHA | Cursor r29-t1-ledger-preamble-false-at-65ed3fd (med) | adopted — proof cells scoped (`outside proof cells`); preamble exception note names the landing commit | grep `outside proof cells` = 1 |
+| T5 R22/R23 section order | Cursor ledger-r22-r23-section-order-residue (low); GLM ledger-section-order-r23-before-r22 (low) | adopted — R22 before R23 | heading order |
+| T6 R23-T5 inverted-cell pointer | GLM ledger-r23-t5-cell-states-inverted-contents-rule-no-pointer (low) | adopted — supersession pointer appended | grep `superseded by R28-T3` = 1 |
+| T7 L66 duplicated sentence | GLM duplicated-ledger-sentence-plan-l66 (low) | adopted — single occurrence | grep count = 1 line |
+| T8 capture-safe latch tests + settings-loss leg (Opus R23 residuals) | Opus (prior round, verified landed) | verified in #2 | #2 text |
+| T9 D14 sign-off entry + call sites | GLM d14 (R29 residue, completed) | adopted — decision #14 + call sites | decision #14 |
+| T10 packet identity (meta) | — | R31 packet mechanical | /tmp packet |
+
+All 10 labeled findings adopted; no rejections.
+
 
 
 
