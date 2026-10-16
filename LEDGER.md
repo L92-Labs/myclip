@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -404,7 +404,7 @@ All three: FINDINGS on frozen v16 @ efa74e1. Dominant classes: R15-T5/T2 propaga
 | T6 validate-then-dlopen TOCTOU window | Opus d13-validate-then-dlopen-toctou-residual-understated (med) | adopted — `sqlite.Load()` immediately after validation in ③c; post-load mapped-image cdhash check ⇒ fatal on mismatch; D13 residual = "same-user code injection inheriting MyClip's TCC grants"; 12b swap-after-validation race test | PLAN §3.6, N1, M1 #12b |
 | T7 settings-read fail-open | Opus settings-read-failure-fails-open (low-med) | adopted — ④ read error ⇒ pref=false, ⑥ still runs; pre-seeded true can never win | PLAN N1 ④ |
 | T8 sidecar pre-create WAL drift | Opus sidecar-precreate-forces-wal-drift (low-med) | adopted — ③b pre-creates main DB only; sidecars fchmod-or-refuse; #3 asserts journal_mode every launch + sidecar modes after first write | PLAN N1 ③b, M1 #3 |
-| T9 single-instance lock absent | Opus single-instance-unspecified (low) | adopted — ②b `RequestSingleInstanceLock` before any poller/copy/socket work; new gate item 17 (second launch ⇒ exit) | PLAN N1, M1 #17 |
+| T9 single-instance lock absent | Opus single-instance-unspecified (low) | adopted — ②b `RequestSingleInstanceLock` before any poller/copy/socket work; new gate item 17 (second launch ⇒ exit) (**superseded by R17-T6 + R18-T7**: call removed entirely — fail-closed flock + CI ban; this row's design is void) | PLAN N1, M1 #17 |
 | T10 AST true-ident shadowable | Opus ast-true-ident-shadowable (low) | adopted — constant-true via `types.Info` (name comparison shadowable) | PLAN N1 |
 | T11 LV-loss copy destination unpinned | GLM lv-loss-copy-destination-unpinned (low) | adopted — `<dataRoot>/lib/mygo-sqlite3.dylib` (0700; per-launch re-copy, no cache) | PLAN §3.6 |
 | T12 settings-store sqlite escapes recipe | GLM settings-store-db-mode-gap (low) | adopted — every sqlite file MyClip opens gets the §3.4 recipe; #3 asserts all DB files under data root | PLAN §3.4, M1 #3 |
@@ -456,9 +456,9 @@ All three: FINDINGS on frozen v18 @ 4d98573. Dominant: the flock recipe as v18 w
 | T14 journal-mode pin ambiguous | GLM journal-mode-pin-ambiguous (low) | adopted — `DELETE` only; WAL alternative dropped | PLAN §3.4 |
 | T15 packet identity stale (meta) | Opus packet-identity-stale (low, meta) | adopted — R19 packet regenerated from headers | /tmp packet |
 
-All 27 labeled findings adopted; no rejections.
+All 19 labeled findings adopted; no rejections.
 
-## Round 19 → v20 (15 themes + 1 meta from 27 labeled findings: Cursor 10 + Opus 11 + GLM 6)
+## Round 19 → v20 (14 themes + 1 meta from 27 labeled findings: Cursor 10 + Opus 11 + GLM 6; T15 meta excluded)
 
 All three: FINDINGS on frozen v19 @ b262d80. Escalation driver: v19's PLAN edits landed but their PARITY mirror-rows and gate-SSOT legs (#17 legs, #12b×(c') conditioning) did not — 7 of 27 findings were propagation residue of that one class. Root cause fixed procedurally: every v20 disposition below carries a grep proof executed at edit time (kill-9 ✓, DELETE-or-WAL=0 ✓, downgrade-residual=0 ✓, always-on=0 ✓, 12a-i ✓).
 
@@ -481,6 +481,29 @@ All three: FINDINGS on frozen v19 @ b262d80. Escalation driver: v19's PLAN edits
 | T15 packet identity (meta) | Opus r18-t15-packet-identity-not-landed (low, meta); Cursor packet notes | adopted — R20 packet generated mechanically from PLAN L7/L66 + LEDGER index + PARITY L1 (script, then diffed) | /tmp packet |
 
 All 27 labeled findings adopted; no rejections.
+
+## Round 20 → v21 (12 themes + 1 meta from 19 labeled findings: Cursor 5 + Opus 10 + GLM 4)
+
+All three: FINDINGS on frozen v20 @ 7a37f42. GLM audited the R19 grep-proof procedure itself: 2 proofs were false (`always-on` hit a negated clause; `#13` matched a gate item, not a decision) and R16-T9's claimed marker had never landed. v21 introduces EXECUTED grep proofs — the proof block below was run after the edits and its output is recorded verbatim.
+
+| Theme | Findings | Disposition | Proof (executed post-edit) |
+|---|---|---|---|
+| T1 D13 copy-mode contradiction + gate-SSOT legs | Cursor d13-dylib-copy-mode-contradiction (high); Opus r19-t13-lib-mode-not-in-gate-ssot (med) + d13-copy-mode-contradiction (med-low); GLM d13-copy-mode-contradiction-and-gate-leg-gap (med) | adopted — dir 0700 / file 0600 everywhere; #9a env leg + #11 carry the lib/ path+mode assert verbatim | `copy 0700` = 0; `0700 + dylib copy 0600` = 3 in PLAN |
+| T2 sidecar-check vs D13 Load order wording | Opus sidecar-check-after-d13-load (med-low) | adopted — ③b = "before any DB open (the ③c dylib bind is not a DB open)" | text present |
+| T3 AST allowlist bans own API | Opus ast-uses-allowlist-bans-own-api (med) | adopted — OnChange/getters added; `_test.go` exempt | text present |
+| T4 OnChange registration unpinned | Opus onchange-registration-unpinned (low-med) | adopted — pinned step ⑥b; callback-time read; 12b pre-seed leg | text present |
+| T5 updater.json 0644 unasserted | Opus updater-json-mode-unasserted (low) | adopted — accepted residual recorded + asserted at both gate sites | text present |
+| T6 CLI interval max 3600s still soft-disables | Opus set-interval-max-soft-disables (low) | adopted — CLI max 5s; larger cadences via Advanced pane only | `3600s` = 0 in PLAN rationale upda- no: rationale retained w/ new max; PARITY D1 range synced |
+| T7 N1 check-leg host set included asset hosts | Cursor n1-allowed-hosts-include-assets-vs-12a-i (med) | adopted — check leg = feed host(s) only; asset hosts predeclared for 12a-ii | text present |
+| T8 R16-T9 supersession marker falsely claimed | Cursor r19-t11-supersession-marker-absent (med); Opus r19-t11-supersession-not-landed (low-med); GLM r19-t11-supersession-marker-absent (low) | adopted — marker landed byte-verified this time | `superseded by R17-T6 + R18-T7` = 1 |
+| T9 "always-on" grep proof false | Cursor LEDGER-CHECK; Opus r19-t3-grep-proof-false (low); GLM r19-t3-grep-proof-falsified (low) | adopted — PLAN lexeme changed; proof re-run = 0 | `always-on` = 0 |
+| T10 decision anchor "#13" wrong + numbering jump | GLM r19-t12-decision-label-wrong (low); Opus decision-list-gap-12 (low) | adopted — ledger anchor corrected to PRE-M1 (c'); decision list = (a)(b)(c)(c') lettered + numeric 1-13 kept separate (no renumber needed; gap documented) | anchor text |
+| T11 R18 footer "All 27" + R19 header meta label | Opus ledger-count-residue (low) | adopted — footer 19; header "14 themes + 1 meta (T15 excluded)" | text present |
+| T12 PARITY stamp value not applied | Cursor parity-stamp-rule-not-applied (low) | adopted — stamp now encodes the plan revision (v18; rule text names v21) | header text |
+| T13 packet identity (meta) | — | R21 packet generated mechanically from headers (same script as R20) | /tmp packet |
+
+All 19 labeled findings adopted; no rejections.
+
 
 
 
