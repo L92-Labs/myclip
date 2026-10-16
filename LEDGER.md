@@ -106,7 +106,7 @@ Per-finding dispositions. Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R
 8. D10 copy sounds via MyGo audio — approve.
 9. M5 signing: Developer ID owner? (fallback: self-signed identity via the production signing path — emits hardened runtime; plain ad-hoc only as recorded deviation)
 
-## Round 3 → v4 (20 findings: Cursor 10 + Opus 10; + GLM run incomplete/BLOCKED)
+## Round 3 → v4 (19 findings: Cursor 9 + Opus 10; + GLM run incomplete/BLOCKED)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
 |---|---|---|---|---|
@@ -221,7 +221,7 @@ Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are 
 | GLM | ledger-r3-count-false-audit | med | adopted — awk recount; headers/footnote/PLAN corrected (R1=45, R3=20) | LEDGER headers |
 | GLM | m1-gate-list-incomplete-propagation | low-med | adopted — canonical M1 gate checklist enumerates everything | PLAN M1 |
 
-## Round 8 → v9 (20 findings: Cursor 8 + Opus 6 + GLM 6)
+## Round 8 → v9 (18 labeled findings: Cursor 8 + Opus 6 + GLM 4 + 2 meta rows; verdicts reported 8/6/6)
 
 Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 20 adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
 
@@ -250,7 +250,7 @@ Root cause recorded: several R7 disposition edits silently failed to match in th
 | GLM | (meta row — not a finding: GLM R9 emitted 4 labeled findings, 2 overlapping themes above) | ledger-check | — | — |
 | (meta row — not a finding) | R8 verdict counts: Cursor 8 + Opus 6 + GLM 6 reported; itemized GLM labeled findings = 4 (F1–F4) + 2 meta ⇒ **R8 = 18 labeled findings** | ledger-check | PLAN/headers use 18 | LEDGER |
 
-## Round 9 → v10 (9 findings: Cursor 5 + Opus 6 + GLM 4, themes deduplicated)
+## Round 9 → v10 (9 themes from 15 labeled findings: Cursor 5 + Opus 6 + GLM 4)
 
 All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); M1 #9/#12 N/A-branch conditionality (Cursor); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
 
