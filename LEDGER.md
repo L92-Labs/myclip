@@ -104,7 +104,7 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 6. D9 Vision OCR skip in v1 — approve or add spike.
 7. D2 third language: ES ok?
 8. D10 copy sounds via MyGo audio — approve (Before M2 — sounds ship at M2.)
-9. M5 signing: Developer ID owner? (timing: decide at PRE-M1 if the §3.6 LV sqlite-dylib spike fails, otherwise before M5; fallback: self-signed identity via the production signing path — emits hardened runtime, notarization N/A; plain ad-hoc only as recorded deviation)
+9. M5 signing: **DECIDED (user, R25): self-signed for now** — self-signed identity via the production signing path (emits hardened runtime; notarization N/A; documented Gatekeeper/quarantine/TCC steps); Developer ID revisited before public flip. The §3.6 LV sqlite-dylib spike still runs PRE-M1 and gates the D13 branch (identity choice does not preempt it). Plain ad-hoc only as recorded deviation.
 10. D12 `migrations` N/A — approve as recorded deviation (non-blocking).
 11. D13 (contingent, LV-loss) entitlement delta + residual = same-user code injection inheriting MyClip's TCC grants — approve if the §3.6 LV spike fails.
 13. (c') cdhash attestation spike (conditional, D13) — its outcome decides the #12b swap-race leg (pass ⇒ test runs; fail ⇒ leg N/A) and the final D13 residual width. (NOTE: numeric #12 intentionally unused — PRE-M1 blocking decisions are lettered (a)/(b)/(c)/(c'); this numeric list covers non-PRE-M1 items.)
