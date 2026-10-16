@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -200,7 +200,9 @@ Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 
 | Opus | seccode-peer-identity-by-pid-race | low | adopted — LOCAL_PEERTOKEN audit token + exec-after-connect test | PLAN §3.7 |
 | GLM | (no verdict — run incomplete ×2, infra SIGILL) | — | **BLOCKED** — retry R7 | — |
 
-Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 18 labeled (Cursor 8 + Opus 6 + GLM 4; verdict counts 8/6/6 incl. 2 GLM meta rows; itemized below); R9 = 8 themes (14 labeled = Cursor 4 + Opus 6 + GLM 4); R10 = 6 themes (17 labeled = Cursor 5 + Opus 7 + GLM 5). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
+Ledger-count audit (settled R10): counting rule = ledger-check/BLOCKED rows are not findings.
+
+Segment rule (settled R29): a round's `→(R_N …)` chain segment is appended only in the commit where its dispositions land — never pre-claimed. Round N reviews the current stamped revision; its fixes either land in that stamped revision (doc-only) or create v_(N+1), and the ledger header records where they actually landed. Proof counts exclude the proving row's own text. R1 = 45 (14/17/14); R2 = 34 (9/16/9); R3 = 19 (Cursor 9 + Opus 10; earlier claims of 18 then 25 were both wrong); R4 = 20 (5/9/6); R5 = 16 + 1 evidence-rejection; R6 = 11 (4/7); R7 = 18 (6/7/5); R8 = 18 labeled (Cursor 8 + Opus 6 + GLM 4; verdict counts 8/6/6 incl. 2 GLM meta rows; itemized below); R9 = 8 themes (14 labeled = Cursor 4 + Opus 6 + GLM 4); R10 = 6 themes (17 labeled = Cursor 5 + Opus 7 + GLM 5). Historical footnote claiming "16 Opus rows in R3 / 55 total" was wrong — superseded by this recount.
 
 ## Round 7 → v8 (18 findings: Cursor 6 + Opus 7 + GLM 5)
 
@@ -657,5 +659,22 @@ All findings adopted. Headline: v25's isModified contents-winner attribution was
 | T5 packet identity (meta) | — | R29 packet mechanical; fact (r) corrected | /tmp packet |
 
 All 5 labeled findings adopted; no rejections.
+
+## Round 29 → v28 (5 themes + 1 meta from 11 labeled findings: Cursor 7 + GLM 4; 2-reviewer set)
+
+All findings adopted. Dominant: version-identity recurrence (R28's `→ v29` pre-claim under a v28 stamp) — resolved by the segment rule above; R28 relabeled `→ v28`.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 version identity recurrence | Cursor r28-version-identity-recurrence (high); GLM version-identity-r28-arrow-vs-materialization (med) | adopted — segment rule recorded (preamble); R28 → v28; no pre-claimed segments | `Round 28 → v29` = 0 |
+| T2 R27 header count 4→5 | Cursor r28-t2-r27-theme-count-unlanded (med); GLM r27-header-count-disposition-unlanded-false-proof (med) | adopted — header 5+1; proof scoped to the header site | header text |
+| T3 PARITY stamp not in revision commit (2nd) | Cursor parity-stamp-false-at-reviewed-commit (high); GLM parity-stamp-not-in-revision-commit-2nd-recurrence (low-med) | adopted — stamp v28 (post-hoc fa77566, recorded here); commit-time sweep now greps BOTH sites (PLAN title + PARITY header) | PARITY header |
+| T4 D14 sign-off + call sites | Cursor d14-new-deviation-no-signoff (med); d14-sync-call-sites-understated (low); GLM d14-missing-signoff-status-and-decision-entry (low) | adopted — D14 `user sign-off pending (non-blocking)`; decision entry #14; call sites copyInMaccy:70 + copy:104 | PARITY D14, decision #14 |
+| T5 clearSystemClipboard cite 141-146 | Cursor clearSystemClipboard-line-cite-off (low) | adopted — `clear()` body cite (clearContents at 146) | PLAN + PARITY |
+| T6 section order R28/R27 | Cursor ledger-r28-section-order (low) | adopted — R27 before R28 | heading order |
+| T7 packet identity (meta) | — | R30 packet mechanical | /tmp packet |
+
+All 11 labeled findings adopted; no rejections.
+
 
 
