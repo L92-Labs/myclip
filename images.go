@@ -95,14 +95,28 @@ func (c *imageCache) preview(it *history.Item) *ui.Bitmap {
 // bitmap (nil when it does not decode) with put, under the lock.
 func (c *imageCache) decode(k any, data []byte, maxH int, maxW float64, put func(*ui.Bitmap)) {
 	var bmp *ui.Bitmap
-	if img, _, err := image.Decode(bytes.NewReader(data)); err == nil {
-		bmp = ui.NewBitmap(scaleDown(img, maxH, int(maxW)))
+	if decodable(data) {
+		if img, _, err := image.Decode(bytes.NewReader(data)); err == nil {
+			bmp = ui.NewBitmap(scaleDown(img, maxH, int(maxW)))
+		}
 	}
 	c.mu.Lock()
 	delete(c.pending, k)
 	put(bmp)
 	c.mu.Unlock()
 	mygo.RunOnMain(c.invalidate)
+}
+
+// maxDecodePixels bounds the images decoded for display: the D6 byte cap
+// bounds what is stored, not what a compressed image expands to.
+const maxDecodePixels = 64 << 20
+
+// decodable reports whether data's header declares an image small enough
+// to decode, read without decoding the pixels.
+func decodable(data []byte) bool {
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+	return err == nil && cfg.Width > 0 && cfg.Height > 0 &&
+		int64(cfg.Width)*int64(cfg.Height) <= maxDecodePixels
 }
 
 // scaleDown shrinks img to fit w×h pixels, keeping its proportions.

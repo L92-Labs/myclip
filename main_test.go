@@ -61,3 +61,23 @@ func TestScaleDown(t *testing.T) {
 		t.Error("scaled an image that fits")
 	}
 }
+
+func TestDecodableRefusesHugeImages(t *testing.T) {
+	encode := func(w, h int) []byte {
+		var b bytes.Buffer
+		png.Encode(&b, image.NewGray(image.Rect(0, 0, w, h)))
+		return b.Bytes()
+	}
+	if !decodable(encode(100, 100)) {
+		t.Error("refused a small image")
+	}
+	// A header claiming 100k×100k pixels: patch IHDR's width and height.
+	huge := encode(1, 1)
+	copy(huge[16:24], []byte{0, 1, 0x86, 0xa0, 0, 1, 0x86, 0xa0})
+	if decodable(huge) {
+		t.Error("accepted a 10-gigapixel header")
+	}
+	if decodable([]byte("not an image")) {
+		t.Error("accepted garbage")
+	}
+}
