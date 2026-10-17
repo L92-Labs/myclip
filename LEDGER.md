@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28), R41 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -711,7 +711,7 @@ All findings adopted or rejected-with-evidence. Label census (regex on raw verdi
 | T2 R30 theme count L66 12->7 | GLM plan-l66-r30-theme-count-12 (low) | adopted — L66 = 7 themes + 1 meta (T8 verified-residual + T9 ledger-check + T10 meta excluded) | grep `R30 7 themes` = 1 |
 | T3 R31 before R30 (order) | Cursor ledger-r31-before-r30-section-order (med); GLM ledger-r31-before-r30-order (low) | adopted — ascending order restored | heading order |
 | T4 R31 unenumerated labels (2) + census in header | Cursor ledger-r31-labeled-count-arith (med); GLM r31-labeled-count-7-vs-5-enumerated (med) | adopted — T1 cell gains Cursor r30-own-segment-missing-after-landing; header carries the full 7-label census | header census |
-| T5 R31 own segment missing | Cursor r31-missing-own-same-stamp-segment (med); GLM r31-segment-absent-own-convention (med) | adopted — L7/L66 carry the R31 doc-only segment | grep `R31: 7 labeled` = 1 |
+| T5 R31 own segment missing | Cursor r31-missing-own-same-stamp-segment (med); GLM r31-segment-absent-own-convention (med) | adopted — L7/L66 carry the R31 doc-only segment | grep `R31: 7 labeled` = 2 (L7+L66) — **updated (recorded R41)** |
 | T6 exception-note SHA conflation | Cursor exception-note-segment-landing-sha-conflation (med) | adopted — note separates content-landing SHAs (65ed3fd/1e09824 cites; bfa9007 D14; 9b296c8 order/pointer) from segment-landing SHA (8b26ed2) | note text |
 | T7 "no plan-content" vs segment-landing contradiction | Cursor r31-no-plan-content-claim-contradicts-t1 (med) | adopted — R31 prose rewritten: segment landing IS a PLAN edit; "no content changes" = engineering content only | prose |
 | T8 proof-cell self-quote (R30-T4/T6) + L66 12-themes | Cursor r30-proof-cells-self-quote-false (low); Cursor l66-r30-theme-count-12-vs-table (low-med) | adopted — proof cells re-scoped; L66 fixed (T2) | scoped greps |
@@ -838,3 +838,14 @@ Cursor CLEAR @ 6e94242. GLM FINDINGS: one low N3/NOTICE wrap divergence. Adopted
 | T2 packet identity (meta) | — | R41 packet mechanical | /tmp packet |
 
 All 1 labeled GLM finding adopted; no rejections. Cursor had CLEAR (0 findings) on the prior tip.
+
+## Round 41 → v28 (doc-only; 1 theme + 1 meta from 1 labeled finding: GLM 1; Cursor CLEAR on prior tip 280a67b; 2-reviewer set)
+
+Cursor CLEAR @ 280a67b. GLM FINDINGS: R29–R33 doc-only chain forms existed at L7 only; L66 lacked them (class recurrence of R34–R39 segment work). Adopted option (a): append matching chain forms at L66; refresh R32-T5 proof to =2.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 L66 missing R29–R33 chain-form | GLM doc-only-segments-l66-r29-r33-missing-chain-form (med) | adopted — five chain segments appended at L66 matching L7; R32-T5 proof =2 | grep `R29: 11 labeled`…`R33: 12 labeled` each = 2 |
+| T2 packet identity (meta) | — | R42 packet mechanical | /tmp packet |
+
+All 1 labeled GLM finding adopted; no rejections.
