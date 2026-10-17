@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -785,7 +785,7 @@ All findings adopted — pure ledger bookkeeping (section order, own segment, he
 | T3 R35 header 7→11 themes + residue marking | Cursor r35-theme-count-7-vs-table (med); GLM r35-header-theme-count-7-vs-11-unmarked-residue (med) | adopted — header 11 themes + 1 meta; T8–T11 marked doc-only residue/consolidation rows | header |
 | T4 R31-T4 cell wording + marker normalization | Cursor r35-t2-r31-t4-cell-claim-false (high); GLM r35-round-attribution-r35-vs-r36-mixed (low-med) | adopted — cell carries the census wording literally; all this-landing markers normalized to (recorded R36) | cell + markers |
 | T5 PLAN L66 R33 8→9 themes | Cursor r35-t4-plan-l66-r33-themes-stale (med) | adopted | grep |
-| T6 R35-T6 both-sites overclaim | Cursor r35-t6-both-sites-vs-proof-1 (med) | adopted — L66 gains chain-form R34; L7 already chain-form; proof = both sites | grep |
+| T6 R35-T6 both-sites overclaim | Cursor r35-t6-both-sites-vs-proof-1 (med) | adopted — **corrected (recorded R39)**: R36 claimed L66 chain-form here but it was false at R36 land; actual L66 chain-form landed R37-T2; disposition superseded by R37-T2 | grep `R34: 9 labeled` = 2 (L7+L66) — **updated (recorded R39)** |
 | T7 R35-T8/R33-T2/R34-T1 proof counts + R34-T1 enumeration | GLM r35-t8-stale-proof-count-2-vs-4 (med); Cursor (T8) | adopted — executed count with site list: `segment landing IS a PLAN edit` = 5 (R31 intro / R32-T7 / R33-T2 / R34-T1 / R36-T7; 4 non-self) — **updated (recorded R37)** | site list |
 | T8 R36 pre-claims in cells | Cursor r35-r36-preclaim (high); GLM (T4) | adopted — markers normalized to (recorded R36) valid upon this section's landing | markers |
 | T9 packet identity (meta) | — | R37 packet mechanical | /tmp packet |
@@ -816,3 +816,14 @@ All Cursor findings adopted. Residual false proof cells after R37's segment land
 | T3 packet identity (meta) | — | R39 packet mechanical | /tmp packet |
 
 All 2 labeled Cursor findings adopted; no rejections.
+
+## Round 39 → v28 (doc-only; 1 theme + 1 meta from 1 labeled finding: Cursor 1; GLM R39 still in flight at land — overlapping findings amend if any; 2-reviewer set)
+
+All Cursor findings adopted. Single residual: R36-T6 still claimed it had landed L66 R34 chain-form (false at R36; true only after R37-T2) with an empty Proof cell.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R36-T6 disposition false + empty proof | Cursor r36-t6-disposition-false-unamended (med) | adopted — cell superseded/corrected by R37-T2; Proof = executed `R34: 9 labeled` = 2 | cell |
+| T2 packet identity (meta) | — | R40 packet mechanical | /tmp packet |
+
+All 1 labeled Cursor finding adopted; no rejections.
