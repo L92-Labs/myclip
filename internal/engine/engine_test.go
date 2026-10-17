@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/L92-Labs/myclip/internal/capture"
+	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
 	"github.com/L92-Labs/myclip/internal/store"
 )
@@ -67,7 +68,7 @@ func TestCopyBackBumps(t *testing.T) {
 	r.copy(t, "one")
 	r.copy(t, "two")
 	one := r.e.Items()[1]
-	if err := r.e.CopyBack(one.ID); err != nil {
+	if err := r.e.CopyBack(one.ID, false); err != nil {
 		t.Fatal(err)
 	}
 	if o := r.e.Tick(context.Background()); o != capture.Captured {
@@ -135,5 +136,86 @@ func TestPauseStopsCapture(t *testing.T) {
 	}
 	if n := len(r.e.Items()); n != 1 {
 		t.Fatalf("%d items", n)
+	}
+}
+
+func TestPinDeleteClear(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "a")
+	r.copy(t, "b")
+	r.copy(t, "c")
+	items := r.e.Items()
+	pin, err := r.e.TogglePin(items[1].ID, "b")
+	if err != nil || pin != "c" {
+		t.Fatalf("pin %q %v", pin, err)
+	}
+	if err := r.e.SetTitle(items[1].ID, "Bee"); err != nil {
+		t.Fatal(err)
+	}
+	if items[1].Pin != "" || items[1].Title != "" {
+		t.Fatal("handed-out item was mutated")
+	}
+	if err := r.e.Delete(items[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.e.Clear(false); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := r.s.Load(context.Background())
+	if len(got) != 1 || got[0].Pin != "c" || got[0].Title != "Bee" || got[0].Text() != "b" {
+		t.Fatalf("after clear %+v", got)
+	}
+	if err := r.e.Clear(true); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := r.s.Load(context.Background()); len(got) != 0 || len(r.e.Items()) != 0 {
+		t.Fatalf("after clear all %d", len(got))
+	}
+}
+
+func TestSetPinTaken(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "a")
+	r.copy(t, "b")
+	items := r.e.Items()
+	r.e.TogglePin(items[0].ID)
+	r.e.TogglePin(items[1].ID)
+	if err := r.e.SetPin(items[1].ID, r.e.Item(items[0].ID).Pin); err == nil {
+		t.Fatal("took a used key")
+	}
+}
+
+func TestCopyBackPlainAndFiles(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.f.SetItems([]pasteboard.Item{
+		{Types: map[string][]byte{pasteboard.TypeString: []byte("x"), pasteboard.TypeRTF: []byte("{\\rtf1 x}")}},
+	}, nil)
+	r.e.Tick(context.Background())
+	id := r.e.Items()[0].ID
+	if err := r.e.CopyBack(id, true); err != nil {
+		t.Fatal(err)
+	}
+	got := r.f.ReadItems()
+	if len(got) != 1 || got[0].Types[pasteboard.TypeRTF] != nil || string(got[0].Types[pasteboard.TypeString]) != "x" {
+		t.Fatalf("plain write %+v", got)
+	}
+
+	items := boardItems([]history.Content{
+		{Type: pasteboard.TypeFileURL, Value: []byte("file:///a")},
+		{Type: pasteboard.TypeFileURL, Value: []byte("file:///b")},
+	}, false)
+	if len(items) != 2 || string(items[1].Types[pasteboard.TypeFileURL]) != "file:///b" {
+		t.Fatalf("files %+v", items)
+	}
+}
+
+func TestSetLimitsTrims(t *testing.T) {
+	r := newRig(t, Limits{})
+	for _, s := range []string{"a", "b", "c"} {
+		r.copy(t, s)
+	}
+	r.e.SetLimits(Limits{MaxItems: 1})
+	if got, _ := r.s.Load(context.Background()); len(got) != 1 || got[0].Text() != "c" {
+		t.Fatalf("stored %+v", got)
 	}
 }

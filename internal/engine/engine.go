@@ -36,6 +36,9 @@ type Config struct {
 	RunOnMain func(fn func())
 	// OnChange is called after the history list changes.
 	OnChange func()
+	// OnNew is called with each new unique copy (not merges), for
+	// Maccy's copy notification.
+	OnNew func(*history.Item)
 	// OnError reports store failures; capture continues in memory.
 	OnError func(error)
 	Now     func() time.Time
@@ -122,9 +125,20 @@ func (e *Engine) record(ctx context.Context, r *capture.Result) {
 		}
 	}
 	err = errors.Join(err, e.cfg.Store.Delete(ctx, ids...))
+	e.report(err)
+	if !res.Merged && e.cfg.OnNew != nil {
+		e.cfg.OnNew(res.Item)
+	}
+	e.changed()
+}
+
+func (e *Engine) report(err error) {
 	if err != nil && e.cfg.OnError != nil {
 		e.cfg.OnError(err)
 	}
+}
+
+func (e *Engine) changed() {
 	if e.cfg.OnChange != nil {
 		e.cfg.OnChange()
 	}
@@ -144,34 +158,6 @@ func (e *Engine) Oversized() int {
 	return e.oversized
 }
 
-// CopyBack puts a history item back on the pasteboard, marked as MyClip's
-// own write. The next tick merges it into the item (copy-back bump).
-func (e *Engine) CopyBack(id int64) error {
-	var it *history.Item
-	e.mu.Lock()
-	for _, x := range e.hist.Items() {
-		if x.ID == id {
-			it = x
-			break
-		}
-	}
-	var pb pasteboard.Item
-	if it != nil {
-		pb.Types = make(map[string][]byte, len(it.Contents)+1)
-		for _, c := range it.Contents {
-			pb.Types[c.Type] = c.Value
-		}
-		pb.Types[pasteboard.TypeOwnWrite] = []byte{}
-	}
-	e.mu.Unlock()
-	if it == nil {
-		return fmt.Errorf("engine: no item %d", id)
-	}
-	var err error
-	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write([]pasteboard.Item{pb}) })
-	return err
-}
-
 // Paused reports whether capture is paused (Maccy ignoreEvents).
 func (e *Engine) Paused() bool { return e.cap.Prefs().IgnoreEvents }
 
@@ -183,12 +169,17 @@ func (e *Engine) SetPaused(paused bool) {
 			p.IgnoreOnlyNextEvent = false
 		}
 	})
-	if e.cfg.OnChange != nil {
-		e.cfg.OnChange()
-	}
+	e.changed()
 }
 
 // IgnoreNext skips exactly the next pasteboard change.
 func (e *Engine) IgnoreNext() {
 	e.cap.UpdatePrefs(func(p *capture.Prefs) { p.IgnoreEvents, p.IgnoreOnlyNextEvent = true, true })
+	e.changed()
+}
+
+// IgnoringNext reports whether only the next change will be skipped.
+func (e *Engine) IgnoringNext() bool {
+	p := e.cap.Prefs()
+	return p.IgnoreEvents && p.IgnoreOnlyNextEvent
 }

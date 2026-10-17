@@ -9,14 +9,21 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/darwin"
 	"github.com/L92-Labs/myclip/internal/engine"
+	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/instance"
+	"github.com/L92-Labs/myclip/internal/popup"
+	"github.com/L92-Labs/myclip/internal/prefs"
+	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/internal/store"
+	"github.com/L92-Labs/myclip/locales"
 )
 
 const identifier = "com.l92labs.myclip"
@@ -73,67 +80,152 @@ func main() {
 
 	mygo.App.SetName("MyClip")
 	mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory)
-	a := &app{}
+	mygo.App.OnWindowAllClosed(func() {}) // lives in the menu bar
+	a := &app{settingsPath: filepath.Join(dir, settings.FileName)}
 	mygo.App.WhenReady(func() {
 		if err := a.start(dbPath); err != nil {
 			log.Print("myclip: ", err)
 			mygo.App.Quit()
 		}
 	})
+	// Windows hide rather than close, except as the app quits.
+	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { a.quitting = true })
 	mygo.App.OnWillQuit(func(*mygo.QuitEvent) { a.stop() })
 	if err := mygo.App.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-// app is the running menu bar app. Its fields are set once in start, on
-// the main thread.
+// app is the running menu bar app. Everything but the engine's poll loop
+// runs on the main thread.
 type app struct {
+	quitting     bool
+	settingsPath string
+	settings     settings.Settings
+	applied      settings.Settings // what the app last applied
+
 	engine *engine.Engine
 	store  *store.Store
+	board  *darwin.General
 	tray   *mygo.Tray
+	ctx    context.Context
 	cancel context.CancelFunc
-	err    error // last store error, shown in the menu
+	poll   context.CancelFunc // the poll loop, restarted when its interval changes
+	err    error              // last store error, shown in the menu
+
+	panel    *mygo.Window
+	offBlur  func()
+	popup    *popup.Popup
+	shortcut string // the registered popup shortcut
+
+	prefsWin *mygo.Window
+	prefs    *prefs.View
+
+	images *imageCache
 }
 
 func (a *app) start(dbPath string) error {
-	board, err := darwin.NewGeneral()
-	if err != nil {
+	var err error
+	if a.settings, err = settings.Load(a.settingsPath); err != nil {
+		log.Print("myclip: settings (using defaults): ", err)
+	}
+	if a.board, err = darwin.NewGeneral(); err != nil {
 		return err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	a.cancel = cancel
-	if a.store, err = store.Open(ctx, dbPath); err != nil {
+	a.ctx, a.cancel = context.WithCancel(context.Background())
+	if a.store, err = store.Open(a.ctx, dbPath); err != nil {
 		return err
 	}
-	a.engine, err = engine.New(ctx, engine.Config{
-		Board:     board,
+	a.engine, err = engine.New(a.ctx, engine.Config{
+		Board:     a.board,
 		Frontmost: darwin.FrontmostBundleID,
 		Store:     a.store,
+		Prefs:     a.settings.CapturePrefs(),
+		Limits:    a.limits(),
 		RunOnMain: mygo.RunOnMain,
 		OnChange:  func() { mygo.RunOnMain(a.refresh) },
+		OnNew:     func(it *history.Item) { mygo.RunOnMain(func() { a.notify(it) }) },
 		OnError: func(err error) {
 			log.Print("myclip: store: ", err)
-			mygo.RunOnMain(func() { a.err = err })
+			mygo.RunOnMain(func() { a.err = err; a.refresh() })
 		},
 	})
 	if err != nil {
 		return err
 	}
-	a.tray, err = mygo.NewTray(mygo.TrayOptions{
-		Icon:           trayIcon(),
-		IconIsTemplate: true,
-		ToolTip:        "MyClip",
+	history.ResolveFileURL = darwin.ResolveFileURL
+	a.images = newImageCache(func() {
+		if a.panel != nil {
+			a.panel.Invalidate()
+		}
 	})
-	if err != nil {
-		return err
-	}
+	a.popup = &popup.Popup{Host: a, Settings: &a.settings}
+	a.panel = mygo.NewWindow(mygo.WindowOptions{
+		Panel:         true,
+		Hidden:        true,
+		Frameless:     true,
+		Vibrancy:      mygo.VibrancyPopover,
+		Width:         a.settings.WindowWidth,
+		Height:        400,
+		DisableResize: true,
+		Content:       ui.View(a.popup.View),
+	})
+	a.panel.OnClose(func(e *mygo.CloseEvent) {
+		if !a.quitting {
+			e.PreventDefault()
+			a.Close()
+		}
+	})
+	a.offBlur = a.panel.OnBlur(a.Close)
+
+	a.applied = a.settings
+	a.applyTray()
+	a.registerShortcut()
+	a.restartPoll()
 	a.refresh()
-	go a.engine.Run(ctx, capture.DefaultInterval)
+	a.showOnLaunch(os.Getenv("MYCLIP_SHOW"))
 	return nil
 }
 
+// showOnLaunch opens a window at launch, for screenshots and manual
+// checks: MYCLIP_SHOW=popup, popup-preview or prefs[:tab].
+func (a *app) showOnLaunch(what string) {
+	switch {
+	case what == "popup" || what == "popup-preview":
+		a.showPopup()
+		a.offBlur() // stays open without the keyboard
+		if what == "popup-preview" {
+			a.popup.TogglePreview()
+		}
+		// On the primary display, where screenshots look.
+		area := mygo.Screen.PrimaryDisplay().WorkArea
+		w, h := a.popup.Fit()
+		a.panel.SetPosition(area.X+(area.Width-w)/2, area.Y+(area.Height-h)/2)
+		a.logBounds(a.panel)
+	case strings.HasPrefix(what, "prefs"):
+		a.openPrefs()
+		var tab int
+		fmt.Sscan(strings.TrimPrefix(what, "prefs:"), &tab)
+		a.prefs.SetTab(tab)
+		a.logBounds(a.prefsWin)
+	}
+}
+
+// logBounds prints a window's bounds once it has settled, for screenshots.
+func (a *app) logBounds(w *mygo.Window) {
+	time.AfterFunc(time.Second, func() {
+		mygo.RunOnMain(func() {
+			b := w.Bounds()
+			fmt.Fprintf(os.Stderr, "bounds %d,%d,%d,%d\n", b.X, b.Y, b.Width, b.Height)
+		})
+	})
+}
+
 func (a *app) stop() {
+	if a.engine != nil && a.settings.ClearOnQuit {
+		// Maccy's clearOnQuit: unpinned items go, as History.clear().
+		a.clearHistory(false)
+	}
 	if a.cancel != nil {
 		a.cancel()
 	}
@@ -145,23 +237,66 @@ func (a *app) stop() {
 	}
 }
 
-// refresh rebuilds the tray menu from the history. Main thread only.
+func (a *app) limits() engine.Limits {
+	l := engine.DefaultLimits
+	l.MaxItems = a.settings.HistorySize
+	return l
+}
+
+// restartPoll (re)starts the pasteboard poll at the settings' interval.
+func (a *app) restartPoll() {
+	if a.poll != nil {
+		a.poll()
+	}
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.poll = cancel
+	go a.engine.Run(ctx, a.settings.CheckInterval())
+}
+
+// sortedItems is the history in the order the popup shows it.
+func (a *app) sortedItems() []*history.Item {
+	return history.Sort(a.engine.Items(), a.settings.SortBy, a.settings.PinTo)
+}
+
+// refresh redraws what shows the history: the tray and an open popup.
+// Main thread only.
 func (a *app) refresh() {
-	if a.tray == nil {
+	a.images.forget(a.engine.Items())
+	a.updateTray()
+	if a.panel != nil && a.panel.IsVisible() {
+		a.popup.SetItems(a.sortedItems())
+		a.panel.Invalidate()
+	}
+	if a.prefsWin != nil {
+		a.prefsWin.Invalidate()
+	}
+}
+
+// notify shows Maccy's copy notification, when the user turned it on.
+func (a *app) notify(it *history.Item) {
+	if !a.settings.NotifyOnCopy || !mygo.NotificationsSupported() {
 		return
 	}
-	a.tray.SetMenu(mygo.NewMenu(menuItems(menuState{
-		Items:     a.engine.Items(),
-		Paused:    a.engine.Paused(),
-		Oversized: a.engine.Oversized(),
-		Err:       a.err,
-	}, menuActions{
-		Copy: func(id int64) {
-			if err := a.engine.CopyBack(id); err != nil {
-				log.Print("myclip: copy: ", err)
-			}
-		},
-		SetPaused:  a.engine.SetPaused,
-		IgnoreNext: func() { a.engine.IgnoreNext(); a.refresh() },
-	})))
+	body := it.DisplayTitle()
+	if _, _, ok := it.Image(); ok && it.Title == "" {
+		body = locales.Image()
+	}
+	go func() {
+		n := mygo.NewNotification(mygo.NotificationOptions{ID: "copy", Title: "MyClip", Body: body})
+		if err := n.Show(); err != nil {
+			log.Print("myclip: notification: ", err)
+		}
+	}()
+}
+
+// clearHistory clears the history, and the system clipboard with Maccy's
+// clearSystemClipboard.
+func (a *app) clearHistory(all bool) {
+	if err := a.engine.Clear(all); err != nil {
+		log.Print("myclip: clear: ", err)
+	}
+	if a.settings.ClearSystemClipboard {
+		mygo.Clipboard.Clear()
+	}
+	mygo.ClearNotifications()
 }

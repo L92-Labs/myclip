@@ -1,0 +1,268 @@
+{
+  "@@locale": "en",
+  "searchPlaceholder": "type to search…",
+  "clear": "Clear",
+  "clearAll": "Clear all",
+  "preferences": "Preferences…",
+  "about": "About",
+  "quit": "Quit",
+  "clearAlertMessage": "Are you sure you want to clear the history?",
+  "clearAlertComment": "You can't undo this action.",
+  "clearAlertConfirm": "Clear",
+  "clearAlertCancel": "Cancel",
+  "dontAskAgain": "Don't ask again",
+  "noClips": "No clips yet — copy something",
+  "noMatches": "No matches",
+  "image": "Image",
+  "previewApplication": "Application:",
+  "previewFirstCopyTime": "First copy time:",
+  "previewLastCopyTime": "Last copy time:",
+  "previewNumberOfCopies": "Number of copies:",
+  "previewDimensions": "Dimensions:",
+  "previewPinKey": "Press {key} to pin.",
+  "@previewPinKey": {
+    "placeholders": {
+      "key": {
+        "type": "String",
+        "example": "⌥P"
+      }
+    }
+  },
+  "previewUnpinKey": "Press {key} to unpin.",
+  "@previewUnpinKey": {
+    "placeholders": {
+      "key": {
+        "type": "String",
+        "example": "⌥P"
+      }
+    }
+  },
+  "previewDeleteKey": "Press {key} to delete.",
+  "@previewDeleteKey": {
+    "placeholders": {
+      "key": {
+        "type": "String",
+        "example": "⌥⌫"
+      }
+    }
+  },
+  "previewToggleKey": "Press {key} to toggle preview.",
+  "@previewToggleKey": {
+    "placeholders": {
+      "key": {
+        "type": "String",
+        "example": "⌃Space"
+      }
+    }
+  },
+  "pasteNeedsAccessibility": "To paste, allow MyClip in System Settings › Privacy & Security › Accessibility. The item was copied.",
+  "pasteSecureInput": "Secure input is on, so MyClip can't paste. The item was copied.",
+  "trayClips": "{count, plural, one {# clip} other {# clips}} · stored on this Mac only",
+  "@trayClips": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "trayOpen": "Open MyClip",
+  "trayPause": "Pause Capture",
+  "trayIgnoreNext": "Ignore Next Copy",
+  "traySkipped": "{count, plural, one {# skipped} other {# skipped}} (over 32 MB)",
+  "@traySkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "trayNotSaved": "⚠ Not saved: {error}",
+  "@trayNotSaved": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "disk full"
+      }
+    }
+  },
+  "quitMyClip": "Quit MyClip",
+  "aboutMessage": "MyClip {version}",
+  "@aboutMessage": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0"
+      }
+    }
+  },
+  "aboutDetail": "A local-only clipboard history for the menu bar, after Maccy. Nothing you copy leaves this Mac.",
+  "copied": "Copied",
+  "shortcutTaken": "The shortcut {shortcut} is taken by another app.",
+  "@shortcutTaken": {
+    "placeholders": {
+      "shortcut": {
+        "type": "String",
+        "example": "⇧⌘C"
+      }
+    }
+  },
+  "menuCopy": "Copy",
+  "menuPaste": "Paste",
+  "menuPastePlain": "Paste Without Formatting",
+  "menuPin": "Pin",
+  "menuUnpin": "Unpin",
+  "menuDelete": "Delete",
+  "prefWindowTitle": "MyClip Settings",
+  "prefGeneral": "General",
+  "prefLaunchAtLogin": "Launch at login",
+  "prefStartup": "Startup:",
+  "prefOpen": "Open:",
+  "prefPin": "Pin:",
+  "prefDelete": "Delete:",
+  "prefPreview": "Preview:",
+  "prefShortcutsDescription": "Open works anywhere; Pin, Delete and Preview work in the popup.",
+  "prefSearch": "Search:",
+  "prefSearchExact": "Exact",
+  "prefSearchFuzzy": "Fuzzy",
+  "prefSearchRegex": "Regular expressions",
+  "prefSearchMixed": "Mixed",
+  "prefBehavior": "Behavior:",
+  "prefPasteAutomatically": "Paste automatically",
+  "prefPasteWithoutFormatting": "Paste without formatting",
+  "prefModifiers": "Customize the behavior when selecting item:\n• Select with {copy} pressed to copy item.\n• Select with {paste} pressed to copy and paste item.\n• Select with {plain} pressed to copy, clear formatting, and paste item.",
+  "@prefModifiers": {
+    "placeholders": {
+      "copy": {
+        "type": "String",
+        "example": "⌘"
+      },
+      "paste": {
+        "type": "String",
+        "example": "⌥"
+      },
+      "plain": {
+        "type": "String",
+        "example": "⌥⇧"
+      }
+    }
+  },
+  "prefAccessibility": "Pasting needs Accessibility access: System Settings › Privacy & Security › Accessibility.",
+  "prefAccessibilityGranted": "Accessibility access granted.",
+  "prefAccessibilityOpen": "Request Access…",
+  "prefNotifications": "Notifications:",
+  "prefNotifyOnCopy": "Notify on each new copy",
+  "prefRecord": "Record shortcut",
+  "prefRecording": "Type a shortcut…",
+  "prefNone": "None",
+  "prefStorage": "Storage",
+  "prefSave": "Save:",
+  "prefFiles": "Files",
+  "prefImages": "Images",
+  "prefText": "Text",
+  "prefSaveDescription": "Change what types of copied content should be stored.",
+  "prefSize": "Size:",
+  "prefSizeDescription": "Number of history items to keep (pinned items do not count). Default: 200.",
+  "prefSizeOnDisk": "{size} on disk",
+  "@prefSizeOnDisk": {
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "1.2 MB"
+      }
+    }
+  },
+  "prefSortBy": "Sort by:",
+  "prefSortLast": "Time of last copy",
+  "prefSortFirst": "Time of first copy",
+  "prefSortCopies": "Number of copies",
+  "prefAppearance": "Appearance",
+  "prefPopupAt": "Popup at:",
+  "prefPopupCursor": "Cursor",
+  "prefPopupMenuIcon": "Menu icon",
+  "prefPopupWindow": "Window center",
+  "prefPopupScreenCenter": "Screen center",
+  "prefPopupLast": "Last position",
+  "prefResetPosition": "Reset position",
+  "prefScreen": "Screen:",
+  "prefActiveScreen": "Active screen",
+  "prefPinTo": "Pin to:",
+  "prefPinTop": "Top",
+  "prefPinBottom": "Bottom",
+  "prefImageHeight": "Image height:",
+  "prefImageHeightDescription": "Maximum image preview height. Default: 40. Set to 16 to look like text items.",
+  "prefPreviewDelay": "Preview delay:",
+  "prefPreviewDelayDescription": "Delay in milliseconds until the preview is shown. Default: 1500.",
+  "prefOpenPreviewAutomatically": "Open preview automatically",
+  "prefHighlight": "Highlight matches:",
+  "prefHighlightBold": "Bold",
+  "prefHighlightColor": "Color",
+  "prefHighlightItalic": "Italic",
+  "prefHighlightUnderline": "Underline",
+  "prefShow": "Show:",
+  "prefShowSpecialSymbols": "Show special symbols",
+  "prefShowMenuIcon": "Show menu icon",
+  "prefMenuIconStyle": "Menu icon:",
+  "prefIconMyClip": "MyClip",
+  "prefIconClipboard": "Clipboard",
+  "prefIconScissors": "Scissors",
+  "prefIconPaperclip": "Paperclip",
+  "prefShowRecentCopy": "Show recent copy next to menu icon",
+  "prefShowSearchField": "Show search field",
+  "prefSearchVisibility": "Search field:",
+  "prefSearchAlways": "Always",
+  "prefSearchDuringSearch": "During search",
+  "prefShowTitle": "Show title before search field",
+  "prefShowAppIcons": "Show application icons",
+  "prefShowHexSwatch": "Show hex color swatch",
+  "prefShowFooter": "Show footer",
+  "prefFooterWarning": "⚠️ Press ⌘, (command+comma) to open preferences when footer is hidden.",
+  "prefMenuIconHidden": "With the menu icon hidden, open the popup with its shortcut; ⌘, in the popup opens these settings.",
+  "prefWindowSize": "Popup size:",
+  "prefWidth": "Width",
+  "prefHeight": "Height",
+  "prefPins": "Pins",
+  "prefPinsDescription": "You can change the key, title and content of any pinned item. Only plain text content can be changed; editing discards formatting.",
+  "prefKey": "Key",
+  "prefAlias": "Title",
+  "prefContent": "Content",
+  "prefNotText": "Non-editable content (image or file)",
+  "prefNoPins": "No pinned items. Press {key} in the popup to pin one.",
+  "@prefNoPins": {
+    "placeholders": {
+      "key": {
+        "type": "String",
+        "example": "⌥P"
+      }
+    }
+  },
+  "prefUnpin": "Unpin",
+  "prefIgnore": "Ignore",
+  "prefApplicationsTab": "Applications",
+  "prefPasteboardTypesTab": "Pasteboard types",
+  "prefRegexpTab": "Regular expressions",
+  "prefIgnoredAppsDescription": "Ignore copies coming from certain applications. This is not bullet-proof: prefer pasteboard types when possible.",
+  "prefIgnoreAllExceptListed": "Ignore all applications except listed",
+  "prefIgnoredTypesDescription": "Ignore certain pasteboard types. Some known application-specific types are listed by default; remove them or add your own.",
+  "prefIgnoredRegexpsDescription": "Ignore copies whose text matches one of these regular expressions.",
+  "prefReset": "Reset",
+  "prefAdd": "Add",
+  "prefAddApp": "Add Application…",
+  "prefRemove": "Remove",
+  "prefNewType": "Pasteboard type",
+  "prefNewRegexp": "Regular expression",
+  "prefInvalidRegexp": "Not a valid regular expression.",
+  "prefAdvanced": "Advanced",
+  "prefTurnOff": "Turn off",
+  "prefTurnOffDescription": "Temporarily ignore all new copies, for example while copying sensitive data.",
+  "prefTurnOffViaMenuIcon": "You can also click the menu icon with ⌥ pressed. To ignore only the next copy, click with ⌥⇧.",
+  "prefClearOnQuit": "Clear history on quit",
+  "prefClearOnQuitDescription": "Remove all unpinned items before quitting.",
+  "prefClearSystemClipboard": "Clear the system clipboard too",
+  "prefClearSystemClipboardDescription": "Clearing the history also clears the current system clipboard.",
+  "prefCheckInterval": "Check every:",
+  "prefCheckIntervalDescription": "How often MyClip looks for new copies, in milliseconds. Default: 500.",
+  "prefLocalOnly": "Everything stays on this Mac: no network, no telemetry.",
+  "prefHistory": "History:"
+}
