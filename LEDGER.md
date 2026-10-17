@@ -875,3 +875,11 @@ All Cursor findings adopted — count-consistency after the R42 =6 site-list fol
 | T5 packet identity (meta) | — | R44 packet mechanical | /tmp packet |
 
 All 4 labeled Cursor findings adopted; no rejections.
+
+## Plan-gate CLEAR — v28 @ e4310e3
+
+**CLEAR** from both required reviewers on the same revision:
+- Cursor Agent Auto — CLEAR @ e4310e3 (packet-v44 / cursor-plan-v44.txt)
+- GLM-5.3-Flash (`zai-coding-plan/glm-5.3-flash`) — CLEAR @ e4310e3 (packet-v44 / opencode-plan-v44.txt)
+
+Engineering content of PLAN/PARITY stable since R28; R29–R43 were doc-only ledger bookkeeping. Next: PRE-M1 blocking decisions (CI runner; D1/D5/D6/D7 sign-off) then M1 implementation under the code gate.
