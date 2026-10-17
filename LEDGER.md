@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -764,7 +764,7 @@ All findings adopted — every one bookkeeping-class, zero engineering content. 
 | T3 R34-T1 "greps below" false + T4/T5/T6/T9 claimed-not-landed | Cursor r34-t1-four-edits-and-greps-below-false (high); GLM r34-t5 (med) | adopted — T4/T5/T6/T9 edits executed THIS commit; "greps below" replaced with executed counts in-cell | grep `greps below` = 0 |
 | T4 R33 header 8→9 themes | Cursor r34-t4-misapplied-r33-header-still-8-vs-9 (med) | adopted — R33 header 9 themes + 1 meta | header |
 | T5 R34 header 7→5 + full 9-label census | Cursor r34-header-theme-count-7-vs-5 (med); GLM r34-header-count-census-defects (low-med) | adopted — header 5 themes + 1 meta; census lists all 9 labels | header |
-| T6 R34 own segment L7/L66 | Cursor r34-own-same-stamp-segment-missing (med); GLM r34-own-segment-missing-l7-l66 (med) | adopted — `→(R34: 9 labeled = Cursor 5 + GLM 4, doc-only)→ v28` at both sites | grep `R34: 9 labeled` = 1 |
+| T6 R34 own segment L7/L66 | Cursor r34-own-same-stamp-segment-missing (med); GLM r34-own-segment-missing-l7-l66 (med) | adopted — `→(R34: 9 labeled = Cursor 5 + GLM 4, doc-only)→ v28` at both sites | grep `R34: 9 labeled` = 2 (L7+L66) — **updated (recorded R38)** |
 | T7 R30-T4 proof self-quote re-scope | Cursor r33-t4-r30-t4-proof-count-still-false (low-med) | adopted — executed-count wording | cell |
 | T8 R33-T2 proof = 1 → 2 scoped | GLM r33-t2-proof-undercount (low) | adopted — `= 2 (L700 intro + R32-T7 cell; 1 non-self)` | cell |
 | T9 R34-T2 anchor rename R24-T1 → R23-T1 | GLM r34-t2-cell-anchor-misnomer (low) | adopted — cell says R23-T1 | cell |
@@ -781,7 +781,7 @@ All findings adopted — pure ledger bookkeeping (section order, own segment, he
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
 | T1 R35 section order (before R31) | Cursor r35-section-order-before-r31 (med); GLM r35-section-out-of-ascending-order (low) | adopted — ascending order restored (R31→R35) | heading order |
-| T2 R35 own segment L7/L66 | Cursor r35-own-same-stamp-segment-missing (med); GLM r35-own-segment-missing-l7-l66 (med) | adopted — same-stamp doc-only segments at both sites | grep `R35: 14 labeled` in PLAN = 1 |
+| T2 R35 own segment L7/L66 | Cursor r35-own-same-stamp-segment-missing (med); GLM r35-own-segment-missing-l7-l66 (med) | adopted — same-stamp doc-only segments at both sites | grep `R35: 14 labeled` in PLAN = 2 (L7+L66) — **updated (recorded R38)** |
 | T3 R35 header 7→11 themes + residue marking | Cursor r35-theme-count-7-vs-table (med); GLM r35-header-theme-count-7-vs-11-unmarked-residue (med) | adopted — header 11 themes + 1 meta; T8–T11 marked doc-only residue/consolidation rows | header |
 | T4 R31-T4 cell wording + marker normalization | Cursor r35-t2-r31-t4-cell-claim-false (high); GLM r35-round-attribution-r35-vs-r36-mixed (low-med) | adopted — cell carries the census wording literally; all this-landing markers normalized to (recorded R36) | cell + markers |
 | T5 PLAN L66 R33 8→9 themes | Cursor r35-t4-plan-l66-r33-themes-stale (med) | adopted | grep |
@@ -804,3 +804,15 @@ All Cursor findings adopted (GLM R37 still in flight at edit time — will merge
 | T4 packet identity (meta) | — | R38 packet mechanical | /tmp packet |
 
 All 4 labeled Cursor findings adopted; no rejections. GLM findings (if any beyond these) land in a follow-up amendment.
+
+## Round 38 → v28 (doc-only; 2 themes + 1 meta from 2 labeled findings: Cursor 2; GLM R38 crashed mid-run on tip 826ebe5 — relaunch after this land; 2-reviewer set)
+
+All Cursor findings adopted. Residual false proof cells after R37's segment landings — counts were fixed in PLAN but prior-round proof cells still said =1.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R36-T2 proof still =1 | Cursor r36-t2-proof-still-1 (med-high) | adopted — proof now `= 2 (L7+L66)` | cell |
+| T2 R35-T6 proof still =1 | Cursor r35-t6-proof-still-1 (med) | adopted — proof now `= 2 (L7+L66)` | cell |
+| T3 packet identity (meta) | — | R39 packet mechanical | /tmp packet |
+
+All 2 labeled Cursor findings adopted; no rejections.
