@@ -117,6 +117,20 @@ func (h *History) Load(items []*Item) {
 	h.sessionLog = map[int]*Item{}
 }
 
+// Replace puts updated in old's place in the list and the session log.
+func (h *History) Replace(old, updated *Item) {
+	for i, x := range h.items {
+		if x == old {
+			h.items[i] = updated
+		}
+	}
+	for k, v := range h.sessionLog {
+		if v == old {
+			h.sessionLog[k] = updated
+		}
+	}
+}
+
 // Remove drops it from the list and the session log.
 func (h *History) Remove(it *Item) {
 	out := h.items[:0]

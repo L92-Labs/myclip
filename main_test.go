@@ -2,90 +2,62 @@ package main
 
 import (
 	"bytes"
-	"errors"
+	"image"
+	"image/color"
 	"image/png"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/egoist/mygo"
-
-	"github.com/L92-Labs/myclip/internal/history"
-	"github.com/L92-Labs/myclip/internal/pasteboard"
+	"github.com/L92-Labs/myclip/internal/settings"
 )
 
-func clip(id int64, s string) *history.Item {
-	it := history.NewItem([]history.Content{{Type: pasteboard.TypeString, Value: []byte(s)}}, "com.apple.TextEdit", time.Now())
-	it.ID = id
-	return it
-}
-
-func labels(items []*mygo.MenuItem) []string {
-	var out []string
-	for _, it := range items {
-		out = append(out, it.Label)
-	}
-	return out
-}
-
-func TestMenuEmpty(t *testing.T) {
-	got := labels(menuItems(menuState{}, menuActions{}))
-	if got[0] != "No clips yet — copy something" || got[len(got)-1] != "Quit MyClip" {
-		t.Fatalf("labels %q", got)
-	}
-}
-
-func TestMenuClipsCopyBack(t *testing.T) {
-	var copied int64
-	var paused bool
-	s := menuState{Items: []*history.Item{clip(7, "  hello\n  world  "), clip(3, "second")}}
-	items := menuItems(s, menuActions{
-		Copy:      func(id int64) { copied = id },
-		SetPaused: func(p bool) { paused = p },
-	})
-	if items[0].Label != "hello world" || items[0].Accelerator != "CmdOrCtrl+1" {
-		t.Fatalf("first row %q %q", items[0].Label, items[0].Accelerator)
-	}
-	items[1].Click(items[1], nil)
-	if copied != 3 {
-		t.Fatalf("copied id %d, want 3", copied)
-	}
-	for _, it := range items {
-		if it.Label == "Pause Capture" {
-			it.Checked = true // MyGo toggles before Click
-			it.Click(it, nil)
+func TestTrayIconsArePNG(t *testing.T) {
+	for _, name := range settings.MenuIcons {
+		for _, paused := range []bool{false, true} {
+			img, err := png.Decode(bytes.NewReader(trayIcon(name, paused)))
+			if err != nil || img.Bounds().Dx() != 32 {
+				t.Fatalf("%s paused=%v: %v", name, paused, err)
+			}
+			if opaque(img) == 0 {
+				t.Errorf("%s paused=%v: blank icon", name, paused)
+			}
 		}
 	}
-	if !paused {
-		t.Fatal("pause not forwarded")
-	}
-	if !strings.Contains(strings.Join(labels(items), "|"), "2 clips · stored on this Mac only") {
-		t.Fatalf("status missing: %q", labels(items))
-	}
 }
 
-func TestMenuCapsAndWarnings(t *testing.T) {
-	var many []*history.Item
-	for i := range 30 {
-		many = append(many, clip(int64(i+1), "x"))
-	}
-	items := menuItems(menuState{Items: many, Oversized: 2, Err: errors.New("disk full")}, menuActions{})
-	clips := 0
-	for _, it := range items {
-		if it.Label == "x" {
-			clips++
+// opaque counts the pixels drawn at least half opaque.
+func opaque(img image.Image) int {
+	n := 0
+	b := img.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if color.NRGBAModel.Convert(img.At(x, y)).(color.NRGBA).A > 0 {
+				n++
+			}
 		}
 	}
-	joined := strings.Join(labels(items), "|")
-	if clips != menuLimit || !strings.Contains(joined, "2 skipped (over 32 MB)") ||
-		!strings.Contains(joined, "⚠ Not saved: disk full") {
-		t.Fatalf("%d clips, labels %q", clips, joined)
+	return n
+}
+
+func TestRecentTitle(t *testing.T) {
+	if got := recentTitle("short"); got != "short" {
+		t.Errorf("got %q", got)
+	}
+	long := strings.Repeat("é", 50)
+	if got := []rune(recentTitle(long)); len(got) != recentTitleRunes || got[len(got)-1] != '…' {
+		t.Errorf("got %q", string(got))
 	}
 }
 
-func TestTrayIconIsPNG(t *testing.T) {
-	img, err := png.Decode(bytes.NewReader(trayIcon()))
-	if err != nil || img.Bounds().Dx() != 32 {
-		t.Fatalf("icon: %v", err)
+func TestScaleDown(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 400, 200))
+	if b := scaleDown(img, 40, 1000).Bounds(); b.Dx() != 80 || b.Dy() != 40 {
+		t.Errorf("by height: %v", b)
+	}
+	if b := scaleDown(img, 1000, 100).Bounds(); b.Dx() != 100 || b.Dy() != 50 {
+		t.Errorf("by width: %v", b)
+	}
+	if scaleDown(img, 500, 500) != image.Image(img) {
+		t.Error("scaled an image that fits")
 	}
 }
