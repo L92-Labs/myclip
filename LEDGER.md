@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -695,6 +695,28 @@ Cursor first pass BLOCKED (connection lost, no verdict) — retried once, FINDIN
 
 All 10 labeled findings adopted; no rejections.
 
+## Round 35 → v28 (doc-only; 7 themes + 1 meta from 14 labeled findings: Cursor 7 + GLM 7; 2-reviewer set)
+
+All findings adopted — every one bookkeeping-class, zero engineering content. This round's edits landed in the SAME commit as this section (single Write-tool script, idempotent apply-or-skip, executed proof block).
+
+| Theme | Findings | Disposition | Proof (executed post-edit) |
+|---|---|---|---|
+| T1 R32-T1 proof cell = 1 → = 2 | Cursor r34-t5-r32-t1-proof-still-1 (high); GLM r34-t5-disposition-false-r32t1-proof-unlanded (med) | adopted — cell now `in PLAN = 2 (L7 + L66; executed, excludes self-quotes)` | cell text verified |
+| T2 R31-T4 supersession note | Cursor r33-t9-r31-t4-supersession-unlanded (high); GLM (T9-residual) | adopted — cell carries `landed R35: settled census 10 = Cursor 5 + GLM 5` (was already landed by the R35-era partial write; verified, no double-apply) | cell text verified |
+| T3 R34-T1 "greps below" false + T4/T5/T6/T9 claimed-not-landed | Cursor r34-t1-four-edits-and-greps-below-false (high); GLM r34-t5 (med) | adopted — T4/T5/T6/T9 edits executed THIS commit; "greps below" replaced with executed counts in-cell | grep `greps below` = 0 |
+| T4 R33 header 8→9 themes | Cursor r34-t4-misapplied-r33-header-still-8-vs-9 (med) | adopted — R33 header 9 themes + 1 meta | header |
+| T5 R34 header 7→5 + full 9-label census | Cursor r34-header-theme-count-7-vs-5 (med); GLM r34-header-count-census-defects (low-med) | adopted — header 5 themes + 1 meta; census lists all 9 labels | header |
+| T6 R34 own segment L7/L66 | Cursor r34-own-same-stamp-segment-missing (med); GLM r34-own-segment-missing-l7-l66 (med) | adopted — `→(R34: 9 labeled = Cursor 5 + GLM 4, doc-only)→ v28` at both sites | grep `R34: 9 labeled` = 1 |
+| T7 R30-T4 proof self-quote re-scope | Cursor r33-t4-r30-t4-proof-count-still-false (low-med) | adopted — executed-count wording | cell |
+| T8 R33-T2 proof = 1 → 2 scoped | GLM r33-t2-proof-undercount (low) | adopted — `= 2 (L700 intro + R32-T7 cell; 1 non-self)` | cell |
+| T9 R34-T2 anchor rename R24-T1 → R23-T1 | GLM r34-t2-cell-anchor-misnomer (low) | adopted — cell says R23-T1 | cell |
+| T10 R33 preamble false-claim marker + v34 lexeme | GLM r33-preamble-false-claim-unmarked + bogus-v34 (low) | adopted — post-hoc marker + "recorded R34" | preamble |
+| T11 R31-T4 residual header cell (11 labeled) corrected | GLM r30-header-labeled-count (R35 residue) | adopted — settled 10 = Cursor 5 + GLM 5 (**corrected R36**) | cell |
+| T12 packet identity (meta) | — | R36 packet mechanical | /tmp packet |
+
+All 14 labeled findings adopted; no rejections.
+
+
 ## Round 31 → v28 (4 themes + 1 meta from 7 labeled findings: Cursor 3 + GLM 4; 2-reviewer set; doc-only; full label census: Cursor r30-t1-r29-segment-claim-false / r30-own-segment-missing-after-landing / ledger-r29-theme-count-off-by-one + GLM r30-heading-names-unmaterialized-v29 / r29-segment-landed-claim-false / r29-header-theme-count-5-vs-6 / r30-header-labeled-count-10-vs-11)
 
 All findings adopted. R31's landing commit 8b26ed2 appended the R29/R30 doc-only segments to PLAN L7/L66 — that segment landing IS a PLAN edit; what did NOT change is the engineering content (no requirement/test/design text altered). Doc-only rounds append same-stamp segments at L7/L66 in their disposition commit.
@@ -704,7 +726,7 @@ All findings adopted. R31's landing commit 8b26ed2 appended the R29/R30 doc-only
 | T1 R29 segment claim false + exception note unnamed-SHA | Cursor r30-t1-r29-segment-claim-false (high); Cursor r30-own-segment-missing-after-landing (med); GLM r29-segment-landed-claim-false (med) | adopted — option (a): real doc-only segments appended at L7/L66 (R29/R30, same-stamp v28); note rewritten with landing SHAs; false claims retracted | grep `R29: 11 labeled` + `R30:` in PLAN |
 | T2 R30 heading names unmaterialized v29 | GLM r30-heading-names-unmaterialized-v29 (med) | adopted — retitled `Round 30 → v28 (doc-only residue …)` | header |
 | T3 R29 theme count 5→6 | Cursor ledger-r29-theme-count-off-by-one (low-med) | adopted — header 6 themes + 1 meta | header |
-| T4 R30 labeled count 10→11 + unmarked T9 residue row | GLM r30-header-labeled-count-10-vs-11 (low) | adopted — T9 marked ledger-check; header 11 labeled (Cursor 5 + GLM 6) | header + row marker |
+| T4 R30 labeled count settled at 10 + unmarked T9 residue row | GLM r30-header-labeled-count-10-vs-11 (low) | adopted — T9 marked ledger-check; header settled 10 labeled = Cursor 5 + GLM 5 (**corrected R36**; the 11/5-6 reading superseded by R32-T1's raw-label census) | header + row marker |
 | T5 packet identity (meta) | — | R32 packet mechanical | /tmp packet |
 
 All 7 labeled findings adopted; no rejections.
@@ -715,7 +737,7 @@ All findings adopted or rejected-with-evidence. Label census (regex on raw verdi
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R30 settled-count + L7/L66 alignment | GLM plan-l7-r30-glm-count-5-vs-6 (low); GLM r30-labeled-count-header-vs-closing-vs-counting-rule (med); Cursor plan-l7-r30-split-arith-false (med-high, R32) | REJECTED the 11/5-6 recount (raw-label regex: Cursor 5 + GLM 5 = 10); L7/L66/LEDGER all state 10 = 5/5; T9 marked ledger-check | grep `10 labeled = Cursor 5 + GLM 5` in PLAN = 1 |
+| T1 R30 settled-count + L7/L66 alignment | GLM plan-l7-r30-glm-count-5-vs-6 (low); GLM r30-labeled-count-header-vs-closing-vs-counting-rule (med); Cursor plan-l7-r30-split-arith-false (med-high, R32) | REJECTED the 11/5-6 recount (raw-label regex: Cursor 5 + GLM 5 = 10); L7/L66/LEDGER all state 10 = 5/5; T9 marked ledger-check | grep `10 labeled = Cursor 5 + GLM 5` in PLAN = 2 (L7 + L66; executed, excludes self-quotes) |
 | T2 R30 theme count L66 12->7 | GLM plan-l66-r30-theme-count-12 (low) | adopted — L66 = 7 themes + 1 meta (T8 verified-residual + T9 ledger-check + T10 meta excluded) | grep `R30 7 themes` = 1 |
 | T3 R31 before R30 (order) | Cursor ledger-r31-before-r30-section-order (med); GLM ledger-r31-before-r30-order (low) | adopted — ascending order restored | heading order |
 | T4 R31 unenumerated labels (2) + census in header | Cursor ledger-r31-labeled-count-arith (med); GLM r31-labeled-count-7-vs-5-enumerated (med) | adopted — T1 cell gains Cursor r30-own-segment-missing-after-landing; header carries the full 7-label census | header census |
@@ -728,14 +750,14 @@ All findings adopted or rejected-with-evidence. Label census (regex on raw verdi
 
 All 15 labeled findings dispositioned: 13 adopted, 2 rejected-with-regex-census evidence (GLM-R32 recount claims). No rejections without evidence.
 
-## Round 33 → v28 (doc-only; 8 themes + 1 meta from 12 labeled findings: Cursor 8 + GLM 4; 2-reviewer set)
+## Round 33 → v28 (doc-only; 9 themes + 1 meta from 12 labeled findings: Cursor 8 + GLM 4; 2-reviewer set)
 
-All findings adopted. R32's T6–T9 disposition edits had NOT landed (heredoc SyntaxError killed the second edit script; the R32 section was appended claiming them anyway) — landed now with per-edit read-back proofs. Standing rule from v34: edit scripts are single Write-tool files (no heredocs); no ledger section is written before its edits verify.
+All findings adopted. R32's T6–T9 disposition edits had NOT landed at the R32-section commit (heredoc SyntaxError killed the second edit script; the R32 section was appended claiming them anyway) — the edits landed post-hoc in 84e53da+ (supersession marker recorded there per retroactive-marker precedent). Standing rule (recorded R34): edit scripts are single Write-tool files (no heredocs); no ledger section is written before its edits verify.
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
 | T1 R32-T6 note SHA separation unlanded | Cursor r32-t6-exception-note-sha-separation-unlanded (high); GLM r32-t6-t9-dispositions-false-at-83a82a4 (high) | adopted — preamble SHA-separation landed | `SHA separation (settled R32)` = 1 |
-| T2 R32-T7 R31 prose unlanded | Cursor r32-t7-r31-prose-rewrite-unlanded (high); GLM (same cell) | adopted — R31 intro rewritten | `segment landing IS a PLAN edit` = 1 |
+| T2 R32-T7 R31 prose unlanded | Cursor r32-t7-r31-prose-rewrite-unlanded (high); GLM (same cell) | adopted — R31 intro rewritten | grep `segment landing IS a PLAN edit` = 2 (L700 intro + R32-T7 cell; 1 non-self) |
 | T3 R32-T9 R30-T1 pointer unlanded | Cursor r32-t9-r30-t1-supersession-pointer-unlanded (med-high); GLM (same cell) | adopted — **correction (recorded R35)**: the R32-T9 target was the R30-T1 cell (R24-T1 addresses a distinct Round-23-absence claim); pointer landed on R30-T1 in R35; R24-T1 note relabeled (recorded R35) | pointer on R30-T1 |
 | T4 R32-T8 proof re-scope unlanded | Cursor r32-t8-proof-rescope-unlanded (low-med); GLM (same cell) | adopted — R30-T4/T6 cells reworded to executed-count form (**landed R35**) | cell text |
 | T5 R32-T1 proof count 1→2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted — R32-T1 proof = 2 (L7 + L66) | cell text |
@@ -747,14 +769,14 @@ All findings adopted. R32's T6–T9 disposition edits had NOT landed (heredoc Sy
 
 All 12 labeled findings adopted; no rejections.
 
-## Round 34 → v28 (doc-only; 7 themes + 1 meta from 9 labeled findings: Cursor 5 + GLM 4; 2-reviewer set; label census: Cursor r33-t4/t5/t6/t9 + GLM r33-t4/t5/t6/t9-dedup)
+## Round 34 → v28 (doc-only; 5 themes + 1 meta from 9 labeled findings: Cursor 5 + GLM 4; 2-reviewer set; full label census — Cursor: r33-t4-t5-t6-t9-dispositions-false, r33-t3-wrong-cell-r30-t1-still-stale, r33-own-segment-and-index-missing, r33-header-theme-count-8-vs-9, r34-header-theme-count-7-vs-5; GLM: r34-t5-disposition-false-r32t1-proof-unlanded, r34-own-segment-missing-l7-l66, r34-header-count-census-defects, r33-preamble-false-claim-unmarked + bogus-v34)
 
 All findings adopted — this round LANDED R33's four unlanded edits plus the identity/bookkeeping fixes.
 
 | Theme | Findings | Disposition | Proof |
 |---|---|---|---|
-| T1 R32-T6/T7/T8/T9 dispositions actually landed | Cursor r33-t4-t5-t6-t9-dispositions-false (high); GLM r33-t4/t5/t6/t9-dispositions-false-at-430c5a9 (high) | adopted — the 4 edits landed in THIS commit with read-back proofs | greps below |
-| T2 R30-T1 retraction on the right cell + R24-T1 relabel | Cursor r33-t3-wrong-cell-r30-t1-still-stale (high); GLM r33-t3-retraction-mislocated-and-target-cell-still-stale (med) | adopted — pointer on R30-T1 (recorded R35); R24-T1 distinct-claim note relabeled (recorded R35) | both cells |
+| T1 R32-T6/T7/T8/T9 dispositions actually landed | Cursor r33-t4-t5-t6-t9-dispositions-false (high); GLM r33-t4/t5/t6/t9-dispositions-false-at-430c5a9 (high) | adopted — the 4 edits landed across 84e53da+this commit with executed read-back proofs: `SHA separation (settled R32)`=1, `segment landing IS a PLAN edit`=2 (L700 + this table's T2 cell; self-quote excluded => 1 non-self), R32-T1 proof now `= 2`, R31-T4 supersession landed R36 | executed counts in this cell |
+| T2 R30-T1 retraction on the right cell + R24-T1 relabel | Cursor r33-t3-wrong-cell-r30-t1-still-stale (high); GLM r33-t3-retraction-mislocated-and-target-cell-still-stale (med) | adopted — pointer on R30-T1 (recorded R35); R23-T1 distinct-claim note relabeled (recorded R35) | both cells |
 | T3 R33 own segment + index | Cursor r33-own-segment-and-index-missing (med); GLM r33-own-segment-and-index-missing (med) | adopted — L7/L66 R33 doc-only segments; index R33 | grep |
 | T4 R32 header 9 themes | Cursor r33-header-theme-count-8-vs-9 (med); GLM (T6) | adopted | header |
 | T5 R32-T1 proof = 2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted | cell |
