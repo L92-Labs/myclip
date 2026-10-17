@@ -12,6 +12,12 @@ type Fake struct {
 	boardTypes  []string // NSPasteboard.types surface (may be a superset of item types)
 
 	dataReads int
+
+	// Test hooks, called without the lock held: AfterSnapshot after
+	// Snapshot returns its view, BeforeRead at the start of ReadItems. A
+	// hook that calls SetItems simulates a pasteboard change mid-capture.
+	AfterSnapshot func()
+	BeforeRead    func()
 }
 
 func NewFake() *Fake {
@@ -54,15 +60,29 @@ func (f *Fake) SetItems(items []Item, boardTypes []string) {
 // Snapshot returns changeCount + N6 type union without reading item bytes.
 func (f *Fake) Snapshot() (Snapshot, error) {
 	f.mu.Lock()
-	defer f.mu.Unlock()
-	return Snapshot{
+	s := Snapshot{
 		ChangeCount: f.changeCount,
 		Types:       unionStrings(f.boardTypes, unionItemTypes(f.items)),
-	}, nil
+	}
+	hook := f.AfterSnapshot
+	f.mu.Unlock()
+	if hook != nil {
+		hook()
+	}
+	return s, nil
+}
+
+// Write replaces the contents as a copy-back would, bumping changeCount.
+func (f *Fake) Write(items []Item) error {
+	f.SetItems(items, nil)
+	return nil
 }
 
 // ReadItems copies item bytes and increments DataReads once per type value read.
 func (f *Fake) ReadItems() []Item {
+	if hook := f.BeforeRead; hook != nil {
+		hook()
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	items := make([]Item, len(f.items))

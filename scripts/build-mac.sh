@@ -74,9 +74,9 @@ args=(-platform "darwin/$arch")
 step "go tool mygo build ${args[*]}"
 go tool mygo build "${args[@]}"
 
-app="$(find "$out" -maxdepth 3 -type d -name '*.app' -newer mygo.json -print 2>/dev/null | head -1)"
-[ -n "$app" ] || app="$(find "$out" -maxdepth 3 -type d -name '*.app' -print | head -1)"
-[ -n "$app" ] || die "no .app found under $out/"
+# mygo build writes <out>/darwin-<arch>/<name>.app.
+app="$(find "$out/darwin-$arch" -maxdepth 1 -type d -name '*.app' -print 2>/dev/null | head -1)"
+[ -n "$app" ] || die "no .app found under $out/darwin-$arch/"
 
 # --- report ------------------------------------------------------------------
 step "artifacts"
@@ -84,7 +84,7 @@ ok "app: $app ($(du -sh "$app" | cut -f1))"
 exe="$app/Contents/MacOS/$(sed -nE 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' mygo.json | head -1)"
 [ -f "$exe" ] && ok "exe: $(du -h "$exe" | cut -f1) ($(file -b "$exe" | cut -c1-70))"
 if [ "$dmg" = 1 ]; then
-	while IFS= read -r d; do ok "dmg: $d ($(du -h "$d" | cut -f1))"; done < <(find "$out" -maxdepth 2 -name '*.dmg')
+	while IFS= read -r d; do ok "dmg: $d ($(du -h "$d" | cut -f1))"; done < <(find "$out" -maxdepth 2 -name '*.dmg' -newer "$app")
 fi
 
 if [ "$on_mac" = 1 ]; then

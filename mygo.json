@@ -2,5 +2,10 @@
   "name": "myclip",
   "identifier": "com.l92labs.myclip",
   "version": "0.1.0",
-  "out": "build"
+  "out": "build",
+  "macos": {
+    "infoPlist": {
+      "LSUIElement": true
+    }
+  }
 }

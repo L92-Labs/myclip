@@ -19,3 +19,16 @@ type Reader interface {
 	Snapshot() (Snapshot, error)
 	ReadItems() []Item
 }
+
+// Writer replaces the pasteboard contents (copy-back from history). Callers
+// add TypeOwnWrite so the capture loop can tell MyClip's writes apart.
+type Writer interface {
+	Write(items []Item) error
+}
+
+// Board is the full pasteboard seam the app wires: read for capture, write
+// for copy-back.
+type Board interface {
+	Reader
+	Writer
+}

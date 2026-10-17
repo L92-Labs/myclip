@@ -45,8 +45,9 @@ func (h *History) isModified(item *Item) *Item {
 
 // AddResult describes the merge outcome.
 type AddResult struct {
-	Merged bool
-	Item   *Item
+	Merged   bool
+	Item     *Item
+	Replaced *Item // the stored item a merge replaced, else nil
 }
 
 // Add ports History.add merge matrix @ eb03eba (contents rule per source):
@@ -76,6 +77,7 @@ func (h *History) Add(item *Item, changeCount int, fromOwnWrite bool, now time.T
 	}
 	// else isModified branch: keep item.Contents (modifier bytes)
 
+	item.ID = existing.ID // the merged item replaces the stored row
 	item.FirstCopiedAt = existing.FirstCopiedAt
 	item.NumberOfCopies += existing.NumberOfCopies
 	item.Pin = existing.Pin
@@ -99,6 +101,58 @@ func (h *History) Add(item *Item, changeCount int, fromOwnWrite bool, now time.T
 		out = append(out, it)
 	}
 	h.items = append([]*Item{item}, out...)
+	for k, v := range h.sessionLog {
+		if v == existing {
+			h.sessionLog[k] = item
+		}
+	}
 	h.sessionLog[changeCount] = item
-	return AddResult{Merged: true, Item: item}
+	return AddResult{Merged: true, Item: item, Replaced: existing}
+}
+
+// Load replaces the list with stored items, newest first. The session log
+// starts empty: ModifiedType merges only match this session's writes.
+func (h *History) Load(items []*Item) {
+	h.items = append([]*Item(nil), items...)
+	h.sessionLog = map[int]*Item{}
+}
+
+// Remove drops it from the list and the session log.
+func (h *History) Remove(it *Item) {
+	out := h.items[:0]
+	for _, x := range h.items {
+		if x != it {
+			out = append(out, x)
+		}
+	}
+	h.items = out
+	for k, v := range h.sessionLog {
+		if v == it {
+			delete(h.sessionLog, k)
+		}
+	}
+}
+
+// Trim evicts the oldest unpinned items until at most maxItems unpinned
+// items remain (Maccy's `size` counts unpinned only) and all contents fit in
+// maxBytes. Zero disables a limit. It returns the evicted items.
+func (h *History) Trim(maxItems int, maxBytes int64) []*Item {
+	var evicted []*Item
+	for {
+		unpinned, total := 0, int64(0)
+		var oldest *Item
+		for _, it := range h.items {
+			total += it.Size()
+			if it.Pin == "" {
+				unpinned++
+				oldest = it // items are newest first
+			}
+		}
+		over := (maxItems > 0 && unpinned > maxItems) || (maxBytes > 0 && total > maxBytes)
+		if !over || oldest == nil {
+			return evicted
+		}
+		h.Remove(oldest)
+		evicted = append(evicted, oldest)
+	}
 }

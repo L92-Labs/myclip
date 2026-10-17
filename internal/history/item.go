@@ -15,6 +15,7 @@ type Content struct {
 
 // Item is one history row (Maccy HistoryItem shape).
 type Item struct {
+	ID             int64 // store row id; 0 until saved
 	Application    string
 	FirstCopiedAt  time.Time
 	LastCopiedAt   time.Time
