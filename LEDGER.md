@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -227,10 +227,6 @@ Segment rule (settled R29): a round's `→(R_N …)` chain segment is appended o
 | GLM | ledger-r3-count-false-audit | med | adopted — awk recount; headers/footnote/PLAN corrected (R1=45, R3=20) | LEDGER headers |
 | GLM | m1-gate-list-incomplete-propagation | low-med | adopted — canonical M1 gate checklist enumerates everything | PLAN M1 |
 
-## Round 8 → v9 (18 labeled findings: Cursor 8 + Opus 6 + GLM 4 + 2 meta rows; verdicts reported 8/6/6)
-
-Root cause recorded: several R7 disposition edits silently failed to match in the edit script while the ledger claimed "adopted" — reviewers caught every one. v9 uses ASSERTED, sentence-bounded replacements (script exits non-zero if any target is absent; no greedy line-eating regexes). All 18 labeled adopted: update-archive single stance (M1 archive check; M5 only in infeasible branch); SetPath before-Run ordering + fresh-HOME test; D1 residual reword applied (PLAN + LEDGER); N6 union + named `concealed-on-second-item` test; canonical 15-item M1 gate checklist materialized in Milestones; MyGo `GlobalShortcut` banned entirely (Signature-blind handler); N1 nettop split criterion; LEDGER decision #9 aligned; PARITY hold-cycle criterion aligned. (D11/N2, pref-source, Unsetenv, M5 fallback, confirm-UX were already correctly present in v8.)
-
 ## Round 8 → v9 — itemized (18 labeled findings: Cursor 8 + Opus 6 + GLM 4 + 2 meta rows; verdicts reported 8/6/6)
 
 | Reviewer | Label | Sev | Disposition | Anchor |
@@ -255,10 +251,6 @@ Root cause recorded: several R7 disposition edits silently failed to match in th
 | GLM | ledger-rounds-index-stale | low | adopted — index through R8 | LEDGER header |
 | GLM | (meta row — not a finding: GLM R8 emitted 4 labeled findings, 2 overlapping themes above) | ledger-check | — | — |
 | (meta row — not a finding) | R8 verdict counts: Cursor 8 + Opus 6 + GLM 6 reported; itemized GLM labeled findings = 4 (F1–F4) + 2 meta ⇒ **R8 = 18 labeled findings** | ledger-check | PLAN/headers use 18 | LEDGER |
-
-## Round 9 → v10 (8 themes from 14 labeled findings: Cursor 4 + Opus 6 + GLM 4)
-
-All adopted: SetPath `~` expansion + MkdirAll ordering (Cursor/Opus); §3.6 stale nettop-10s hedge removed (Cursor); PARITY stamp (all); R8 ledger itemized + index + count rule settled (Cursor/Opus/GLM); N6 union propagated to §3.1 (Opus); updater `native.New` constructor + extended grep (Opus); §3.7 hold-cycle splice rewritten + literal grep (Opus); M1 SSOT wording (GLM).
 
 ## Round 9 → v10 — itemized (14 labeled findings = 8 themes: Cursor 4 + Opus 6 + GLM 4)
 
@@ -782,4 +774,20 @@ All findings adopted — every one bookkeeping-class, zero engineering content. 
 
 All 14 labeled findings adopted; no rejections.
 
+## Round 36 → v28 (doc-only; 8 themes + 1 meta from 13 labeled findings: Cursor 8 + GLM 5; 2-reviewer set)
 
+All findings adopted — pure ledger bookkeeping (section order, own segment, header counts, marker normalization, proof-site lists). Zero engineering-content findings since R28.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R35 section order (before R31) | Cursor r35-section-order-before-r31 (med); GLM r35-section-out-of-ascending-order (low) | adopted — ascending order restored (R31→R35) | heading order |
+| T2 R35 own segment L7/L66 | Cursor r35-own-same-stamp-segment-missing (med); GLM r35-own-segment-missing-l7-l66 (med) | adopted — same-stamp doc-only segments at both sites | grep `R35: 14 labeled` in PLAN = 1 |
+| T3 R35 header 7→11 themes + residue marking | Cursor r35-theme-count-7-vs-table (med); GLM r35-header-theme-count-7-vs-11-unmarked-residue (med) | adopted — header 11 themes + 1 meta; T8–T11 marked doc-only residue/consolidation rows | header |
+| T4 R31-T4 cell wording + marker normalization | Cursor r35-t2-r31-t4-cell-claim-false (high); GLM r35-round-attribution-r35-vs-r36-mixed (low-med) | adopted — cell carries the census wording literally; all this-landing markers normalized to (recorded R36) | cell + markers |
+| T5 PLAN L66 R33 8→9 themes | Cursor r35-t4-plan-l66-r33-themes-stale (med) | adopted | grep |
+| T6 R35-T6 both-sites overclaim | Cursor r35-t6-both-sites-vs-proof-1 (med) | adopted — L66 gains chain-form R34; L7 already chain-form; proof = both sites | grep |
+| T7 R35-T8/R33-T2/R34-T1 proof counts + R34-T1 enumeration | GLM r35-t8-stale-proof-count-2-vs-4 (med); Cursor (T8) | adopted — executed count with site list: `segment landing IS a PLAN edit` hits the R31 intro / R32-T7 cell / R33-T2 cell / R34-T1 cell = 4 total, 3 non-self | site list |
+| T8 R36 pre-claims in cells | Cursor r35-r36-preclaim (high); GLM (T4) | adopted — markers normalized to (recorded R36) valid upon this section's landing | markers |
+| T9 packet identity (meta) | — | R37 packet mechanical | /tmp packet |
+
+All 13 labeled findings adopted; no rejections.
