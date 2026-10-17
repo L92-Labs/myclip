@@ -6,6 +6,10 @@
 
 | Maccy key/behavior (2.7.1, source file) | Default | MyClip plan | MS |
 |---|---|---|---|
+| ignoredPasteboardTypes default (exactly 5) | Defaults.Keys+Names.swift:39-46 | ported `pasteboard.DefaultIgnoredPasteboardTypes` (no `com.apple.is-remote-clipboard`) | M1 |
+| enabledPasteboardTypes default | StorageType.all | ported `pasteboard.DefaultEnabledPasteboardTypes` | M1 |
+| findSimilarItem / supersedes / isModified | History.swift + HistoryItem.swift @ eb03eba | ported `history.History.FindSimilarItem` / `Item.Supersedes` / ModifiedType sessionLog | M1 |
+| own-write marker | `.fromMaccy` | `com.l92labs.myclip.own-write` (metadata only; never stored as rep) | M1 |
 | `clipboardCheckInterval` (Defaults.Keys) | 0.5s | poll loop param, min floor 100ms (**D7**: Maccy allows lower); range-validated CLI `set` surface [100ms–5s; larger cadences via Advanced pane] (§3.7); changeCount via purego, data read only on change | M1/M4 |
 | `size` historySize (Defaults.Keys) | 200 | SQLite cap, LRU trim excl. pins | M1/M4 |
 | `enabledPasteboardTypes` (Defaults.Keys: StorageType) | text(.html,.rtf,.string)+images(.png,.tiff,.jpeg,.heic)+files(.fileURL) | per-type toggles; **M1 pre-task: assert exact default set from source** | M1/M4 |

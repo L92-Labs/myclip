@@ -883,3 +883,7 @@ All 4 labeled Cursor findings adopted; no rejections.
 - GLM-5.3-Flash (`zai-coding-plan/glm-5.3-flash`) — CLEAR @ e4310e3 (packet-v44 / opencode-plan-v44.txt)
 
 Engineering content of PLAN/PARITY stable since R28; R29–R43 were doc-only ledger bookkeeping. Next: PRE-M1 blocking decisions (CI runner; D1/D5/D6/D7 sign-off) then M1 implementation under the code gate.
+
+## PRE-M1 (a) RESOLVED — no-CI (2026-10-17)
+
+User: Actions stay billing-blocked; will run darwin/packaged gate evidence locally on MacBook when the PR is ready. Gate evidence = local `go vet`+`go test` transcripts on PR. (b) D1/D5/D6/D7 still pending user sign-off before full M1 merge.
