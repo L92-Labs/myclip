@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -827,3 +827,14 @@ All Cursor findings adopted. Single residual: R36-T6 still claimed it had landed
 | T2 packet identity (meta) | — | R40 packet mechanical | /tmp packet |
 
 All 1 labeled Cursor finding adopted; no rejections.
+
+## Round 40 → v28 (doc-only; 1 theme + 1 meta from 1 labeled finding: GLM 1; Cursor CLEAR on same tip; 2-reviewer set)
+
+Cursor CLEAR @ 6e94242. GLM FINDINGS: one low N3/NOTICE wrap divergence. Adopted — NOTICE Maccy block re-wrapped to byte-match `LICENSE` @ `eb03eba` (word-identical before; two wrap sites differed).
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 NOTICE verbatim wrap divergence | GLM notice-verbatim-claim-wrap-divergence / notice-verbatim-claim-line-wrap-divergence (low) | adopted — NOTICE quoted block now byte-matches Maccy LICENSE @ eb03eba after `> ` unquote | unquote-diff empty vs fetched LICENSE |
+| T2 packet identity (meta) | — | R41 packet mechanical | /tmp packet |
+
+All 1 labeled GLM finding adopted; no rejections. Cursor had CLEAR (0 findings) on the prior tip.
