@@ -1,6 +1,6 @@
 # Finding ledger — plan phase
 
-Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28), R41 (v28).
+Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28), R41 (v28), R42 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)
 
@@ -732,7 +732,7 @@ All findings adopted. R32's T6–T9 disposition edits had NOT landed at the R32-
 | T4 R32-T8 proof re-scope unlanded | Cursor r32-t8-proof-rescope-unlanded (low-med); GLM (same cell) | adopted — R30-T4/T6 cells reworded to executed-count form (**landed R35**) | cell text |
 | T5 R32-T1 proof count 1→2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted — R32-T1 proof = 2 (L7 + L66) | cell text |
 | T6 R32 header 6→9 themes | Cursor r32-theme-count-header-6-vs-9 (med); GLM r32-header-theme-count-6-vs-9 (low-med) | adopted — header 9 themes + 1 meta | header |
-| T7 R32 own segment missing | Cursor r32-own-same-stamp-segment-missing (med) | adopted — L7/L66 R32 doc-only segments | grep |
+| T7 R32 own segment missing | Cursor r32-own-same-stamp-segment-missing (med) | adopted — L7/L66 R32 doc-only segments | grep `R32: 15 labeled` = 2 (L7+L66) — **updated (recorded R42)** |
 | T8 R31 GLM label unenumerated + R31 segment | GLM r31-table-enumerates-6-of-7-labels (low); Cursor r31 segment (in T7-class) | adopted — R31 header carries the full 7-label census; R31 segments landed in 8b26ed2 | census in R31 header |
 | T9 R31-T4 settled-count supersession | Cursor r31-t4-header-11-vs-settled-r30-10 (low-med) | adopted — R31-T4 cell carries the supersession note (**landed R35**: settled census 10 = Cursor 5 + GLM 5) | cell text |
 | T10 packet identity (meta) | — | R34 packet mechanical | /tmp packet |
@@ -747,7 +747,7 @@ All findings adopted — this round LANDED R33's four unlanded edits plus the id
 |---|---|---|---|
 | T1 R32-T6/T7/T8/T9 dispositions actually landed | Cursor r33-t4-t5-t6-t9-dispositions-false (high); GLM r33-t4/t5/t6/t9-dispositions-false-at-430c5a9 (high) | adopted — the 4 edits landed across 84e53da+this commit with executed read-back proofs: `SHA separation (settled R32)`=1, `segment landing IS a PLAN edit`=5 (R31 intro / R32-T7 / R33-T2 / R34-T1 / R36-T7; 4 non-self) — **updated (recorded R37)**, R32-T1 proof now `= 2`, R31-T4 supersession landed (recorded R36) | executed counts in this cell |
 | T2 R30-T1 retraction on the right cell + R24-T1 relabel | Cursor r33-t3-wrong-cell-r30-t1-still-stale (high); GLM r33-t3-retraction-mislocated-and-target-cell-still-stale (med) | adopted — pointer on R30-T1 (recorded R35); R23-T1 distinct-claim note relabeled (recorded R35) | both cells |
-| T3 R33 own segment + index | Cursor r33-own-segment-and-index-missing (med); GLM r33-own-segment-and-index-missing (med) | adopted — L7/L66 R33 doc-only segments; index R33 | grep |
+| T3 R33 own segment + index | Cursor r33-own-segment-and-index-missing (med); GLM r33-own-segment-and-index-missing (med) | adopted — L7/L66 R33 doc-only segments; index R33 | grep `R33: 12 labeled` = 2 (L7+L66) — **updated (recorded R42)** |
 | T4 R32 header 9 themes | Cursor r33-header-theme-count-8-vs-9 (med); GLM (T6) | adopted | header |
 | T5 R32-T1 proof = 2 | Cursor r32-t1-proof-count-false (med); GLM r32-t1-proof-count-2-not-1 (low) | adopted | cell |
 | T6 packet identity (meta) | — | R35 packet mechanical | /tmp packet |
@@ -766,7 +766,7 @@ All findings adopted — every one bookkeeping-class, zero engineering content. 
 | T5 R34 header 7→5 + full 9-label census | Cursor r34-header-theme-count-7-vs-5 (med); GLM r34-header-count-census-defects (low-med) | adopted — header 5 themes + 1 meta; census lists all 9 labels | header |
 | T6 R34 own segment L7/L66 | Cursor r34-own-same-stamp-segment-missing (med); GLM r34-own-segment-missing-l7-l66 (med) | adopted — `→(R34: 9 labeled = Cursor 5 + GLM 4, doc-only)→ v28` at both sites | grep `R34: 9 labeled` = 2 (L7+L66) — **updated (recorded R38)** |
 | T7 R30-T4 proof self-quote re-scope | Cursor r33-t4-r30-t4-proof-count-still-false (low-med) | adopted — executed-count wording | cell |
-| T8 R33-T2 proof = 1 → 2 scoped | GLM r33-t2-proof-undercount (low) | adopted — `= 2 (L700 intro + R32-T7 cell; 1 non-self)` | cell |
+| T8 R33-T2 proof = 1 → 2 scoped | GLM r33-t2-proof-undercount (low) | adopted — `segment landing IS a PLAN edit` = 5 (R31 intro / R32-T7 / R33-T2 / R34-T1 / R36-T7; 4 non-self) — **updated (recorded R42)** (prior L700/ =2 claim was stale after section rebuild) | site list |
 | T9 R34-T2 anchor rename R24-T1 → R23-T1 | GLM r34-t2-cell-anchor-misnomer (low) | adopted — cell says R23-T1 | cell |
 | T10 R33 preamble false-claim marker + v34 lexeme | GLM r33-preamble-false-claim-unmarked + bogus-v34 (low) | adopted — post-hoc marker + "recorded R34" | preamble |
 | T11 R31-T4 residual header cell (11 labeled) corrected | GLM r30-header-labeled-count (R35 residue) | adopted — settled 10 = Cursor 5 + GLM 5 (**corrected (recorded R36)**) | cell |
@@ -786,7 +786,7 @@ All findings adopted — pure ledger bookkeeping (section order, own segment, he
 | T4 R31-T4 cell wording + marker normalization | Cursor r35-t2-r31-t4-cell-claim-false (high); GLM r35-round-attribution-r35-vs-r36-mixed (low-med) | adopted — cell carries the census wording literally; all this-landing markers normalized to (recorded R36) | cell + markers |
 | T5 PLAN L66 R33 8→9 themes | Cursor r35-t4-plan-l66-r33-themes-stale (med) | adopted | grep |
 | T6 R35-T6 both-sites overclaim | Cursor r35-t6-both-sites-vs-proof-1 (med) | adopted — **corrected (recorded R39)**: R36 claimed L66 chain-form here but it was false at R36 land; actual L66 chain-form landed R37-T2; disposition superseded by R37-T2 | grep `R34: 9 labeled` = 2 (L7+L66) — **updated (recorded R39)** |
-| T7 R35-T8/R33-T2/R34-T1 proof counts + R34-T1 enumeration | GLM r35-t8-stale-proof-count-2-vs-4 (med); Cursor (T8) | adopted — executed count with site list: `segment landing IS a PLAN edit` = 5 (R31 intro / R32-T7 / R33-T2 / R34-T1 / R36-T7; 4 non-self) — **updated (recorded R37)** | site list |
+| T7 R35-T8/R33-T2/R34-T1 proof counts + R34-T1 enumeration | GLM r35-t8-stale-proof-count-2-vs-4 (med); Cursor (T8) | adopted — executed count with site list: `segment landing IS a PLAN edit` = 5 (R31 intro / R32-T7 / R33-T2 / R34-T1 / R36-T7; 4 non-self); R35-T8 cell itself refreshed **recorded R42** (was still =2/L700 after R36/R37) — **updated (recorded R42)** | site list |
 | T8 R36 pre-claims in cells | Cursor r35-r36-preclaim (high); GLM (T4) | adopted — markers normalized to (recorded R36) valid upon this section's landing | markers |
 | T9 packet identity (meta) | — | R37 packet mechanical | /tmp packet |
 
@@ -849,3 +849,15 @@ Cursor CLEAR @ 280a67b. GLM FINDINGS: R29–R33 doc-only chain forms existed at 
 | T2 packet identity (meta) | — | R42 packet mechanical | /tmp packet |
 
 All 1 labeled GLM finding adopted; no rejections.
+
+## Round 42 → v28 (doc-only; 2 themes + 1 meta from 2 labeled findings: Cursor 2; GLM CLEAR on prior tip 1a954d3; 2-reviewer set)
+
+GLM CLEAR @ 1a954d3. Cursor FINDINGS: residual stale proof cells after R41 segment landings.
+
+| Theme | Findings | Disposition | Proof |
+|---|---|---|---|
+| T1 R35-T8 proof still L700/=2 | Cursor r35-t8-proof-still-l700-false (med) | adopted — R35-T8 + R36-T7 notes now cite =5 / 4 non-self site list | cells |
+| T2 R33-T7/R34-T3 bare grep proofs | Cursor r41-sibling-segment-proofs-bare (low) | adopted — Proof cells now `= 2 (L7+L66)` for R32/R33 chain forms | cells |
+| T3 packet identity (meta) | — | R43 packet mechanical | /tmp packet |
+
+All 2 labeled Cursor findings adopted; no rejections.
