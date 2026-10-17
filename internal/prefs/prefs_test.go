@@ -79,8 +79,8 @@ func TestRecordShortcut(t *testing.T) {
 	if v.recording != "open" || len(h.recording) != 1 || !h.recording[0] {
 		t.Fatalf("not recording: %q %v", v.recording, h.recording)
 	}
-	tt.Key(0, ui.KeyA) // no modifier: ignored
-	tt.Key(ui.Cmd|ui.Alt, ui.KeyV)
+	tt.Key(0, ui.KeyA)               // no modifier: ignored
+	tt.Key(ui.Super|ui.Alt, ui.KeyV) // ⌘⌥V
 	if v.S.PopupShortcut != "Cmd+Alt+V" || v.recording != "" || h.changed != 1 {
 		t.Fatalf("shortcut %q recording %q changed %d", v.S.PopupShortcut, v.recording, h.changed)
 	}

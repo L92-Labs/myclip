@@ -30,6 +30,8 @@
   "trayPause": "Suspendre la capture",
   "trayIgnoreNext": "Ignorer la prochaine copie",
   "traySkipped": "{count, plural, one {# ignoré} many {# ignorés} other {# ignorés}} (plus de 32 Mo)",
+  "trayCaptureSafe": "⚠ Capture arrêtée : réglages illisibles",
+  "trayResetSettings": "Réinitialiser les réglages et reprendre",
   "trayNotSaved": "⚠ Non enregistré : {error}",
   "quitMyClip": "Quitter MyClip",
   "aboutMessage": "MyClip {version}",

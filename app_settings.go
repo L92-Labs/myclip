@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -18,6 +19,9 @@ import (
 
 // saveSettings writes the settings when they changed since the last save.
 func (a *app) saveSettings() {
+	if a.captureSafe {
+		return // never overwrite the unreadable file: reset is the way out
+	}
 	if err := settings.Save(a.settingsPath, a.settings); err != nil {
 		log.Print("myclip: save settings: ", err)
 	}
@@ -190,4 +194,21 @@ func (a *app) Displays() []string {
 		out = append(out, name)
 	}
 	return out
+}
+
+// resetSettings is the way out of capture-safe mode: it keeps the
+// unreadable file aside, writes the defaults and resumes capture.
+func (a *app) resetSettings() {
+	if _, err := os.Stat(a.settingsPath); err == nil {
+		aside := fmt.Sprintf("%s.unreadable-%d", a.settingsPath, time.Now().Unix())
+		if err := os.Rename(a.settingsPath, aside); err != nil {
+			log.Print("myclip: keep unreadable settings: ", err)
+		}
+	}
+	a.captureSafe = false
+	a.settings = settings.Default()
+	a.saveSettings()
+	a.engine.SetPrefs(a.settings.CapturePrefs())
+	a.engine.SetCaptureSafe(false)
+	a.Changed()
 }

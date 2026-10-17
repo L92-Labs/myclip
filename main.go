@@ -103,6 +103,10 @@ type app struct {
 	settingsPath string
 	settings     settings.Settings
 	applied      settings.Settings // what the app last applied
+	// captureSafe: the settings file could not be read, so the user's
+	// ignore rules are unknown. Capture stays off and the file is never
+	// overwritten until the user resets settings from the menu.
+	captureSafe bool
 
 	engine *engine.Engine
 	store  *store.Store
@@ -127,7 +131,8 @@ type app struct {
 func (a *app) start(dbPath string) error {
 	var err error
 	if a.settings, err = settings.Load(a.settingsPath); err != nil {
-		log.Print("myclip: settings (using defaults): ", err)
+		log.Print("myclip: settings unreadable, capture off until reset: ", err)
+		a.captureSafe = true
 	}
 	if a.board, err = darwin.NewGeneral(); err != nil {
 		return err
@@ -153,6 +158,7 @@ func (a *app) start(dbPath string) error {
 	if err != nil {
 		return err
 	}
+	a.engine.SetCaptureSafe(a.captureSafe)
 	history.ResolveFileURL = darwin.ResolveFileURL
 	a.images = newImageCache(func() {
 		if a.panel != nil {

@@ -331,6 +331,26 @@ func (msgs Messages) TraySkipped(count int) string {
 	return Catalog.Format(msgs.locale, "traySkipped", map[string]any{"count": count})
 }
 
+// TrayCaptureSafe says "⚠ Capture off: settings could not be read"
+// in the language the app shows.
+func TrayCaptureSafe() string { return In(i18n.Locale()).TrayCaptureSafe() }
+
+// TrayCaptureSafe says "⚠ Capture off: settings could not be read"
+// in the language of msgs.
+func (msgs Messages) TrayCaptureSafe() string {
+	return Catalog.Format(msgs.locale, "trayCaptureSafe", nil)
+}
+
+// TrayResetSettings says "Reset Settings and Resume Capture"
+// in the language the app shows.
+func TrayResetSettings() string { return In(i18n.Locale()).TrayResetSettings() }
+
+// TrayResetSettings says "Reset Settings and Resume Capture"
+// in the language of msgs.
+func (msgs Messages) TrayResetSettings() string {
+	return Catalog.Format(msgs.locale, "trayResetSettings", nil)
+}
+
 // TrayNotSaved says "⚠ Not saved: {error}"
 // in the language the app shows.
 func TrayNotSaved(error string) string { return In(i18n.Locale()).TrayNotSaved(error) }

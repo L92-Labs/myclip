@@ -194,3 +194,20 @@ func TestClampInterval(t *testing.T) {
 		t.Fatal("D7 floor not applied")
 	}
 }
+
+// The capture-safe latch survives unpausing (tray resume, ⌥-click).
+func TestCaptureSafeSurvivesResume(t *testing.T) {
+	c, f := newCap(t)
+	c.SetCaptureSafe(true)
+	c.UpdatePrefs(func(p *Prefs) { p.IgnoreEvents = false })
+	f.SetItems([]pasteboard.Item{text("secret")}, nil)
+	f.ResetReads()
+	if _, o := c.Check(); o != Ignored || f.DataReads() != 0 {
+		t.Fatalf("%v with %d reads", o, f.DataReads())
+	}
+	c.SetCaptureSafe(false)
+	f.SetItems([]pasteboard.Item{text("after reset")}, nil)
+	if _, o := c.Check(); o != Captured {
+		t.Fatalf("after reset %v", o)
+	}
+}

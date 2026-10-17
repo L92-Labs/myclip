@@ -78,6 +78,8 @@
       }
     }
   },
+  "trayCaptureSafe": "⚠ Capture off: settings could not be read",
+  "trayResetSettings": "Reset Settings and Resume Capture",
   "trayNotSaved": "⚠ Not saved: {error}",
   "@trayNotSaved": {
     "placeholders": {

@@ -68,7 +68,11 @@ func Parse(s string) (Chord, bool) {
 	}
 	for _, p := range parts[:len(parts)-1] {
 		switch strings.ToLower(p) {
-		case "cmd", "command", "cmdorctrl", "commandorcontrol", "super", "meta":
+		// ⌘ is Super: ui.Cmd is Super on macOS but Ctrl elsewhere, where
+		// "Cmd" and "Ctrl" would collapse into one modifier.
+		case "cmd", "command", "super", "meta":
+			ch.Mods |= ui.Super
+		case "cmdorctrl", "commandorcontrol":
 			ch.Mods |= ui.Cmd
 		case "ctrl", "control":
 			ch.Mods |= ui.Ctrl
@@ -103,7 +107,7 @@ func (c Chord) String() string {
 	for _, m := range []struct {
 		mod  ui.Modifiers
 		name string
-	}{{ui.Cmd, "Cmd"}, {ui.Ctrl, "Ctrl"}, {ui.Alt, "Alt"}, {ui.Shift, "Shift"}} {
+	}{{ui.Super, "Cmd"}, {ui.Ctrl, "Ctrl"}, {ui.Alt, "Alt"}, {ui.Shift, "Shift"}} {
 		if c.Mods&m.mod != 0 {
 			b.WriteString(m.name + "+")
 		}
@@ -123,7 +127,7 @@ func Mods(m ui.Modifiers) string {
 	for _, x := range []struct {
 		mod ui.Modifiers
 		sym string
-	}{{ui.Ctrl, "⌃"}, {ui.Alt, "⌥"}, {ui.Shift, "⇧"}, {ui.Cmd, "⌘"}} {
+	}{{ui.Ctrl, "⌃"}, {ui.Alt, "⌥"}, {ui.Shift, "⇧"}, {ui.Super, "⌘"}} {
 		if m&x.mod != 0 {
 			b.WriteString(x.sym)
 		}

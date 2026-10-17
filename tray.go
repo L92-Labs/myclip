@@ -22,14 +22,15 @@ const recentTitleRunes = 30
 // applyTray shows or hides the menu icon (showInStatusBar) and draws it
 // (menuIcon), dimmed while capture is paused.
 func (a *app) applyTray() {
-	if !a.settings.ShowInStatusBar {
+	// In capture-safe mode the icon stays: its menu holds the way out.
+	if !a.settings.ShowInStatusBar && !a.captureSafe {
 		if a.tray != nil {
 			a.tray.Destroy()
 			a.tray = nil
 		}
 		return
 	}
-	icon := trayIcon(a.settings.MenuIcon, a.engine.Paused())
+	icon := trayIcon(a.settings.MenuIcon, a.engine.Paused() || a.captureSafe)
 	if a.tray != nil {
 		a.tray.SetIcon(icon, true)
 		a.updateTray()
@@ -113,7 +114,15 @@ func recentTitle(s string) string {
 // a local-only status line, and Quit.
 func (a *app) trayMenu() []*mygo.MenuItem {
 	n := len(a.engine.Items())
-	items := []*mygo.MenuItem{
+	var items []*mygo.MenuItem
+	if a.captureSafe {
+		items = append(items,
+			&mygo.MenuItem{Label: locales.TrayCaptureSafe(), Disabled: true},
+			&mygo.MenuItem{Label: locales.TrayResetSettings(), Click: func(*mygo.MenuItem, *mygo.Window) { a.resetSettings() }},
+			mygo.Separator(),
+		)
+	}
+	items = append(items, []*mygo.MenuItem{
 		{Label: locales.TrayOpen(), Click: func(*mygo.MenuItem, *mygo.Window) { a.showPopup() }},
 		mygo.Separator(),
 		{
@@ -140,7 +149,7 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 		{Label: locales.About(), Click: func(*mygo.MenuItem, *mygo.Window) { a.About() }},
 		mygo.Separator(),
 		{Label: locales.TrayClips(n), Disabled: true},
-	}
+	}...)
 	if o := a.engine.Oversized(); o > 0 {
 		items = append(items, &mygo.MenuItem{Label: locales.TraySkipped(o), Disabled: true})
 	}

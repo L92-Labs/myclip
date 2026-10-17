@@ -183,3 +183,6 @@ func (e *Engine) IgnoringNext() bool {
 	p := e.cap.Prefs()
 	return p.IgnoreEvents && p.IgnoreOnlyNextEvent
 }
+
+// SetCaptureSafe keeps capture off until cleared (settings unreadable).
+func (e *Engine) SetCaptureSafe(on bool) { e.cap.SetCaptureSafe(on) }
