@@ -182,12 +182,15 @@ func (c *Capturer) seen(n int) {
 //
 // Clearing it skips what the clipboard holds now: that copy was made while
 // the rules were unknown, so it is never read.
+//
+// The latch clears and the count is sampled in one locked step, so every
+// change made before the clear stays skipped. A Check that sampled an older
+// count meanwhile sees it differ from its snapshot and gives up (Raced).
 func (c *Capturer) SetCaptureSafe(on bool) {
-	now := c.Board.ChangeCount()
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.safe = on
 	if !on {
-		c.last = now
+		c.last = c.Board.ChangeCount()
 	}
-	c.mu.Unlock()
 }
