@@ -392,3 +392,35 @@ func TestStackAnchorSurvivesRefresh(t *testing.T) {
 		t.Fatalf("marked %v, want [1 2 3]", got)
 	}
 }
+
+// Highlights stay on non-ASCII titles (ranges count bytes).
+func TestHighlightAfterAccents(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	p.SetItems(append([]*history.Item{item(60, "café facture", "")}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("facture")
+	if len(p.rows) != 1 || len(p.rows[0].ranges) != 1 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// An image keeps its own text searchable once OCR text arrives.
+func TestImageKeepsOwnTextAfterOCR(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeHTML, Value: []byte("<img alt=x>Quarterly chart")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Revenue 2026")},
+	}, "", time.Unix(31, 0))
+	img.ID = 31
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	for _, q := range []string{"quarterly", "revenue"} {
+		p.Reset()
+		tt.Frame()
+		tt.Type(q)
+		if len(p.rows) != 1 || p.rows[0].it.ID != 31 {
+			t.Fatalf("%q: rows %+v", q, p.rows)
+		}
+	}
+}

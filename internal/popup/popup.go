@@ -189,15 +189,15 @@ func (p *Popup) filter() {
 		titles[i] = it.ListTitle(s.ShowSpecialSymbols)
 		texts[i] = titles[i]
 		if _, _, image := it.Image(); image {
-			// An image is found by its title (if renamed) and by the text
-			// read in it, else its own text.
-			extra := it.RecognizedText()
-			if extra == "" {
-				extra = it.PreviewText()
+			// An image is found by its title (if renamed), the text read in
+			// it, and the text it carries itself (HTML, RTF…).
+			hay := []string{titles[i]}
+			for _, s := range []string{it.RecognizedText(), it.ContentText()} {
+				if s != "" && !slices.Contains(hay, s) {
+					hay = append(hay, s)
+				}
 			}
-			if extra != "" && extra != titles[i] {
-				texts[i] = strings.TrimSpace(titles[i] + "\n" + extra)
-			}
+			texts[i] = strings.TrimSpace(strings.Join(hay, "\n"))
 		}
 	}
 	results := search.Search(s.SearchMode, p.query, texts)
@@ -208,7 +208,7 @@ func (p *Popup) filter() {
 		rw := row{it: it, title: titles[r.Index], ranges: r.Ranges}
 		// Highlight only what the row shows: matches past the title are in
 		// an image's text.
-		shown := len([]rune(rw.title))
+		shown := len(rw.title) // search.Range counts bytes
 		rw.ranges = slices.DeleteFunc(slices.Clone(rw.ranges), func(rg search.Range) bool { return rg.End > shown })
 		if it.Pin != "" {
 			rw.key, _ = shortcut.Letter([]rune(it.Pin)[0])

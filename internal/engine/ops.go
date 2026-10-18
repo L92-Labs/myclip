@@ -46,11 +46,14 @@ func (e *Engine) SetPrefs(p capture.Prefs) {
 
 // SetLimits changes the history caps and trims to them now.
 func (e *Engine) SetLimits(l Limits) {
+	e.persist.Lock()
 	e.mu.Lock()
 	e.cfg.Limits = l
 	evicted := e.hist.Trim(l.MaxItems, l.MaxBytes)
 	e.mu.Unlock()
-	e.report(e.deleteStored(evicted))
+	err := e.deleteStored(evicted)
+	e.persist.Unlock()
+	e.report(err)
 	e.changed()
 }
 
@@ -73,6 +76,19 @@ func (e *Engine) update(id int64, fn func(*history.Item)) error {
 // updateIf is update when ok (nil: always) holds for the stored item, both
 // checked and applied under the lock.
 func (e *Engine) updateIf(id int64, ok func(*history.Item) bool, fn func(*history.Item)) error {
+	e.persist.Lock()
+	err := e.updateHeld(id, ok, fn)
+	e.persist.Unlock()
+	if err == ErrNoItem {
+		return err
+	}
+	e.report(err)
+	e.changed()
+	return err
+}
+
+// updateHeld changes and saves the item; the caller holds persist.
+func (e *Engine) updateHeld(id int64, ok func(*history.Item) bool, fn func(*history.Item)) error {
 	e.mu.Lock()
 	old := e.find(id)
 	if old == nil || ok != nil && !ok(old) {
@@ -84,14 +100,18 @@ func (e *Engine) updateIf(id int64, ok func(*history.Item) bool, fn func(*histor
 	fn(&it)
 	e.hist.Replace(old, &it)
 	e.mu.Unlock()
-	err := e.cfg.Store.Save(context.Background(), &it)
-	e.report(err)
-	e.changed()
-	return err
+	if beforeSave != nil {
+		beforeSave()
+	}
+	return e.cfg.Store.Save(context.Background(), &it)
 }
+
+// beforeSave is a test hook between an update's change and its write.
+var beforeSave func()
 
 // Delete removes an item.
 func (e *Engine) Delete(id int64) error {
+	e.persist.Lock()
 	e.mu.Lock()
 	it := e.find(id)
 	if it != nil {
@@ -99,9 +119,11 @@ func (e *Engine) Delete(id int64) error {
 	}
 	e.mu.Unlock()
 	if it == nil {
+		e.persist.Unlock()
 		return ErrNoItem
 	}
 	err := e.cfg.Store.Delete(context.Background(), id)
+	e.persist.Unlock()
 	e.report(err)
 	e.changed()
 	return err
@@ -110,6 +132,7 @@ func (e *Engine) Delete(id int64) error {
 // Clear removes the unpinned items, or every item with all
 // (History.clear / clearAll).
 func (e *Engine) Clear(all bool) error {
+	e.persist.Lock()
 	e.mu.Lock()
 	var gone []*history.Item
 	for _, it := range e.hist.Items() {
@@ -120,6 +143,7 @@ func (e *Engine) Clear(all bool) error {
 	}
 	e.mu.Unlock()
 	err := e.deleteStored(gone)
+	e.persist.Unlock()
 	e.report(err)
 	e.changed()
 	return err
@@ -185,7 +209,8 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 		text = string(r[:MaxRecognizedRunes])
 	}
 	same := func(it *history.Item) bool { return ImageDigest(it) == image }
-	err := e.updateIf(id, same, func(it *history.Item) {
+	e.persist.Lock()
+	err := e.updateHeld(id, same, func(it *history.Item) {
 		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
 			return c.Type == pasteboard.TypeRecognizedText
 		})
@@ -195,11 +220,14 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 		e.mu.Lock()
 		evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
 		e.mu.Unlock()
-		if len(evicted) > 0 {
-			e.report(e.deleteStored(evicted))
-			e.changed()
-		}
+		err = e.deleteStored(evicted)
 	}
+	e.persist.Unlock()
+	if err == ErrNoItem {
+		return err
+	}
+	e.report(err)
+	e.changed()
 	return err
 }
 

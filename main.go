@@ -163,12 +163,12 @@ func (a *app) start(dbPath string) error {
 		Limits:    a.limits(),
 		RunOnMain: mygo.RunOnMain,
 		OnChange:  func() { mygo.RunOnMain(a.refresh) },
+		// Every copy made in another app sounds, merged into an old clip or
+		// not; MyClip's own selections sound in afterCopy.
+		OnCopy: func(*history.Item) { mygo.RunOnMain(a.playCopySound) },
 		OnNew: func(it *history.Item) {
 			a.ocr.add(it)
-			mygo.RunOnMain(func() {
-				a.notify(it)
-				a.playCopySound()
-			})
+			mygo.RunOnMain(func() { a.notify(it) })
 		},
 		OnError: func(err error) {
 			log.Print("myclip: store: ", err)

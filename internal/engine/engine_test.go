@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -386,5 +388,102 @@ func TestCopyManySkipsTitles(t *testing.T) {
 	}
 	if got := string(r.f.ReadItems()[0].Types[pasteboard.TypeString]); got != "words" {
 		t.Fatalf("stack text %q", got)
+	}
+}
+
+// Every copy from another app reports OnCopy, merged or new; MyClip's own
+// copy-back does not.
+func TestOnCopyForEveryOutsideCopy(t *testing.T) {
+	r := newRig(t, Limits{})
+	var mu sync.Mutex
+	n := 0
+	e, err := New(context.Background(), Config{Board: r.f, Store: r.s,
+		OnCopy: func(*history.Item) { mu.Lock(); n++; mu.Unlock() }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range []string{"x", "y", "x"} { // the second x merges
+		r.f.SetItems(text(s), nil)
+		e.Tick(context.Background())
+	}
+	if err := e.CopyBack(e.Items()[1].ID, false); err != nil {
+		t.Fatal(err)
+	}
+	e.Tick(context.Background())
+	mu.Lock()
+	defer mu.Unlock()
+	if n != 3 {
+		t.Fatalf("OnCopy %d times, want 3", n)
+	}
+}
+
+// Concurrent changes reach the database in the order they happened: at
+// rest, what is stored is what is in memory.
+func TestStoreMatchesMemoryAfterConcurrentChanges(t *testing.T) {
+	r := newRig(t, Limits{MaxItems: 20})
+	for i := range 10 {
+		r.copy(t, fmt.Sprint("seed ", i))
+	}
+	var wg sync.WaitGroup
+	for g := range 4 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := range 30 {
+				items := r.e.Items()
+				it := items[(g+i)%len(items)]
+				switch i % 3 {
+				case 0:
+					r.e.SetTitle(it.ID, fmt.Sprint("t", g, i))
+				case 1:
+					r.e.TogglePin(it.ID)
+				default:
+					r.e.SetText(it.ID, fmt.Sprint("text ", g, " ", i))
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	mem := map[int64]string{}
+	for _, it := range r.e.Items() {
+		mem[it.ID] = fmt.Sprint(it.Title, "|", it.Pin, "|", it.Text())
+	}
+	stored, err := r.s.Load(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(stored) != len(mem) {
+		t.Fatalf("stored %d, memory %d", len(stored), len(mem))
+	}
+	for _, it := range stored {
+		if got := fmt.Sprint(it.Title, "|", it.Pin, "|", it.Text()); got != mem[it.ID] {
+			t.Fatalf("item %d stored %q, memory %q", it.ID, got, mem[it.ID])
+		}
+	}
+}
+
+// A writer delayed between its change and its write cannot store an older
+// state over a newer one.
+func TestDelayedWriterDoesNotOverwriteNewer(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "clip")
+	id := r.e.Items()[0].ID
+	var calls atomic.Int32
+	firstIn := make(chan struct{})
+	beforeSave = func() {
+		if calls.Add(1) == 1 { // only the first writer stalls (sync.Once would hold the second too)
+			close(firstIn)
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+	defer func() { beforeSave = nil }()
+	done := make(chan struct{})
+	go func() { r.e.SetTitle(id, "older"); close(done) }()
+	<-firstIn
+	r.e.SetTitle(id, "newer") // changes after "older"
+	<-done
+	stored, _ := r.s.Load(context.Background())
+	if got := r.e.Item(id).Title; got != "newer" || stored[0].Title != got {
+		t.Fatalf("memory %q, stored %q", got, stored[0].Title)
 	}
 }
