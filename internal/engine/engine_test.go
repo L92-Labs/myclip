@@ -370,3 +370,21 @@ func TestRecognizedTextNeedsTheSameImage(t *testing.T) {
 		t.Fatal("stored onto the wrong image")
 	}
 }
+
+// A renamed image adds nothing to a stack: titles are not clip content.
+func TestCopyManySkipsTitles(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("img")}}}, nil)
+	r.e.Tick(context.Background())
+	img := r.e.Items()[0].ID
+	if err := r.e.SetTitle(img, "My screenshot"); err != nil {
+		t.Fatal(err)
+	}
+	r.copy(t, "words")
+	if err := r.e.CopyMany([]int64{img, r.e.Items()[0].ID}); err != nil {
+		t.Fatal(err)
+	}
+	if got := string(r.f.ReadItems()[0].Types[pasteboard.TypeString]); got != "words" {
+		t.Fatalf("stack text %q", got)
+	}
+}

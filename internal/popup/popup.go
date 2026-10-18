@@ -120,8 +120,8 @@ type Popup struct {
 	chosen int
 	// marked holds the rows ⇧-selected for a paste stack, by item, from
 	// anchor to the chosen row.
-	marked map[int64]bool
-	anchor int
+	marked   map[int64]bool
+	anchorID int64 // the item the stack extends from (rows may reorder)
 
 	list   ui.ListState
 	search ui.Handle
@@ -300,12 +300,20 @@ func (p *Popup) extend(j int) {
 	if len(p.rows) == 0 {
 		return
 	}
-	if len(p.marked) == 0 {
-		p.anchor = p.chosen
+	anchor := -1
+	if len(p.marked) > 0 {
+		for k, r := range p.rows {
+			if r.it.ID == p.anchorID {
+				anchor = k
+			}
+		}
+	}
+	if anchor < 0 { // a new stack, or its first row is gone: start here
+		anchor, p.anchorID = p.chosen, p.rows[min(p.chosen, len(p.rows)-1)].it.ID
 	}
 	p.choose(j)
 	p.marked = map[int64]bool{}
-	lo, hi := min(p.anchor, p.chosen), max(p.anchor, p.chosen)
+	lo, hi := min(anchor, p.chosen), max(anchor, p.chosen)
 	for k := lo; k <= hi && k < len(p.rows); k++ {
 		p.marked[p.rows[k].it.ID] = true
 	}

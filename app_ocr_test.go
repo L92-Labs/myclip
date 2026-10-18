@@ -23,51 +23,64 @@ func pngItem(t *testing.T, id int64, w int) *history.Item {
 	return it
 }
 
-// A reading saves only onto the image read: not onto a newer clip that
-// took a deleted image's ID meanwhile.
-func TestOCRSavesOnlyOntoTheImageRead(t *testing.T) {
+// A queued image whose ID now holds another clip is skipped unread, and
+// a reading lands only on the image read.
+func TestOCRSkipsReplacedImages(t *testing.T) {
 	old, reused := pngItem(t, 7, 10), pngItem(t, 7, 20)
-	var mu sync.Mutex
-	var saved []string // every save, in order
-	read := make(chan struct{}, 2)
 	oldData, _, _ := old.Image()
+	var mu sync.Mutex
+	var saved []string
+	readOld := false
+	calls := 0 // the replaced job must not reach the recognizer at all
+	stored := old
 	q := ocrQueue{
+		item: func(int64) *history.Item { mu.Lock(); defer mu.Unlock(); return stored },
 		recognize: func(data []byte) (string, error) {
-			read <- struct{}{}
+			mu.Lock()
+			calls++
+			mu.Unlock()
 			if bytes.Equal(data, oldData) {
+				mu.Lock()
+				readOld = true
+				mu.Unlock()
 				return "old words", nil
 			}
 			return "new words", nil
 		},
-		// The store holds the reused clip under id 7 and checks the digest,
-		// as Engine.SetRecognizedText does under its lock.
 		save: func(id int64, image [32]byte, text string) error {
-			if engine.ImageDigest(reused) != image {
-				return engine.ErrNoItem
-			}
 			mu.Lock()
 			defer mu.Unlock()
+			if engine.ImageDigest(stored) != image {
+				return engine.ErrNoItem
+			}
 			saved = append(saved, text)
 			return nil
 		},
 	}
-	q.add(old)    // read, then dropped: id 7 holds another image
-	q.add(reused) // read and saved
-	<-read
-	<-read
+	mu.Lock()
+	q.pending = []ocrJob{{7, engine.ImageDigest(old)}} // queued, not started yet
+	stored = reused                                    // then the old image went, id 7 reused
+	mu.Unlock()
+	q.add(reused)
 	deadline := time.Now().Add(2 * time.Second)
 	for {
 		mu.Lock()
-		got := append([]string(nil), saved...)
+		got, sawOld := append([]string(nil), saved...), readOld
 		mu.Unlock()
-		if len(got) == 1 && got[0] == "new words" {
+		if sawOld || len(got) > 0 && got[0] != "new words" {
+			t.Fatalf("the replaced image was read or saved: %v", got)
+		}
+		if len(got) == 1 {
+			time.Sleep(50 * time.Millisecond) // let a stray job show itself
+			mu.Lock()
+			defer mu.Unlock()
+			if calls != 1 {
+				t.Fatalf("recognizer ran %d times, want 1", calls)
+			}
 			return
 		}
-		if len(got) > 0 && got[0] == "old words" {
-			t.Fatalf("the deleted image's text went onto the new clip: %v", got)
-		}
 		if time.Now().After(deadline) {
-			t.Fatalf("saved %v", saved)
+			t.Fatalf("saved %v", got)
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -94,6 +107,7 @@ func TestOCRBacklogIsNotDropped(t *testing.T) {
 		all[int64(i+1)] = pngItem(t, int64(i+1), 4+i%3)
 	}
 	q := ocrQueue{
+		item:      func(id int64) *history.Item { return all[id] },
 		recognize: func([]byte) (string, error) { return "w", nil },
 		save: func(int64, [32]byte, string) error {
 			mu.Lock()

@@ -253,7 +253,7 @@ func (e *Engine) CopyMany(ids []int64) error {
 				files = append(files, c)
 			}
 		}
-		if s := strings.TrimRight(it.PreviewText(), "\n"); s != "" {
+		if s := strings.TrimRight(it.ContentText(), "\n"); s != "" { // never a title
 			texts = append(texts, s)
 		}
 	}

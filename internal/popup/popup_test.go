@@ -379,3 +379,16 @@ func TestPageKeysDropTheStack(t *testing.T) {
 		t.Fatalf("marks kept: %v", p.Marked())
 	}
 }
+
+// The stack's anchor is an item, not a row index: a refresh that shifts
+// the rows does not move it.
+func TestStackAnchorSurvivesRefresh(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown) // apple pie (1) + banana split (2)
+	p.SetItems(append([]*history.Item{item(50, "new on top", "")}, p.items...))
+	tt.Frame()
+	tt.Key(ui.Shift, ui.KeyDown)
+	if got := p.Marked(); len(got) != 3 || got[0] != 1 || got[2] != 3 {
+		t.Fatalf("marked %v, want [1 2 3]", got)
+	}
+}

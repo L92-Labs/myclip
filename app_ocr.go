@@ -19,14 +19,23 @@ const ocrMaxBytes = 16 << 20
 // Nothing leaves the computer: Vision on macOS, tesseract on Linux.
 type ocrQueue struct {
 	mu      sync.Mutex
-	pending []*history.Item // waiting, oldest first; never dropped
+	pending []ocrJob // waiting, oldest first; never dropped, only IDs held
 	running bool
+	// item returns the clip stored under id now (Engine.Item).
+	item func(id int64) *history.Item
 	// save stores a reading for the image with that digest, refusing it
 	// atomically when the ID now holds another image.
 	save func(id int64, image [32]byte, text string) error
 	// recognize reads an image's text; nil uses the system's recognizer.
 	recognize func([]byte) (string, error)
 	stopped   bool // no recognizer on this system
+}
+
+// ocrJob names an image to read without holding its bytes, so a backlog
+// never keeps evicted images in memory.
+type ocrJob struct {
+	id     int64
+	digest [32]byte
 }
 
 func (q *ocrQueue) add(it *history.Item) {
@@ -38,7 +47,7 @@ func (q *ocrQueue) add(it *history.Item) {
 	if q.stopped {
 		return
 	}
-	q.pending = append(q.pending, it)
+	q.pending = append(q.pending, ocrJob{it.ID, engine.ImageDigest(it)})
 	if !q.running {
 		q.running = true
 		go q.run()
@@ -46,16 +55,16 @@ func (q *ocrQueue) add(it *history.Item) {
 }
 
 // next takes the next job, or ends the worker when none is left.
-func (q *ocrQueue) next() (*history.Item, bool) {
+func (q *ocrQueue) next() (ocrJob, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	if len(q.pending) == 0 || q.stopped {
 		q.running = false
-		return nil, false
+		return ocrJob{}, false
 	}
-	it := q.pending[0]
+	job := q.pending[0]
 	q.pending = q.pending[1:]
-	return it, true
+	return job, true
 }
 
 // needsOCR reports whether it is an image not read yet, small enough.
@@ -66,16 +75,21 @@ func needsOCR(it *history.Item) bool {
 
 func (q *ocrQueue) run() {
 	for {
-		it, ok := q.next()
+		job, ok := q.next()
 		if !ok {
 			return
+		}
+		// Gone (trimmed, deleted) or another image under the ID now: skip
+		// without reading it.
+		it := q.item(job.id)
+		if it == nil || engine.ImageDigest(it) != job.digest || it.TextRecognized() {
+			continue
 		}
 		data, typ, _ := it.Image()
 		// Go cannot decode HEIC to check it, but Vision reads it.
 		if typ != pasteboard.TypeHEIC && !decodable(data) {
 			continue
 		}
-		sum := engine.ImageDigest(it)
 		recognize := q.recognize
 		if recognize == nil {
 			recognize = native.RecognizeText
@@ -94,7 +108,7 @@ func (q *ocrQueue) run() {
 		// The item may be gone meanwhile, its ID taken by a newer clip: save
 		// checks the image under its lock. An empty reading is saved too, so
 		// the image is not read again at the next launch.
-		if err := q.save(it.ID, sum, text); errors.Is(err, engine.ErrNoItem) {
+		if err := q.save(job.id, job.digest, text); errors.Is(err, engine.ErrNoItem) {
 			continue
 		} else if err != nil {
 			log.Print("myclip: text in image: ", err)
