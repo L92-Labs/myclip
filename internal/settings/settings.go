@@ -6,6 +6,7 @@ package settings
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -296,4 +297,25 @@ func Save(path string, s Settings) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+// Reset keeps the file at path aside, as path.unreadable-<unix>, and writes
+// the defaults there. On any failure the original file is put back and the
+// error returned, so the caller can stay in capture-safe mode.
+func Reset(path string, now time.Time) (aside string, err error) {
+	if _, err := os.Lstat(path); err == nil {
+		aside = fmt.Sprintf("%s.unreadable-%d", path, now.Unix())
+		if err := os.Rename(path, aside); err != nil {
+			return "", fmt.Errorf("keep the unreadable settings aside: %w", err)
+		}
+	}
+	if err := Save(path, Default()); err != nil {
+		if aside != "" {
+			if rerr := os.Rename(aside, path); rerr != nil {
+				err = errors.Join(err, rerr)
+			}
+		}
+		return "", fmt.Errorf("write the default settings: %w", err)
+	}
+	return aside, nil
 }

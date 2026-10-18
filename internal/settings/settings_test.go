@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestLoadMissingGivesDefaults(t *testing.T) {
@@ -79,5 +80,39 @@ func TestPartialFileKeepsDefaults(t *testing.T) {
 	}
 	if !s.PasteByDefault || s.HistorySize != 200 || !s.ShowFooter {
 		t.Fatalf("got %+v", s)
+	}
+}
+
+func TestResetKeepsFileAsideAndWritesDefaults(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, FileName)
+	os.WriteFile(path, []byte("{"), 0o600)
+	aside, err := Reset(path, time.Unix(1700000000, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(aside); string(b) != "{" {
+		t.Fatalf("aside %q holds %q", aside, b)
+	}
+	if s, err := Load(path); err != nil || s.HistorySize != Default().HistorySize {
+		t.Fatalf("after reset: %v %+v", err, s)
+	}
+}
+
+// A reset that cannot write leaves the unreadable file where it was.
+func TestResetFailureRestores(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("root ignores directory permissions")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, FileName)
+	os.WriteFile(path, []byte("{"), 0o600)
+	os.Chmod(dir, 0o500)
+	defer os.Chmod(dir, 0o700)
+	if _, err := Reset(path, time.Now()); err == nil {
+		t.Fatal("reset succeeded in a read-only dir")
+	}
+	if b, _ := os.ReadFile(path); string(b) != "{" {
+		t.Fatalf("original changed: %q", b)
 	}
 }

@@ -56,6 +56,9 @@ func (a *app) applyTray() {
 // below the icon.
 func (a *app) trayClick() {
 	mods := darwin.ModifierFlags()
+	if mods&darwin.ModOption != 0 && a.captureSafe {
+		return // capture is off until the settings are reset
+	}
 	if mods&darwin.ModOption != 0 {
 		switch {
 		case a.engine.Paused():
@@ -126,15 +129,17 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 		{Label: locales.TrayOpen(), Click: func(*mygo.MenuItem, *mygo.Window) { a.showPopup() }},
 		mygo.Separator(),
 		{
-			Label:   locales.TrayPause(),
-			Type:    mygo.MenuItemCheckbox,
-			Checked: a.engine.Paused() && !a.engine.IgnoringNext(),
-			Click:   func(mi *mygo.MenuItem, _ *mygo.Window) { a.setPaused(mi.Checked) },
+			Label:    locales.TrayPause(),
+			Type:     mygo.MenuItemCheckbox,
+			Checked:  a.engine.Paused() && !a.engine.IgnoringNext(),
+			Disabled: a.captureSafe, // capture is already off; reset is the way out
+			Click:    func(mi *mygo.MenuItem, _ *mygo.Window) { a.setPaused(mi.Checked) },
 		},
 		{
-			Label:   locales.TrayIgnoreNext(),
-			Type:    mygo.MenuItemCheckbox,
-			Checked: a.engine.IgnoringNext(),
+			Label:    locales.TrayIgnoreNext(),
+			Type:     mygo.MenuItemCheckbox,
+			Checked:  a.engine.IgnoringNext(),
+			Disabled: a.captureSafe,
 			Click: func(mi *mygo.MenuItem, _ *mygo.Window) {
 				if mi.Checked {
 					a.engine.IgnoreNext()

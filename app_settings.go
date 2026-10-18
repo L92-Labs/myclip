@@ -197,18 +197,29 @@ func (a *app) Displays() []string {
 }
 
 // resetSettings is the way out of capture-safe mode: it keeps the
-// unreadable file aside, writes the defaults and resumes capture.
+// unreadable file aside and writes the defaults. Capture resumes only once
+// both succeeded; otherwise the latch and the menu's reset item stay.
 func (a *app) resetSettings() {
-	if _, err := os.Stat(a.settingsPath); err == nil {
-		aside := fmt.Sprintf("%s.unreadable-%d", a.settingsPath, time.Now().Unix())
-		if err := os.Rename(a.settingsPath, aside); err != nil {
-			log.Print("myclip: keep unreadable settings: ", err)
-		}
+	aside, err := settings.Reset(a.settingsPath, time.Now())
+	if err != nil {
+		log.Print("myclip: reset settings: ", err)
+		a.err = err
+		a.refresh()
+		return
+	}
+	if aside != "" {
+		log.Print("myclip: unreadable settings kept as ", aside)
 	}
 	a.captureSafe = false
+	a.err = nil
 	a.settings = settings.Default()
-	a.saveSettings()
+	// A pause or ignore-next chosen while capture-safe must not swallow the
+	// first copy after the reset.
+	a.engine.SetPaused(false)
 	a.engine.SetPrefs(a.settings.CapturePrefs())
 	a.engine.SetCaptureSafe(false)
+	if a.prefs != nil {
+		a.prefs.Load() // its controls mirror the old values
+	}
 	a.Changed()
 }
