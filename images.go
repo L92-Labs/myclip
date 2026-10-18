@@ -26,6 +26,7 @@ type imageCache struct {
 	mu      sync.Mutex
 	thumbs  map[thumbKey]*ui.Bitmap
 	full    map[*history.Item]*ui.Bitmap
+	sizes   map[*history.Item][2]int // the copied image's own pixel size
 	pending map[any]bool
 	icons   map[string]*ui.Bitmap
 	names   map[string]string
@@ -41,6 +42,7 @@ func newImageCache(invalidate func()) *imageCache {
 		invalidate: invalidate,
 		thumbs:     map[thumbKey]*ui.Bitmap{},
 		full:       map[*history.Item]*ui.Bitmap{},
+		sizes:      map[*history.Item][2]int{},
 		pending:    map[any]bool{},
 		icons:      map[string]*ui.Bitmap{},
 		names:      map[string]string{},
@@ -71,8 +73,17 @@ func (c *imageCache) thumbnail(it *history.Item, maxHeight int) *ui.Bitmap {
 	}
 	c.pending[k] = true
 	px := int(float64(maxHeight) * screenScale())
-	go c.decode(k, data, px, 340*screenScale(), func(b *ui.Bitmap) { c.thumbs[k] = b })
+	go c.decode(k, data, px, 340*screenScale(), func(b *ui.Bitmap, _ [2]int) { c.thumbs[k] = b })
 	return nil
+}
+
+// previewSize is the pixel size of the image preview shows, known once
+// its decode finished; nothing is read on the caller's thread.
+func (c *imageCache) previewSize(it *history.Item) (w, h int, ok bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	s, ok := c.sizes[it]
+	return s[0], s[1], ok
 }
 
 // preview is the item's image for the preview pane, at most 1600 pixels.
@@ -87,24 +98,38 @@ func (c *imageCache) preview(it *history.Item) *ui.Bitmap {
 		return nil
 	}
 	c.pending[it] = true
-	go c.decode(it, data, 1600, 1600, func(b *ui.Bitmap) { c.full[it] = b })
+	go c.decode(it, data, 1600, 1600, func(b *ui.Bitmap, size [2]int) {
+		c.full[it] = b
+		if b != nil {
+			c.sizes[it] = size
+		}
+	})
 	return nil
 }
 
 // decode decodes data, scales it to fit maxH×maxW pixels, and stores the
-// bitmap (nil when it does not decode) with put, under the lock.
-func (c *imageCache) decode(k any, data []byte, maxH int, maxW float64, put func(*ui.Bitmap)) {
-	var bmp *ui.Bitmap
-	if decodable(data) {
-		if img, _, err := image.Decode(bytes.NewReader(data)); err == nil {
-			bmp = ui.NewBitmap(scaleDown(img, maxH, int(maxW)))
-		}
-	}
+// bitmap (nil when it does not decode) and the image's own size with put,
+// under the lock.
+func (c *imageCache) decode(k any, data []byte, maxH int, maxW float64, put func(*ui.Bitmap, [2]int)) {
+	bmp, size := decodeScaled(data, maxH, int(maxW))
 	c.mu.Lock()
 	delete(c.pending, k)
-	put(bmp)
+	put(bmp, size)
 	c.mu.Unlock()
 	mygo.RunOnMain(c.invalidate)
+}
+
+// decodeScaled decodes data scaled to fit maxH×maxW pixels, and reports
+// the image's own size; nil when it does not decode or is too large.
+func decodeScaled(data []byte, maxH, maxW int) (*ui.Bitmap, [2]int) {
+	if !decodable(data) {
+		return nil, [2]int{}
+	}
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, [2]int{}
+	}
+	return ui.NewBitmap(scaleDown(img, maxH, maxW)), [2]int{img.Bounds().Dx(), img.Bounds().Dy()}
 }
 
 // maxDecodePixels bounds the images decoded for display: the D6 byte cap
@@ -147,6 +172,7 @@ func (c *imageCache) forget(items []*history.Item) {
 	for it := range c.full {
 		if !keep[it] {
 			delete(c.full, it)
+			delete(c.sizes, it)
 		}
 	}
 }

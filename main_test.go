@@ -89,3 +89,19 @@ func TestDecodableRefusesHugeImages(t *testing.T) {
 		t.Error("accepted garbage")
 	}
 }
+
+// The preview reports the copied image's size, not the scaled bitmap's.
+func TestDecodeScaledKeepsOriginalSize(t *testing.T) {
+	var b bytes.Buffer
+	png.Encode(&b, image.NewGray(image.Rect(0, 0, 4000, 3000)))
+	bmp, size := decodeScaled(b.Bytes(), 1600, 1600)
+	if bmp == nil || size != [2]int{4000, 3000} {
+		t.Fatalf("size %v", size)
+	}
+	if w, _ := bmp.Size(); w != 1600 {
+		t.Fatalf("bitmap width %d, want 1600", w)
+	}
+	if bmp, _ := decodeScaled([]byte("junk"), 10, 10); bmp != nil {
+		t.Fatal("decoded junk")
+	}
+}

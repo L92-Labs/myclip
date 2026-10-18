@@ -1,13 +1,11 @@
 package popup
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/L92-Labs/myclip/internal/shortcut"
-	"image"
-	"image/png"
 	"testing"
 	"time"
+
+	"github.com/L92-Labs/myclip/internal/shortcut"
 
 	"github.com/egoist/mygo/ui"
 
@@ -34,15 +32,16 @@ func (h *fakeHost) Delete(id int64)           { h.calls = append(h.calls, call{w
 func (h *fakeHost) Clear(all bool) {
 	h.calls = append(h.calls, call{what: fmt.Sprint("clear ", all)})
 }
-func (h *fakeHost) OpenSettings()                           { h.calls = append(h.calls, call{what: "settings"}) }
-func (h *fakeHost) About()                                  { h.calls = append(h.calls, call{what: "about"}) }
-func (h *fakeHost) Quit()                                   { h.calls = append(h.calls, call{what: "quit"}) }
-func (h *fakeHost) Close()                                  { h.calls = append(h.calls, call{what: "close"}) }
-func (h *fakeHost) Thumbnail(*history.Item, int) *ui.Bitmap { return nil }
-func (h *fakeHost) Preview(*history.Item) *ui.Bitmap        { return nil }
-func (h *fakeHost) AppIcon(string) *ui.Bitmap               { return nil }
-func (h *fakeHost) AppName(id string) string                { return id }
-func (h *fakeHost) Resize(w, hh int)                        { h.width, h.height = w, hh }
+func (h *fakeHost) OpenSettings()                              { h.calls = append(h.calls, call{what: "settings"}) }
+func (h *fakeHost) About()                                     { h.calls = append(h.calls, call{what: "about"}) }
+func (h *fakeHost) Quit()                                      { h.calls = append(h.calls, call{what: "quit"}) }
+func (h *fakeHost) Close()                                     { h.calls = append(h.calls, call{what: "close"}) }
+func (h *fakeHost) Thumbnail(*history.Item, int) *ui.Bitmap    { return nil }
+func (h *fakeHost) Preview(*history.Item) *ui.Bitmap           { return nil }
+func (h *fakeHost) PreviewSize(*history.Item) (int, int, bool) { return 0, 0, false }
+func (h *fakeHost) AppIcon(string) *ui.Bitmap                  { return nil }
+func (h *fakeHost) AppName(id string) string                   { return id }
+func (h *fakeHost) Resize(w, hh int)                           { h.width, h.height = w, hh }
 func (h *fakeHost) last() call {
 	if len(h.calls) == 0 {
 		return call{}
@@ -260,17 +259,5 @@ func TestHighlightAndSpecialSymbols(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("·a⇥b⏎") {
 		t.Fatalf("texts %q", tt.Texts())
-	}
-}
-
-func TestImageSizeIsTheOriginal(t *testing.T) {
-	var b bytes.Buffer
-	png.Encode(&b, image.NewGray(image.Rect(0, 0, 4000, 3000)))
-	it := &history.Item{Contents: []history.Content{{Type: pasteboard.TypePNG, Value: b.Bytes()}}}
-	if w, h, ok := imageSize(it); !ok || w != 4000 || h != 3000 {
-		t.Fatalf("%d×%d %v", w, h, ok)
-	}
-	if _, _, ok := imageSize(&history.Item{}); ok {
-		t.Fatal("size of no image")
 	}
 }

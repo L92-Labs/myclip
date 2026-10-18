@@ -29,8 +29,10 @@ no cgo and no Xcode project; the app is about 14 MB.
 
 ## Privacy and security
 
-- **Nothing goes online.** MyClip opens no network connection. SQLite is
-  bundled, never downloaded.
+- **Nothing goes online.** The packaged app (`scripts/build-mac.sh`) opens
+  no network connection: SQLite is bundled in it. Development runs
+  (`scripts/dev-mac.sh`, `go test`) may download MyGo's SQLite library once,
+  checked against its SHA-256.
 - **Password managers are skipped.** Copies marked concealed or transient
   (1Password, KeePassXC and others following the nspasteboard.org convention) are recognised from their types
   *before* any content is read, so the secret never enters memory or the
