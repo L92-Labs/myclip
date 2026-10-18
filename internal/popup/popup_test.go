@@ -1,8 +1,11 @@
 package popup
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/L92-Labs/myclip/internal/shortcut"
+	"image"
+	"image/png"
 	"testing"
 	"time"
 
@@ -257,5 +260,17 @@ func TestHighlightAndSpecialSymbols(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("·a⇥b⏎") {
 		t.Fatalf("texts %q", tt.Texts())
+	}
+}
+
+func TestImageSizeIsTheOriginal(t *testing.T) {
+	var b bytes.Buffer
+	png.Encode(&b, image.NewGray(image.Rect(0, 0, 4000, 3000)))
+	it := &history.Item{Contents: []history.Content{{Type: pasteboard.TypePNG, Value: b.Bytes()}}}
+	if w, h, ok := imageSize(it); !ok || w != 4000 || h != 3000 {
+		t.Fatalf("%d×%d %v", w, h, ok)
+	}
+	if _, _, ok := imageSize(&history.Item{}); ok {
+		t.Fatal("size of no image")
 	}
 }

@@ -3,8 +3,9 @@
 A clipboard history for the macOS menu bar that never leaves your Mac.
 No account, no cloud, no network, no telemetry. Open source (MIT).
 
-MyClip follows [Maccy](https://maccy.app) 2.7.1 feature for feature
-([PARITY.md](PARITY.md)) and is written in Go with
+MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
+[PARITY.md](PARITY.md) lists what matches and what does not yet (hold-to-cycle,
+image OCR). It is written in Go with
 [MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
 no cgo and no Xcode project; the app is about 14 MB.
 
@@ -20,8 +21,8 @@ no cgo and no Xcode project; the app is about 14 MB.
 - **Paste for you.** Pick a clip and MyClip types ⌘V into the app you were
   in, with or without formatting. The keyboard layout is respected
   (QWERTY, AZERTY, Dvorak).
-- **Preview.** Full text, image size, source app, and how many times and
-  when you copied it.
+- **Preview.** The text (its first 10,000 characters), the image and its
+  size, the source app, and how many times and when you copied it.
 - **Your rules.** Ignore apps, pasteboard types or text patterns, pause
   capture, or skip just the next copy.
 - **Languages.** English, French, Spanish.
@@ -48,19 +49,23 @@ no cgo and no Xcode project; the app is about 14 MB.
 
 ## Keyboard
 
-| In the popup | |
+| In the popup (default keys) | |
 |---|---|
 | ⇧⌘C | open MyClip from any app (configurable) |
 | ↑ ↓ · ⌃N ⌃P · ⌘↑ ⌘↓ | move · first · last |
-| ↵ | copy (or paste, with *Paste automatically*) |
-| ⌥↵ · ⌥⇧↵ | the other action · paste without formatting |
+| ↵ | copy |
+| ⌥↵ · ⌥⇧↵ | paste · paste without formatting |
 | ⌘1 … ⌘9 | the nth clip; ⌘-letter for a pin |
 | ⌥P · ⌥⌫ · ⌃Space | pin · delete · preview (configurable) |
 | ⌥⌘⌫ · ⇧⌥⌘⌫ | clear history · clear including pins |
 | Esc · ⌘, · ⌘Q | close · settings · quit |
 
-Click the menu icon with ⌥ to pause capture; click with ⌥⇧ to ignore the
-next copy.
+With *Paste automatically* or *Paste without formatting* on, the ↵ ⌥↵ ⌥⇧↵
+actions swap as Maccy's do; Settings › General shows the current map.
+
+Click the menu icon with ⌥ to pause or resume capture. While capture is on,
+click with ⌥⇧ to ignore only the next copy (while paused, ⌥⇧-click resumes,
+as in Maccy).
 
 ## Build
 

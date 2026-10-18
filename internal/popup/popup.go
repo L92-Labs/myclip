@@ -5,15 +5,21 @@
 package popup
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	_ "image/jpeg" // imageSize
+	_ "image/png"
 	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	"github.com/egoist/mygo/ui"
+	_ "golang.org/x/image/tiff"
 
 	"github.com/L92-Labs/myclip/internal/history"
+	"github.com/L92-Labs/myclip/internal/pasteboard"
 	"github.com/L92-Labs/myclip/internal/search"
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/internal/shortcut"
@@ -614,7 +620,12 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 			})
 		}
 		if bmp := p.Host.Preview(it); bmp != nil {
-			w, h := bmp.Size()
+			// The bitmap is scaled down for display; the header has the
+			// copied image's own size.
+			w, h, ok := imageSize(it)
+			if !ok {
+				w, h = bmp.Size()
+			}
 			detail(locales.PreviewDimensions(), fmt.Sprintf("%d×%d", w, h))
 		}
 		if it.Application != "" {
@@ -703,3 +714,19 @@ func (p *Popup) fit() {
 }
 
 var searchIcon = ui.MustParseSVG([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`))
+
+// imageSize reads an image clip's pixel size from its header, without
+// decoding the pixels.
+func imageSize(it *history.Item) (w, h int, ok bool) {
+	for _, typ := range []string{pasteboard.TypePNG, pasteboard.TypeTIFF, pasteboard.TypeJPEG} {
+		for _, ct := range it.Contents {
+			if ct.Type != typ {
+				continue
+			}
+			if cfg, _, err := image.DecodeConfig(bytes.NewReader(ct.Value)); err == nil {
+				return cfg.Width, cfg.Height, true
+			}
+		}
+	}
+	return 0, 0, false
+}
