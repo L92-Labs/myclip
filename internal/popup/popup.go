@@ -88,6 +88,9 @@ type Host interface {
 	Thumbnail(it *history.Item, maxHeight int) *ui.Bitmap
 	// Preview returns the item's image for the preview, or nil.
 	Preview(it *history.Item) *ui.Bitmap
+	// PreviewSize is that image's own pixel size, before scaling, once
+	// known.
+	PreviewSize(it *history.Item) (w, h int, ok bool)
 	AppIcon(bundleID string) *ui.Bitmap
 	AppName(bundleID string) string
 	// Resize asks for the window to take this size, after the frame.
@@ -614,7 +617,12 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 			})
 		}
 		if bmp := p.Host.Preview(it); bmp != nil {
-			w, h := bmp.Size()
+			// The bitmap is scaled down for display; the header has the
+			// copied image's own size.
+			w, h, ok := p.Host.PreviewSize(it)
+			if !ok {
+				w, h = bmp.Size()
+			}
 			detail(locales.PreviewDimensions(), fmt.Sprintf("%d×%d", w, h))
 		}
 		if it.Application != "" {

@@ -219,6 +219,9 @@ func (a *app) Thumbnail(it *history.Item, maxHeight int) *ui.Bitmap {
 
 func (a *app) Preview(it *history.Item) *ui.Bitmap { return a.images.preview(it) }
 
+// PreviewSize is the size of the image Preview shows, as copied.
+func (a *app) PreviewSize(it *history.Item) (int, int, bool) { return a.images.previewSize(it) }
+
 func (a *app) AppIcon(bundleID string) *ui.Bitmap { return a.images.appIcon(bundleID) }
 
 func (a *app) AppName(bundleID string) string { return a.images.appName(bundleID) }
