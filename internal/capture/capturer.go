@@ -179,8 +179,15 @@ func (c *Capturer) seen(n int) {
 
 // SetCaptureSafe sets the capture-safe latch. While set, nothing is read
 // or kept, whatever IgnoreEvents says: pausing and resuming do not clear it.
+//
+// Clearing it skips what the clipboard holds now: that copy was made while
+// the rules were unknown, so it is never read.
 func (c *Capturer) SetCaptureSafe(on bool) {
+	now := c.Board.ChangeCount()
 	c.mu.Lock()
 	c.safe = on
+	if !on {
+		c.last = now
+	}
 	c.mu.Unlock()
 }

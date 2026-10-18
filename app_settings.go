@@ -196,6 +196,24 @@ func (a *app) Displays() []string {
 	return out
 }
 
+// confirmReset asks before leaving capture-safe mode: resetting replaces
+// the unreadable settings, ignore rules included, with the defaults.
+func (a *app) confirmReset() {
+	go func() {
+		res, err := mygo.Dialog.Message(mygo.MessageOptions{
+			Type:          mygo.MessageWarning,
+			Message:       locales.ResetConfirmTitle(),
+			Detail:        locales.ResetConfirmDetail(),
+			Buttons:       []string{locales.ClearAlertCancel(), locales.ResetConfirm()},
+			DefaultButton: 0,
+			CancelButton:  0,
+		})
+		if err == nil && res.Button == 1 {
+			mygo.RunOnMain(a.resetSettings)
+		}
+	}()
+}
+
 // resetSettings is the way out of capture-safe mode: it keeps the
 // unreadable file aside and writes the defaults. Capture resumes only once
 // both succeeded; otherwise the latch and the menu's reset item stay.
@@ -203,7 +221,7 @@ func (a *app) resetSettings() {
 	aside, err := settings.Reset(a.settingsPath, time.Now())
 	if err != nil {
 		log.Print("myclip: reset settings: ", err)
-		a.err = err
+		a.resetErr = err
 		a.refresh()
 		return
 	}
@@ -211,7 +229,7 @@ func (a *app) resetSettings() {
 		log.Print("myclip: unreadable settings kept as ", aside)
 	}
 	a.captureSafe = false
-	a.err = nil
+	a.resetErr = nil
 	a.settings = settings.Default()
 	// A pause or ignore-next chosen while capture-safe must not swallow the
 	// first copy after the reset.
@@ -219,7 +237,8 @@ func (a *app) resetSettings() {
 	a.engine.SetPrefs(a.settings.CapturePrefs())
 	a.engine.SetCaptureSafe(false)
 	if a.prefs != nil {
-		a.prefs.Load() // its controls mirror the old values
+		a.prefs.StopRecording() // gives the popup shortcut back
+		a.prefs.Load()          // its controls mirror the old values
 	}
 	a.Changed()
 }

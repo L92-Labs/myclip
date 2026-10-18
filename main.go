@@ -107,6 +107,7 @@ type app struct {
 	// ignore rules are unknown. Capture stays off and the file is never
 	// overwritten until the user resets settings from the menu.
 	captureSafe bool
+	resetErr    error // why the last settings reset failed, shown in the menu
 
 	engine *engine.Engine
 	store  *store.Store

@@ -121,7 +121,7 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 	if a.captureSafe {
 		items = append(items,
 			&mygo.MenuItem{Label: locales.TrayCaptureSafe(), Disabled: true},
-			&mygo.MenuItem{Label: locales.TrayResetSettings(), Click: func(*mygo.MenuItem, *mygo.Window) { a.resetSettings() }},
+			&mygo.MenuItem{Label: locales.TrayResetSettings(), Click: func(*mygo.MenuItem, *mygo.Window) { a.confirmReset() }},
 			mygo.Separator(),
 		)
 	}
@@ -160,6 +160,9 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 	}
 	if a.err != nil {
 		items = append(items, &mygo.MenuItem{Label: locales.TrayNotSaved(a.err.Error()), Disabled: true})
+	}
+	if a.resetErr != nil {
+		items = append(items, &mygo.MenuItem{Label: locales.TrayNotSaved(a.resetErr.Error()), Disabled: true})
 	}
 	return append(items, mygo.Separator(), &mygo.MenuItem{Label: locales.QuitMyClip(), Role: mygo.RoleQuit})
 }
