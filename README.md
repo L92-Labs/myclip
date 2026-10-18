@@ -1,0 +1,104 @@
+# MyClip
+
+A clipboard history for the macOS menu bar that never leaves your Mac.
+No account, no cloud, no network, no telemetry. Open source (MIT).
+
+MyClip follows [Maccy](https://maccy.app) 2.7.1 feature for feature
+([PARITY.md](PARITY.md)) and is written in Go with
+[MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
+no cgo and no Xcode project; the app is about 14 MB.
+
+> **Status:** pre-release, private. Builds and runs on macOS; Linux and
+> Windows are planned.
+
+## What it does
+
+- **History.** Everything you copy (text, rich text, images, files),
+  newest first. Pin the clips you reuse; pins get a ⌘-letter of their own.
+- **Search.** Exact, fuzzy (`gcm` finds `git commit`), regular expressions,
+  or mixed, with the matches highlighted.
+- **Paste for you.** Pick a clip and MyClip types ⌘V into the app you were
+  in, with or without formatting. The keyboard layout is respected
+  (QWERTY, AZERTY, Dvorak).
+- **Preview.** Full text, image size, source app, and how many times and
+  when you copied it.
+- **Your rules.** Ignore apps, pasteboard types or text patterns, pause
+  capture, or skip just the next copy.
+- **Languages.** English, French, Spanish.
+
+## Privacy and security
+
+- **Nothing goes online.** MyClip opens no network connection. SQLite is
+  bundled, never downloaded.
+- **Password managers are skipped.** Copies marked concealed or transient
+  (1Password, KeePassXC and others following the nspasteboard.org convention) are recognised from their types
+  *before* any content is read, so the secret never enters memory or the
+  database.
+- **Files only you can read.** History lives in
+  `~/Library/Application Support/com.l92labs.myclip/` (folder 0700, files
+  0600). Deleted clips are overwritten in the database file
+  (`secure_delete`), not just unlinked.
+- **Size caps.** Clips over 32 MB are skipped and counted. The history keeps
+  200 items by default; pins don't count toward that.
+- **Fail closed.** If MyClip cannot read its settings, it stops capturing
+  rather than fall back to defaults that could miss your ignore rules. The
+  menu icon offers Reset Settings.
+- **Only Accessibility.** Pasting needs the Accessibility permission, and
+  only for ⌘V. Copying works without it.
+
+## Keyboard
+
+| In the popup | |
+|---|---|
+| ⇧⌘C | open MyClip from any app (configurable) |
+| ↑ ↓ · ⌃N ⌃P · ⌘↑ ⌘↓ | move · first · last |
+| ↵ | copy (or paste, with *Paste automatically*) |
+| ⌥↵ · ⌥⇧↵ | the other action · paste without formatting |
+| ⌘1 … ⌘9 | the nth clip; ⌘-letter for a pin |
+| ⌥P · ⌥⌫ · ⌃Space | pin · delete · preview (configurable) |
+| ⌥⌘⌫ · ⇧⌥⌘⌫ | clear history · clear including pins |
+| Esc · ⌘, · ⌘Q | close · settings · quit |
+
+Click the menu icon with ⌥ to pause capture; click with ⌥⇧ to ignore the
+next copy.
+
+## Build
+
+On a Mac with the Xcode Command Line Tools (`xcode-select --install`) and
+Go matching `go.mod`:
+
+```sh
+scripts/build-mac.sh --dmg --open       # test, build build/darwin-<arch>/myclip.app + .dmg, launch
+scripts/build-mac.sh --universal --dmg  # arm64 + x86_64
+scripts/dev-mac.sh                      # live-reload development run
+scripts/test.sh                         # go vet + go test (macOS or Linux)
+```
+
+The first launch of an ad-hoc signed build needs right-click → Open.
+`MYCLIP_SHOW=popup` (or `popup-preview`, `prefs:<tab>`) opens a window at
+launch, for screenshots.
+
+On Linux the code compiles and the tests run (`scripts/test.sh`,
+`scripts/build-mac.sh --cross`), but the app has no Linux clipboard
+backend yet.
+
+## Layout
+
+| Path | |
+|---|---|
+| `internal/capture` | the capture rules: ignore chain, change-count sandwich, size cap |
+| `internal/history` · `internal/store` | items, merging, sorting · SQLite with the security recipe |
+| `internal/engine` | capture → merge → store, copy-back, pins, clearing |
+| `internal/darwin` | AppKit, CoreGraphics and Carbon through purego (no cgo) |
+| `internal/popup` · `internal/prefs` | the popup and the settings window |
+| `internal/search` · `internal/shortcut` · `internal/settings` | search modes · accelerators · preferences |
+| `locales/` | EN / FR / ES catalogs (`go tool mygo generate`) |
+| `PLAN.md` · `PARITY.md` | milestones and gates · the Maccy feature inventory and deviations |
+
+## Credits
+
+MyClip's design follows [Maccy](https://github.com/p0deje/Maccy) by Alex
+Rodionov and contributors (MIT); see [NOTICE.md](NOTICE.md). Icons from
+[Lucide](https://lucide.dev) (ISC).
+
+[MIT](LICENSE) © L92 Labs
