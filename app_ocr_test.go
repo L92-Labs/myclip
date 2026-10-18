@@ -78,3 +78,40 @@ func TestNeedsOCR(t *testing.T) {
 		t.Fatal("an image read as empty is read again")
 	}
 }
+
+// A backlog longer than any buffer is read in full, none dropped.
+func TestOCRBacklogIsNotDropped(t *testing.T) {
+	const n = 600
+	var mu sync.Mutex
+	saved := 0
+	all := make(map[int64]*history.Item, n)
+	for i := range n {
+		all[int64(i+1)] = pngItem(t, int64(i+1), 4+i%3)
+	}
+	q := ocrQueue{
+		recognize: func([]byte) (string, error) { return "w", nil },
+		current:   func(id int64) *history.Item { return all[id] },
+		save: func(int64, string) error {
+			mu.Lock()
+			saved++
+			mu.Unlock()
+			return nil
+		},
+	}
+	for i := range n {
+		q.add(all[int64(i+1)])
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		mu.Lock()
+		got := saved
+		mu.Unlock()
+		if got == n {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("read %d of %d", got, n)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}

@@ -690,6 +690,9 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 			}
 		} else {
 			text := it.PreviewText()
+			if text == "" {
+				text = it.RecognizedText() // an image Go cannot draw (HEIC), read by Vision
+			}
 			if r := []rune(text); len(r) > 10000 {
 				text = string(r[:10000]) + "…"
 			}

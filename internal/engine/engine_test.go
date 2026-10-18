@@ -336,3 +336,22 @@ func TestRecognizedTextEmptyAndLimits(t *testing.T) {
 		t.Fatalf("stored %d items", len(got))
 	}
 }
+
+// A copy the user makes right after a stack write, before the next check,
+// is captured: only the stack's own change is skipped.
+func TestCopyRightAfterAStackIsKept(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "a")
+	r.copy(t, "b")
+	ids := []int64{r.e.Items()[0].ID, r.e.Items()[1].ID}
+	if err := r.e.CopyMany(ids); err != nil {
+		t.Fatal(err)
+	}
+	r.f.SetItems(text("typed right after"), nil) // before any tick
+	if o := r.e.Tick(context.Background()); o != capture.Captured {
+		t.Fatalf("user copy %v", o)
+	}
+	if got := r.e.Items()[0].Text(); got != "typed right after" {
+		t.Fatalf("top %q", got)
+	}
+}

@@ -18,26 +18,43 @@ const ocrMaxBytes = 16 << 20
 // thread, so search finds a screenshot by its words (Maccy's Vision titles).
 // Nothing leaves the computer: Vision on macOS, tesseract on Linux.
 type ocrQueue struct {
-	once    sync.Once
-	jobs    chan *history.Item
+	mu      sync.Mutex
+	pending []*history.Item // waiting, oldest first; never dropped
+	running bool
 	save    func(id int64, text string) error
 	current func(id int64) *history.Item // the item now stored under id
 	// recognize reads an image's text; nil uses the system's recognizer.
 	recognize func([]byte) (string, error)
+	stopped   bool // no recognizer on this system
 }
 
 func (q *ocrQueue) add(it *history.Item) {
 	if !needsOCR(it) {
 		return
 	}
-	q.once.Do(func() {
-		q.jobs = make(chan *history.Item, 256)
-		go q.run()
-	})
-	select {
-	case q.jobs <- it:
-	default: // backlog full: this one stays unread
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.stopped {
+		return
 	}
+	q.pending = append(q.pending, it)
+	if !q.running {
+		q.running = true
+		go q.run()
+	}
+}
+
+// next takes the next job, or ends the worker when none is left.
+func (q *ocrQueue) next() (*history.Item, bool) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if len(q.pending) == 0 || q.stopped {
+		q.running = false
+		return nil, false
+	}
+	it := q.pending[0]
+	q.pending = q.pending[1:]
+	return it, true
 }
 
 // needsOCR reports whether it is an image not read yet, small enough.
@@ -52,7 +69,11 @@ func digest(it *history.Item) [32]byte {
 }
 
 func (q *ocrQueue) run() {
-	for it := range q.jobs {
+	for {
+		it, ok := q.next()
+		if !ok {
+			return
+		}
 		data, typ, _ := it.Image()
 		// Go cannot decode HEIC to check it, but Vision reads it.
 		if typ != pasteboard.TypeHEIC && !decodable(data) {
@@ -67,7 +88,10 @@ func (q *ocrQueue) run() {
 		if err != nil {
 			log.Print("myclip: text in image: ", err)
 			if errors.Is(err, native.ErrNoOCR) {
-				return // no recognizer here: stop trying
+				q.mu.Lock()
+				q.stopped, q.running, q.pending = true, false, nil // no recognizer here
+				q.mu.Unlock()
+				return
 			}
 			continue
 		}

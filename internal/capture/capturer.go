@@ -1,6 +1,7 @@
 package capture
 
 import (
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -120,6 +121,10 @@ func (c *Capturer) Check() (*Result, Outcome) {
 	app := ""
 	if c.Frontmost != nil {
 		app = c.Frontmost()
+	}
+	if slices.Contains(snap.Types, pasteboard.TypeStackWrite) {
+		c.seen(c0) // MyClip's own paste-stack copy: not a clip of its own
+		return nil, Ignored
 	}
 	if ShouldIgnoreApp(app, prefs) || ShouldIgnoreTypes(snap.Types, prefs) {
 		c.seen(c0)

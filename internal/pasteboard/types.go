@@ -31,6 +31,10 @@ const (
 	// search. It is stored only: never written back to the pasteboard.
 	TypeRecognizedText = "com.l92labs.myclip.recognized-text"
 
+	// TypeStackWrite marks a paste-stack copy MyClip wrote: capture skips
+	// exactly that change, recognized from the types alone.
+	TypeStackWrite = "com.l92labs.myclip.stack"
+
 	TypeUniversalClipboard = "com.apple.is-remote-clipboard"
 
 	TypeMicrosoftObjectLink = "com.microsoft.ObjectLink"

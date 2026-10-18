@@ -247,14 +247,11 @@ func (e *Engine) CopyMany(ids []int64) error {
 	default:
 		return ErrNoItem
 	}
+	// The combination is not a clip of its own: its marker makes capture
+	// skip exactly this change, and not a copy the user makes right after.
+	items[0].Types[pasteboard.TypeStackWrite] = []byte{}
 	var err error
-	e.cfg.RunOnMain(func() {
-		// Ticks run on this thread too: no check sees the write before the
-		// flag. Armed only once the write took.
-		if err = e.cfg.Board.Write(items); err == nil && !e.Paused() {
-			e.IgnoreNext() // the combination is not a clip of its own
-		}
-	})
+	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
 	return err
 }
 
