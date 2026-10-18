@@ -13,8 +13,8 @@ import (
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/tiff"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
 	"github.com/L92-Labs/myclip/internal/history"
+	"github.com/L92-Labs/myclip/internal/native"
 )
 
 // imageCache decodes history images on goroutines and keeps them, with
@@ -186,7 +186,7 @@ func (c *imageCache) appIcon(bundleID string) *ui.Bitmap {
 		return b
 	}
 	var bmp *ui.Bitmap
-	if path := darwin.AppPath(bundleID); path != "" {
+	if path := native.AppPath(bundleID); path != "" {
 		if data, err := mygo.Shell.FileIcon(path, int(16*screenScale())); err == nil {
 			bmp, _ = ui.DecodeBitmap(data)
 		}
@@ -200,7 +200,7 @@ func (c *imageCache) appName(bundleID string) string {
 	if n, ok := c.names[bundleID]; ok {
 		return n
 	}
-	n := darwin.AppName(bundleID)
+	n := native.AppName(bundleID)
 	c.names[bundleID] = n
 	return n
 }

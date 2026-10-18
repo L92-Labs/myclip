@@ -15,10 +15,10 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
 	"github.com/L92-Labs/myclip/internal/engine"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/instance"
+	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/popup"
 	"github.com/L92-Labs/myclip/internal/prefs"
 	"github.com/L92-Labs/myclip/internal/settings"
@@ -111,7 +111,7 @@ type app struct {
 
 	engine *engine.Engine
 	store  *store.Store
-	board  *darwin.General
+	board  *native.General
 	tray   *mygo.Tray
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -135,7 +135,7 @@ func (a *app) start(dbPath string) error {
 		log.Print("myclip: settings unreadable, capture off until reset: ", err)
 		a.captureSafe = true
 	}
-	if a.board, err = darwin.NewGeneral(); err != nil {
+	if a.board, err = native.NewGeneral(); err != nil {
 		return err
 	}
 	a.ctx, a.cancel = context.WithCancel(context.Background())
@@ -144,7 +144,7 @@ func (a *app) start(dbPath string) error {
 	}
 	a.engine, err = engine.New(a.ctx, engine.Config{
 		Board:     a.board,
-		Frontmost: darwin.FrontmostBundleID,
+		Frontmost: native.FrontmostBundleID,
 		Store:     a.store,
 		Prefs:     a.settings.CapturePrefs(),
 		Limits:    a.limits(),
@@ -160,7 +160,7 @@ func (a *app) start(dbPath string) error {
 		return err
 	}
 	a.engine.SetCaptureSafe(a.captureSafe)
-	history.ResolveFileURL = darwin.ResolveFileURL
+	history.ResolveFileURL = native.ResolveFileURL
 	a.images = newImageCache(func() {
 		if a.panel != nil {
 			a.panel.Invalidate()

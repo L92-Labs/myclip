@@ -97,7 +97,7 @@ backend yet.
 | `internal/capture` | the capture rules: ignore chain, change-count sandwich, size cap |
 | `internal/history` · `internal/store` | items, merging, sorting · SQLite with the security recipe |
 | `internal/engine` | capture → merge → store, copy-back, pins, clearing |
-| `internal/darwin` | AppKit, CoreGraphics and Carbon through purego (no cgo) |
+| `internal/native` | the OS: AppKit, CoreGraphics and Carbon on macOS; GTK and X11 on Linux (purego, no cgo) |
 | `internal/popup` · `internal/prefs` | the popup and the settings window |
 | `internal/search` · `internal/shortcut` · `internal/settings` | search modes · accelerators · preferences |
 | `locales/` | EN / FR / ES catalogs (`go tool mygo generate`) |

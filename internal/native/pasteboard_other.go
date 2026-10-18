@@ -1,6 +1,6 @@
 //go:build !darwin
 
-package darwin
+package native
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 )
 
 // ErrUnsupported is returned off macOS; other platforms come later.
-var ErrUnsupported = errors.New("darwin: the system pasteboard needs macOS")
+var ErrUnsupported = errors.New("native: the system pasteboard needs macOS")
 
 // General is unavailable off macOS.
 type General struct{ pasteboard.Board }

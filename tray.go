@@ -11,7 +11,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
+	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/locales"
 )
@@ -55,15 +55,15 @@ func (a *app) applyTray() {
 // capture, ⌥⇧-click ignores only the next copy, a click opens the popup
 // below the icon.
 func (a *app) trayClick() {
-	mods := darwin.ModifierFlags()
-	if mods&darwin.ModOption != 0 && a.captureSafe {
+	mods := native.ModifierFlags()
+	if mods&native.ModOption != 0 && a.captureSafe {
 		return // capture is off until the settings are reset
 	}
-	if mods&darwin.ModOption != 0 {
+	if mods&native.ModOption != 0 {
 		switch {
 		case a.engine.Paused():
 			a.setPaused(false)
-		case mods&darwin.ModShift != 0:
+		case mods&native.ModShift != 0:
 			a.engine.IgnoreNext()
 			a.applyTray()
 		default:
