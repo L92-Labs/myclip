@@ -78,6 +78,11 @@
       }
     }
   },
+  "trayCaptureSafe": "⚠ Capture off: settings could not be read",
+  "trayResetSettings": "Reset Settings and Resume Capture",
+  "resetConfirmTitle": "Reset settings and resume capture?",
+  "resetConfirmDetail": "MyClip could not read its settings, so it stopped capturing. Resetting restores the defaults — your ignored apps, types and patterns are lost — and capture starts again. The unreadable file is kept beside the new one.",
+  "resetConfirm": "Reset",
   "trayNotSaved": "⚠ Not saved: {error}",
   "@trayNotSaved": {
     "placeholders": {

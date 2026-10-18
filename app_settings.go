@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -18,6 +19,9 @@ import (
 
 // saveSettings writes the settings when they changed since the last save.
 func (a *app) saveSettings() {
+	if a.captureSafe {
+		return // never overwrite the unreadable file: reset is the way out
+	}
 	if err := settings.Save(a.settingsPath, a.settings); err != nil {
 		log.Print("myclip: save settings: ", err)
 	}
@@ -190,4 +194,54 @@ func (a *app) Displays() []string {
 		out = append(out, name)
 	}
 	return out
+}
+
+// confirmReset asks before leaving capture-safe mode: resetting replaces
+// the unreadable settings, ignore rules included, with the defaults.
+func (a *app) confirmReset() {
+	go func() {
+		res, err := mygo.Dialog.Message(mygo.MessageOptions{
+			Type:          mygo.MessageWarning,
+			Message:       locales.ResetConfirmTitle(),
+			Detail:        locales.ResetConfirmDetail(),
+			Buttons:       []string{locales.ClearAlertCancel(), locales.ResetConfirm()},
+			DefaultButton: 0,
+			CancelButton:  0,
+		})
+		if err == nil && res.Button == 1 {
+			mygo.RunOnMain(a.resetSettings)
+		}
+	}()
+}
+
+// resetSettings is the way out of capture-safe mode: it keeps the
+// unreadable file aside and writes the defaults. Capture resumes only once
+// both succeeded; otherwise the latch and the menu's reset item stay.
+func (a *app) resetSettings() {
+	if !a.captureSafe {
+		return // a second confirmation after the first reset: nothing to do
+	}
+	aside, err := settings.Reset(a.settingsPath, time.Now())
+	if err != nil {
+		log.Print("myclip: reset settings: ", err)
+		a.resetErr = err
+		a.refresh()
+		return
+	}
+	if aside != "" {
+		log.Print("myclip: unreadable settings kept as ", aside)
+	}
+	a.captureSafe = false
+	a.resetErr = nil
+	a.settings = settings.Default()
+	// A pause or ignore-next chosen while capture-safe must not swallow the
+	// first copy after the reset.
+	a.engine.SetPaused(false)
+	a.engine.SetPrefs(a.settings.CapturePrefs())
+	a.engine.SetCaptureSafe(false)
+	if a.prefs != nil {
+		a.prefs.StopRecording() // gives the popup shortcut back
+		a.prefs.Load()          // its controls mirror the old values
+	}
+	a.Changed()
 }

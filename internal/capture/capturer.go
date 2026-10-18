@@ -61,6 +61,7 @@ type Capturer struct {
 	mu    sync.Mutex
 	prefs Prefs
 	last  int
+	safe  bool // capture-safe latch: only a settings reset clears it
 }
 
 // NewCapturer starts at the pasteboard's current changeCount, so contents
@@ -94,6 +95,11 @@ func (c *Capturer) Check() (*Result, Outcome) {
 	if c0 == c.last {
 		c.mu.Unlock()
 		return nil, Unchanged
+	}
+	if c.safe {
+		c.last = c0
+		c.mu.Unlock()
+		return nil, Ignored
 	}
 	if c.prefs.IgnoreEvents {
 		// ignore-next skips exactly one change: clear both flags.
@@ -169,4 +175,22 @@ func (c *Capturer) seen(n int) {
 	c.mu.Lock()
 	c.last = n
 	c.mu.Unlock()
+}
+
+// SetCaptureSafe sets the capture-safe latch. While set, nothing is read
+// or kept, whatever IgnoreEvents says: pausing and resuming do not clear it.
+//
+// Clearing it skips what the clipboard holds now: that copy was made while
+// the rules were unknown, so it is never read.
+//
+// The latch clears and the count is sampled in one locked step, so every
+// change made before the clear stays skipped. A Check that sampled an older
+// count meanwhile sees it differ from its snapshot and gives up (Raced).
+func (c *Capturer) SetCaptureSafe(on bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.safe = on
+	if !on {
+		c.last = c.Board.ChangeCount()
+	}
 }

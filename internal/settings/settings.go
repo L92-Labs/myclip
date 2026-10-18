@@ -6,6 +6,7 @@ package settings
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -296,4 +297,45 @@ func Save(path string, s Settings) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+// Reset keeps the file at path aside, as path.unreadable-<unix>, and writes
+// the defaults there. On any failure the original file is put back and the
+// error returned, so the caller can stay in capture-safe mode.
+func Reset(path string, now time.Time) (aside string, err error) {
+	if _, err := os.Lstat(path); err == nil {
+		if aside, err = keepAside(path, now); err != nil {
+			return "", fmt.Errorf("keep the unreadable settings aside: %w", err)
+		}
+	}
+	if err := Save(path, Default()); err != nil {
+		if aside != "" {
+			if rerr := os.Rename(aside, path); rerr != nil {
+				err = errors.Join(err, rerr)
+			}
+		}
+		return "", fmt.Errorf("write the default settings: %w", err)
+	}
+	return aside, nil
+}
+
+// keepAside moves path to a name of its own, path.unreadable-<unix>[-n],
+// never over an earlier backup: the link fails when the name is taken.
+func keepAside(path string, now time.Time) (string, error) {
+	base := fmt.Sprintf("%s.unreadable-%d", path, now.Unix())
+	for n := 0; n < 100; n++ {
+		name := base
+		if n > 0 {
+			name = fmt.Sprintf("%s-%d", base, n)
+		}
+		err := os.Link(path, name)
+		if errors.Is(err, fs.ErrExist) {
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		return name, os.Remove(path)
+	}
+	return "", errors.New("too many unreadable settings backups")
 }

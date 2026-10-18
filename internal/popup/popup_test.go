@@ -2,6 +2,7 @@ package popup
 
 import (
 	"fmt"
+	"github.com/L92-Labs/myclip/internal/shortcut"
 	"testing"
 	"time"
 
@@ -95,11 +96,16 @@ func TestResolveMatrix(t *testing.T) {
 		{ui.Cmd | ui.Shift, true, false, plain, true},
 		{ui.Cmd | ui.Shift, true, true, paste, true},
 		{ui.Cmd | ui.Shift, false, false, Action{}, false},
-		{ui.Ctrl, false, false, Action{}, false},
 	} {
 		got, ok := Resolve(tc.mods, tc.pbd, tc.rfd)
 		if got != tc.want || ok != tc.ok {
 			t.Errorf("%v pbd=%v rfd=%v: %+v %v, want %+v %v", tc.mods, tc.pbd, tc.rfd, got, ok, tc.want, tc.ok)
+		}
+	}
+	// Ctrl is not ⌘ on macOS; elsewhere ui.Cmd is Ctrl itself.
+	if ui.Cmd != ui.Ctrl {
+		if _, ok := Resolve(ui.Ctrl, false, false); ok {
+			t.Error("Ctrl resolved to an action")
 		}
 	}
 }
@@ -145,7 +151,10 @@ func TestNumberAndPinChords(t *testing.T) {
 	if got := h.last(); got.id != 9 {
 		t.Fatalf("⌘B (pin) %+v", got)
 	}
-	if !tt.HasText("⌘1") || !tt.HasText("⌘B") {
+	// In-popup keys use the platform's Cmd: ⌘ on macOS, Ctrl elsewhere.
+	one := shortcut.Chord{Mods: ui.Cmd, Key: ui.Key1}.Symbols()
+	pin := shortcut.Chord{Mods: ui.Cmd, Key: ui.KeyB}.Symbols()
+	if !tt.HasText(one) || !tt.HasText(pin) {
 		t.Fatalf("no key labels in %q", tt.Texts())
 	}
 }

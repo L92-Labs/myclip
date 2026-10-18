@@ -22,14 +22,15 @@ const recentTitleRunes = 30
 // applyTray shows or hides the menu icon (showInStatusBar) and draws it
 // (menuIcon), dimmed while capture is paused.
 func (a *app) applyTray() {
-	if !a.settings.ShowInStatusBar {
+	// In capture-safe mode the icon stays: its menu holds the way out.
+	if !a.settings.ShowInStatusBar && !a.captureSafe {
 		if a.tray != nil {
 			a.tray.Destroy()
 			a.tray = nil
 		}
 		return
 	}
-	icon := trayIcon(a.settings.MenuIcon, a.engine.Paused())
+	icon := trayIcon(a.settings.MenuIcon, a.engine.Paused() || a.captureSafe)
 	if a.tray != nil {
 		a.tray.SetIcon(icon, true)
 		a.updateTray()
@@ -55,6 +56,9 @@ func (a *app) applyTray() {
 // below the icon.
 func (a *app) trayClick() {
 	mods := darwin.ModifierFlags()
+	if mods&darwin.ModOption != 0 && a.captureSafe {
+		return // capture is off until the settings are reset
+	}
 	if mods&darwin.ModOption != 0 {
 		switch {
 		case a.engine.Paused():
@@ -113,19 +117,29 @@ func recentTitle(s string) string {
 // a local-only status line, and Quit.
 func (a *app) trayMenu() []*mygo.MenuItem {
 	n := len(a.engine.Items())
-	items := []*mygo.MenuItem{
+	var items []*mygo.MenuItem
+	if a.captureSafe {
+		items = append(items,
+			&mygo.MenuItem{Label: locales.TrayCaptureSafe(), Disabled: true},
+			&mygo.MenuItem{Label: locales.TrayResetSettings(), Click: func(*mygo.MenuItem, *mygo.Window) { a.confirmReset() }},
+			mygo.Separator(),
+		)
+	}
+	items = append(items, []*mygo.MenuItem{
 		{Label: locales.TrayOpen(), Click: func(*mygo.MenuItem, *mygo.Window) { a.showPopup() }},
 		mygo.Separator(),
 		{
-			Label:   locales.TrayPause(),
-			Type:    mygo.MenuItemCheckbox,
-			Checked: a.engine.Paused() && !a.engine.IgnoringNext(),
-			Click:   func(mi *mygo.MenuItem, _ *mygo.Window) { a.setPaused(mi.Checked) },
+			Label:    locales.TrayPause(),
+			Type:     mygo.MenuItemCheckbox,
+			Checked:  a.engine.Paused() && !a.engine.IgnoringNext(),
+			Disabled: a.captureSafe, // capture is already off; reset is the way out
+			Click:    func(mi *mygo.MenuItem, _ *mygo.Window) { a.setPaused(mi.Checked) },
 		},
 		{
-			Label:   locales.TrayIgnoreNext(),
-			Type:    mygo.MenuItemCheckbox,
-			Checked: a.engine.IgnoringNext(),
+			Label:    locales.TrayIgnoreNext(),
+			Type:     mygo.MenuItemCheckbox,
+			Checked:  a.engine.IgnoringNext(),
+			Disabled: a.captureSafe,
 			Click: func(mi *mygo.MenuItem, _ *mygo.Window) {
 				if mi.Checked {
 					a.engine.IgnoreNext()
@@ -140,12 +154,15 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 		{Label: locales.About(), Click: func(*mygo.MenuItem, *mygo.Window) { a.About() }},
 		mygo.Separator(),
 		{Label: locales.TrayClips(n), Disabled: true},
-	}
+	}...)
 	if o := a.engine.Oversized(); o > 0 {
 		items = append(items, &mygo.MenuItem{Label: locales.TraySkipped(o), Disabled: true})
 	}
 	if a.err != nil {
 		items = append(items, &mygo.MenuItem{Label: locales.TrayNotSaved(a.err.Error()), Disabled: true})
+	}
+	if a.resetErr != nil {
+		items = append(items, &mygo.MenuItem{Label: locales.TrayNotSaved(a.resetErr.Error()), Disabled: true})
 	}
 	return append(items, mygo.Separator(), &mygo.MenuItem{Label: locales.QuitMyClip(), Role: mygo.RoleQuit})
 }

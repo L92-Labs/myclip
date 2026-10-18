@@ -266,7 +266,7 @@ func (v *View) recorder(c *ui.Context, key string, value *string, clearable bool
 				v.stopRecording()
 				v.changed()
 			}
-		case ev.Mods&(ui.Cmd|ui.Ctrl|ui.Alt) != 0:
+		case ev.Mods&(ui.Super|ui.Ctrl|ui.Alt) != 0: // Super is ⌘ (ui.Cmd is Ctrl off macOS)
 			ch := shortcut.Chord{Mods: ev.Mods, Key: ev.Key}
 			if _, ok := shortcut.Parse(ch.String()); ok {
 				*value = ch.String()

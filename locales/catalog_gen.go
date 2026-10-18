@@ -331,6 +331,56 @@ func (msgs Messages) TraySkipped(count int) string {
 	return Catalog.Format(msgs.locale, "traySkipped", map[string]any{"count": count})
 }
 
+// TrayCaptureSafe says "⚠ Capture off: settings could not be read"
+// in the language the app shows.
+func TrayCaptureSafe() string { return In(i18n.Locale()).TrayCaptureSafe() }
+
+// TrayCaptureSafe says "⚠ Capture off: settings could not be read"
+// in the language of msgs.
+func (msgs Messages) TrayCaptureSafe() string {
+	return Catalog.Format(msgs.locale, "trayCaptureSafe", nil)
+}
+
+// TrayResetSettings says "Reset Settings and Resume Capture"
+// in the language the app shows.
+func TrayResetSettings() string { return In(i18n.Locale()).TrayResetSettings() }
+
+// TrayResetSettings says "Reset Settings and Resume Capture"
+// in the language of msgs.
+func (msgs Messages) TrayResetSettings() string {
+	return Catalog.Format(msgs.locale, "trayResetSettings", nil)
+}
+
+// ResetConfirmTitle says "Reset settings and resume capture?"
+// in the language the app shows.
+func ResetConfirmTitle() string { return In(i18n.Locale()).ResetConfirmTitle() }
+
+// ResetConfirmTitle says "Reset settings and resume capture?"
+// in the language of msgs.
+func (msgs Messages) ResetConfirmTitle() string {
+	return Catalog.Format(msgs.locale, "resetConfirmTitle", nil)
+}
+
+// ResetConfirmDetail says "MyClip could not read its settings, so it stopped capturing. Resetting restores the defaults — your ignored apps, t…"
+// in the language the app shows.
+func ResetConfirmDetail() string { return In(i18n.Locale()).ResetConfirmDetail() }
+
+// ResetConfirmDetail says "MyClip could not read its settings, so it stopped capturing. Resetting restores the defaults — your ignored apps, t…"
+// in the language of msgs.
+func (msgs Messages) ResetConfirmDetail() string {
+	return Catalog.Format(msgs.locale, "resetConfirmDetail", nil)
+}
+
+// ResetConfirm says "Reset"
+// in the language the app shows.
+func ResetConfirm() string { return In(i18n.Locale()).ResetConfirm() }
+
+// ResetConfirm says "Reset"
+// in the language of msgs.
+func (msgs Messages) ResetConfirm() string {
+	return Catalog.Format(msgs.locale, "resetConfirm", nil)
+}
+
 // TrayNotSaved says "⚠ Not saved: {error}"
 // in the language the app shows.
 func TrayNotSaved(error string) string { return In(i18n.Locale()).TrayNotSaved(error) }
