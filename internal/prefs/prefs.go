@@ -6,7 +6,9 @@ package prefs
 import (
 	"fmt"
 	"regexp"
+	"runtime"
 	"slices"
+	"strings"
 
 	"github.com/egoist/mygo/ui"
 
@@ -63,6 +65,7 @@ type View struct {
 	pinTo                                                           int
 
 	newType, newRegexp, regexpErr string
+	newApp                        string // Linux: a WM_CLASS to ignore
 	titles, texts                 map[int64]*string
 }
 
@@ -493,7 +496,20 @@ func (v *View) ignore(c *ui.Context) {
 			ui.Text(c, v.Host.AppName(id)).FontSize(13)
 			ui.Text(c, id).FontSize(11).TextColor(t.TextMuted).Grow(1).SingleLine()
 		})
-		if ui.Button(c, locales.PrefAddApp()).AlignSelf(ui.Start).Clicked() {
+		if runtime.GOOS == "linux" {
+			// Linux apps are named by their window class (WM_CLASS), typed in.
+			ui.Row(c).Gap(8).Children(func() {
+				add := func() {
+					if name := strings.TrimSpace(v.newApp); name != "" && !slices.Contains(s.IgnoredApps, name) {
+						s.IgnoredApps = append(s.IgnoredApps, name)
+						v.newApp = ""
+						v.changed()
+					}
+				}
+				ui.TextInput(c, &v.newApp).Placeholder(locales.PrefNewApp()).Grow(1).OnSubmit(add)
+				ui.Button(c, locales.PrefAdd()).Disabled(strings.TrimSpace(v.newApp) == "").OnClick(add)
+			})
+		} else if ui.Button(c, locales.PrefAddApp()).AlignSelf(ui.Start).Clicked() {
 			v.Host.PickApp()
 		}
 	case 1:

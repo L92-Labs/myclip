@@ -61,3 +61,45 @@ func TestLockRefusesSymlink(t *testing.T) {
 		t.Fatal("lock followed a symlink")
 	}
 }
+
+func TestToggleCommand(t *testing.T) {
+	root, _ := DataRoot(filepath.Join(t.TempDir(), "root"))
+	got := make(chan string, 2)
+	c, err := Serve(root, func(cmd string) { got <- cmd })
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+	info, _ := os.Stat(filepath.Join(root, "run", "myclip.sock"))
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("socket mode %o", info.Mode().Perm())
+	}
+	if err := Send(root, "clear"); err != nil { // unknown: dropped
+		t.Fatal(err)
+	}
+	if err := Send(root, Toggle); err != nil {
+		t.Fatal(err)
+	}
+	if cmd := <-got; cmd != Toggle {
+		t.Fatalf("got %q", cmd)
+	}
+	select {
+	case cmd := <-got:
+		t.Fatalf("unknown command delivered: %q", cmd)
+	default:
+	}
+}
+
+func TestServeReplacesAStaleSocket(t *testing.T) {
+	root, _ := DataRoot(filepath.Join(t.TempDir(), "root"))
+	c1, err := Serve(root, func(string) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c1.Close() // as after a crash, the path may linger
+	c2, err := Serve(root, func(string) {})
+	if err != nil {
+		t.Fatalf("relaunch: %v", err)
+	}
+	c2.Close()
+}

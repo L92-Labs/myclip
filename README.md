@@ -98,11 +98,13 @@ scripts/linux-smoke.sh    # end-to-end on a virtual display (Xvfb + openbox)
 |---|---|
 | `libayatana-appindicator3` | the menu icon (without it, open MyClip with its shortcut) |
 | `xdotool` (X11) or `wtype` / `ydotool` (Wayland) | pasting for you; copying works without |
-| `xprop` | telling apps apart for Ignore › Applications (by WM_CLASS) |
+| `xprop` | telling apps apart for Ignore › Applications (by WM_CLASS, typed in Settings); in *ignore all except listed* mode, an app it cannot name is ignored |
 
 Under Wayland, MyClip runs through XWayland, whose clipboard the compositor
 keeps in sync, because native Wayland apps cannot read the clipboard while
-unfocused. Password managers following KDE's convention (KeePassXC…) mark
+unfocused. The compositor keeps global keys for itself there, so bind
+⇧+Super+C to `myclip --toggle` in your desktop's keyboard settings (running
+`myclip` again does the same). The menu icon's menu has Open MyClip too. Password managers following KDE's convention (KeePassXC…) mark
 secrets with `x-kde-passwordManagerHint`; MyClip skips them unread. ⌘ in
 the key map is Ctrl on Linux, and ⇧⌘C is ⇧+Super+C.
 

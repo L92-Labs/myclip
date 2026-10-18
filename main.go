@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -58,9 +60,13 @@ func main() {
 	mygo.App.SetPath(mygo.PathUserData, dir)
 
 	// ②b single instance: a second launch exits before any capture work.
+	// A second launch, or `myclip --toggle` from a desktop shortcut, shows
+	// or hides the running MyClip's popup.
 	lock, err := instance.Lock(dir)
 	if errors.Is(err, instance.ErrRunning) {
-		fmt.Fprintln(os.Stderr, "myclip: already running")
+		if err := instance.Send(dir, instance.Toggle); err != nil {
+			fmt.Fprintln(os.Stderr, "myclip: already running")
+		}
 		os.Exit(0)
 	}
 	if err != nil {
@@ -82,7 +88,8 @@ func main() {
 	mygo.App.SetName("MyClip")
 	mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory)
 	mygo.App.OnWindowAllClosed(func() {}) // lives in the menu bar
-	a := &app{settingsPath: filepath.Join(dir, settings.FileName)}
+	a := &app{dir: dir, settingsPath: filepath.Join(dir, settings.FileName),
+		showAtLaunch: slices.Contains(os.Args[1:], "--toggle")}
 	mygo.App.WhenReady(func() {
 		if err := a.start(dbPath); err != nil {
 			log.Print("myclip: ", err)
@@ -100,6 +107,9 @@ func main() {
 // app is the running menu bar app. Everything but the engine's poll loop
 // runs on the main thread.
 type app struct {
+	dir          string
+	showAtLaunch bool      // started by `myclip --toggle`
+	commands     io.Closer // the toggle socket
 	quitting     bool
 	settingsPath string
 	settings     settings.Settings
@@ -192,6 +202,14 @@ func (a *app) start(dbPath string) error {
 	a.restartPoll()
 	a.refresh()
 	a.showOnLaunch(os.Getenv("MYCLIP_SHOW"))
+	if c, err := instance.Serve(a.dir, func(string) { mygo.RunOnMain(a.toggleFromCommand) }); err != nil {
+		log.Print("myclip: toggle command: ", err)
+	} else {
+		a.commands = c
+	}
+	if a.showAtLaunch {
+		a.showPopup()
+	}
 	return nil
 }
 
@@ -233,6 +251,9 @@ func (a *app) stop() {
 	if a.engine != nil && a.settings.ClearOnQuit {
 		// Maccy's clearOnQuit: unpinned items go, as History.clear().
 		a.clearHistory(false)
+	}
+	if a.commands != nil {
+		a.commands.Close()
 	}
 	if a.cancel != nil {
 		a.cancel()

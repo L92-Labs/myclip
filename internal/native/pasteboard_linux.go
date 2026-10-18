@@ -50,6 +50,9 @@ func uti(target string) string {
 		return pasteboard.TypeTIFF
 	case target == "text/uri-list":
 		return pasteboard.TypeFileURL
+	case strings.HasPrefix(target, "image/"):
+		// Other image targets (BMP, HEIC…) are read converted to PNG.
+		return pasteboard.TypePNG
 	case target == passwordHint:
 		return pasteboard.TypeConcealed
 	case target == ownWrite:

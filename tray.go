@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
+	"runtime"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -15,6 +16,10 @@ import (
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/locales"
 )
+
+// menuOnlyTray: Linux tray icons (AppIndicator) only show a menu, with no
+// click events, so the menu stays installed there and holds Open MyClip.
+var menuOnlyTray = runtime.GOOS == "linux"
 
 // recentTitleRunes bounds the recent copy shown beside the menu icon.
 const recentTitleRunes = 30
@@ -37,17 +42,23 @@ func (a *app) applyTray() {
 		return
 	}
 	var err error
-	a.tray, err = mygo.NewTray(mygo.TrayOptions{Icon: icon, IconIsTemplate: true, ToolTip: "MyClip"})
+	opts := mygo.TrayOptions{Icon: icon, IconIsTemplate: true, ToolTip: "MyClip"}
+	if menuOnlyTray {
+		opts.Menu = mygo.NewMenu(a.trayMenu())
+	}
+	a.tray, err = mygo.NewTray(opts)
 	if err != nil {
 		log.Print("myclip: tray: ", err)
 		return
 	}
-	a.tray.OnClick(a.trayClick)
-	a.tray.OnRightClick(func() {
-		a.tray.SetMenu(mygo.NewMenu(a.trayMenu()))
-		a.tray.PopUpMenu()
-		a.tray.SetMenu(nil)
-	})
+	if !menuOnlyTray {
+		a.tray.OnClick(a.trayClick)
+		a.tray.OnRightClick(func() {
+			a.tray.SetMenu(mygo.NewMenu(a.trayMenu()))
+			a.tray.PopUpMenu()
+			a.tray.SetMenu(nil)
+		})
+	}
 	a.updateTray()
 }
 
@@ -95,6 +106,9 @@ func (a *app) setPaused(paused bool) {
 func (a *app) updateTray() {
 	if a.tray == nil {
 		return
+	}
+	if menuOnlyTray {
+		a.tray.SetMenu(mygo.NewMenu(a.trayMenu())) // its state changes with the history
 	}
 	title := ""
 	if a.settings.ShowRecentCopyInMenuBar {

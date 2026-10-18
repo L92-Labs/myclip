@@ -251,3 +251,13 @@ func appVersion() string {
 	}
 	return "dev"
 }
+
+// toggleFromCommand shows or hides the popup for `myclip --toggle` (or a
+// second launch), as the shortcut does.
+func (a *app) toggleFromCommand() {
+	if a.panel.IsVisible() {
+		a.Close()
+		return
+	}
+	a.showPopup()
+}

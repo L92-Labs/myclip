@@ -1774,3 +1774,13 @@ func PrefLocalOnlyLinux() string { return In(i18n.Locale()).PrefLocalOnlyLinux()
 func (msgs Messages) PrefLocalOnlyLinux() string {
 	return Catalog.Format(msgs.locale, "prefLocalOnlyLinux", nil)
 }
+
+// PrefNewApp says "Window class (WM_CLASS), e.g. KeePassXC"
+// in the language the app shows.
+func PrefNewApp() string { return In(i18n.Locale()).PrefNewApp() }
+
+// PrefNewApp says "Window class (WM_CLASS), e.g. KeePassXC"
+// in the language of msgs.
+func (msgs Messages) PrefNewApp() string {
+	return Catalog.Format(msgs.locale, "prefNewApp", nil)
+}

@@ -61,6 +61,9 @@ if [ "$wm" = 1 ]; then
 	# Whole outputs, compared afterwards: pipefail + head would SIGPIPE the reader.
 	check "Enter copies the second row back" '[ "$("$work/cliphelper" read | sed -n 1p)" = "second clip" ]'
 	check "copy-back bumps it to the top" '[[ "$(history | sed -n 1p)" == *"second clip"* ]]'
+	"$work/myclip" --toggle >/dev/null 2>&1; sleep 2 # a second launch: the popup opens
+	keys down; sleep 0.5; keys return; sleep 1 # the other clip, so the check is not vacuous
+	check "myclip --toggle opens the popup" '[ "$("$work/cliphelper" read | sed -n 1p)" = "hello from linux" ]'
 else
 	warn "openbox missing: popup legs skipped"
 fi
@@ -70,6 +73,7 @@ kill "$app"; sleep 1
 printf '{' >"$cfg/settings.json"
 launch
 copy "copied while settings unreadable"; settle
+check "app still running (capture-safe)" 'kill -0 "$app"'
 check "nothing captured" '[[ "$(history)" != *unreadable* ]]'
 check "settings file kept" '[ "$(cat "$cfg/settings.json")" = "{" ]'
 

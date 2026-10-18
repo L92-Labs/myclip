@@ -38,13 +38,22 @@ func ModifierFlags() uint { return 0 }
 // paster is the command that types Ctrl+V into the focused window.
 func paster() []string {
 	look := func(name string) bool { _, err := exec.LookPath(name); return err == nil }
-	switch {
-	case os.Getenv("DISPLAY") != "" && look("xdotool"):
-		return []string{"xdotool", "key", "--clearmodifiers", "ctrl+v"}
-	case os.Getenv("WAYLAND_DISPLAY") != "" && look("wtype"):
-		return []string{"wtype", "-M", "ctrl", "v", "-m", "ctrl"}
-	case look("ydotool"):
-		return []string{"ydotool", "key", "29:1", "47:1", "47:0", "29:0"}
+	wtype := []string{"wtype", "-M", "ctrl", "v", "-m", "ctrl"}
+	ydotool := []string{"ydotool", "key", "29:1", "47:1", "47:0", "29:0"}
+	xdotool := []string{"xdotool", "key", "--clearmodifiers", "ctrl+v"}
+	// In a Wayland session (even with MyClip on XWayland) the focused app
+	// may be a native Wayland one, which xdotool's XTEST cannot reach.
+	order := [][]string{xdotool, ydotool}
+	if os.Getenv("WAYLAND_DISPLAY") != "" {
+		order = [][]string{wtype, ydotool, xdotool}
+	}
+	for _, cmd := range order {
+		if cmd[0] == "xdotool" && os.Getenv("DISPLAY") == "" {
+			continue
+		}
+		if look(cmd[0]) {
+			return cmd
+		}
 	}
 	return nil
 }
