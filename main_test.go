@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
+	"hash/crc32"
 	"image"
 	"image/color"
 	"image/png"
@@ -59,5 +61,31 @@ func TestScaleDown(t *testing.T) {
 	}
 	if scaleDown(img, 500, 500) != image.Image(img) {
 		t.Error("scaled an image that fits")
+	}
+}
+
+func TestDecodableRefusesHugeImages(t *testing.T) {
+	encode := func(w, h int) []byte {
+		var b bytes.Buffer
+		png.Encode(&b, image.NewGray(image.Rect(0, 0, w, h)))
+		return b.Bytes()
+	}
+	if !decodable(encode(100, 100)) {
+		t.Error("refused a small image")
+	}
+	// A header claiming 100k×100k pixels: patch IHDR's width and height,
+	// then its CRC (over type + data, bytes 12–28), so the header still
+	// parses and only the pixel cap can refuse it.
+	huge := encode(1, 1)
+	copy(huge[16:24], []byte{0, 1, 0x86, 0xa0, 0, 1, 0x86, 0xa0})
+	binary.BigEndian.PutUint32(huge[29:33], crc32.ChecksumIEEE(huge[12:29]))
+	if cfg, _, err := image.DecodeConfig(bytes.NewReader(huge)); err != nil || cfg.Width != 100000 {
+		t.Fatalf("patched header does not parse: %v %+v", err, cfg)
+	}
+	if decodable(huge) {
+		t.Error("accepted a 10-gigapixel header")
+	}
+	if decodable([]byte("not an image")) {
+		t.Error("accepted garbage")
 	}
 }
