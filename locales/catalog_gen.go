@@ -1784,3 +1784,13 @@ func PrefNewApp() string { return In(i18n.Locale()).PrefNewApp() }
 func (msgs Messages) PrefNewApp() string {
 	return Catalog.Format(msgs.locale, "prefNewApp", nil)
 }
+
+// PrefPlaySounds says "Play a sound on each copy"
+// in the language the app shows.
+func PrefPlaySounds() string { return In(i18n.Locale()).PrefPlaySounds() }
+
+// PrefPlaySounds says "Play a sound on each copy"
+// in the language of msgs.
+func (msgs Messages) PrefPlaySounds() string {
+	return Catalog.Format(msgs.locale, "prefPlaySounds", nil)
+}

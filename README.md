@@ -5,8 +5,8 @@ and Linux.
 No account, no cloud, no network, no telemetry. Open source (MIT).
 
 MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
-[PARITY.md](PARITY.md) lists what matches and what does not yet (hold-to-cycle,
-image OCR). It is written in Go with
+[PARITY.md](PARITY.md) lists what matches, the deviations, and MyClip's
+additions. It is written in Go with
 [MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
 no cgo and no Xcode project; the app is about 14 MB.
 
@@ -22,6 +22,13 @@ no cgo and no Xcode project; the app is about 14 MB.
 - **Paste for you.** Pick a clip and MyClip types ⌘V into the app you were
   in, with or without formatting. The keyboard layout is respected
   (QWERTY, AZERTY, Dvorak).
+- **Find screenshots by their words.** Text in copied images is read on
+  your computer (Vision on macOS, tesseract on Linux) and searched.
+- **Paste stack.** ⇧↑/⇧↓ or ⇧-click several clips, then Enter: they paste
+  as one, in order.
+- **Hold to cycle (macOS).** Keep ⇧⌘ held after ⇧⌘C, press C again to move
+  down, let go to paste or copy.
+- **A sound on copy,** if you want one.
 - **Preview.** The text (its first 10,000 characters), the image and its
   size, the source app, and how many times and when you copied it.
 - **Your rules.** Ignore apps, pasteboard types or text patterns, pause

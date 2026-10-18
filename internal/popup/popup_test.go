@@ -22,13 +22,18 @@ type call struct {
 
 type fakeHost struct {
 	calls  []call
+	many   []int64
 	width  int
 	height int
 }
 
 func (h *fakeHost) Select(id int64, a Action) { h.calls = append(h.calls, call{"select", id, a}) }
-func (h *fakeHost) TogglePin(id int64)        { h.calls = append(h.calls, call{what: "pin", id: id}) }
-func (h *fakeHost) Delete(id int64)           { h.calls = append(h.calls, call{what: "delete", id: id}) }
+func (h *fakeHost) SelectMany(ids []int64, a Action) {
+	h.calls = append(h.calls, call{what: "many", a: a})
+	h.many = append([]int64(nil), ids...)
+}
+func (h *fakeHost) TogglePin(id int64) { h.calls = append(h.calls, call{what: "pin", id: id}) }
+func (h *fakeHost) Delete(id int64)    { h.calls = append(h.calls, call{what: "delete", id: id}) }
 func (h *fakeHost) Clear(all bool) {
 	h.calls = append(h.calls, call{what: fmt.Sprint("clear ", all)})
 }
@@ -259,5 +264,60 @@ func TestHighlightAndSpecialSymbols(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("·a⇥b⏎") {
 		t.Fatalf("texts %q", tt.Texts())
+	}
+}
+
+// An image is found by the text read in it; its row still shows the image.
+func TestSearchFindsImageByRecognizedText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Invoice 42\nTotal due")},
+	}, "", time.Unix(20, 0))
+	img.ID = 20
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("invoice")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 20 || p.rows[0].title != "" || p.rows[0].ranges != nil {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// ⇧↓ marks rows into a paste stack; Enter hands them over in order.
+func TestPasteStack(t *testing.T) {
+	p, h, tt := setup(t, nil)
+	// rows: pinned thing (9), apple pie (1, chosen), banana split (2), cherry tart (3)
+	tt.Key(ui.Shift, ui.KeyDown)
+	tt.Key(ui.Shift, ui.KeyDown)
+	if got := p.Marked(); len(got) != 3 || got[0] != 1 || got[2] != 3 {
+		t.Fatalf("marked %v", got)
+	}
+	tt.Key(ui.Shift, ui.KeyUp) // shrink back to two
+	tt.Key(0, ui.KeyEnter)
+	if got := h.last(); got.what != "many" || len(h.many) != 2 || h.many[0] != 1 || h.many[1] != 2 {
+		t.Fatalf("enter: %+v %v", got, h.many)
+	}
+	tt.Key(0, ui.KeyDown) // a plain move drops the stack
+	if len(p.Marked()) != 0 {
+		t.Fatal("marks kept after a plain move")
+	}
+	tt.Key(0, ui.KeyEnter)
+	if got := h.last(); got.what != "select" {
+		t.Fatalf("single enter: %+v", got)
+	}
+}
+
+func TestChooseNextWrapsAndSelectChosen(t *testing.T) {
+	p, h, _ := setup(t, nil)
+	for range len(p.rows) {
+		p.ChooseNext()
+	}
+	if p.chosen != 1 { // back where it started (apple pie), round the top
+		t.Fatalf("chosen %d", p.chosen)
+	}
+	p.SelectChosen()
+	if got := h.last(); got.what != "select" || got.id != 1 {
+		t.Fatalf("%+v", got)
 	}
 }

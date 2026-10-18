@@ -174,5 +174,6 @@
   "prefFooterWarningLinux": "⚠️ Pulsa Ctrl+, para abrir las preferencias cuando el pie está oculto.",
   "prefMenuIconHiddenLinux": "Sin el icono de menú, abre la ventana con su atajo; Ctrl+, en la ventana abre estos ajustes.",
   "prefLocalOnlyLinux": "Todo se queda en este equipo: sin red, sin telemetría.",
-  "prefNewApp": "Clase de ventana (WM_CLASS), p. ej. KeePassXC"
+  "prefNewApp": "Clase de ventana (WM_CLASS), p. ej. KeePassXC",
+  "prefPlaySounds": "Reproducir un sonido en cada copia"
 }

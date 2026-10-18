@@ -255,3 +255,9 @@ func isRTFDestination(word string) bool {
 	}
 	return false
 }
+
+// RecognizedText is the text read in the item's image (OCR), or "".
+func (it *Item) RecognizedText() string {
+	v, _ := it.Value(pasteboard.TypeRecognizedText)
+	return string(v)
+}

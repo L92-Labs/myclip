@@ -24,7 +24,7 @@
 | `Clipboard.sync()` (Clipboard.swift) | internal activate/hide quirk (Chrome Remote Desktop/NetBeans) | NOT ported — deviation **D14** | M1 |
 | dedup/equality (HistoryItem supersedes, `transientTypes`) | content compare; merge lookup = `findSimilarItem`: `supersedes` first, else `isModified` (`x.nspasteboard.ModifiedType`); contents rule per source: supersedes ⇒ STORED contents win (`isModified(item)==nil` gate); isModified ⇒ modifier's incoming bytes kept; + `numberOfCopies` summation; excluded types list (~10 entries in source) | **M1 pre-task: port exact list @ `eb03eba` and paste here** + tests | M1 |
 | capture rules (Clipboard.checkForChangesInPasteboard) | merge multi-items; skip empty string unless RTF/HTML; strip `dyn.*`, `com.microsoft.ole.source.*`; drop Word ObjectLink/Link-Source **+ `.pdf`** (3-type subtraction, #613/#770; no-PDF-rep test) | ported + one test each | M1 |
-| OCR image titles (HistoryItem.generateTitle → Vision) | Vision OCR fills title | **D9 pending user**: no Vision OCR in v1 (purego VNRecognizeTextRequest spike optional); consequence: image rows unsearchable until OCR | — |
+| OCR image titles (HistoryItem.generateTitle → Vision) | Vision OCR fills title | **implemented**: Vision `VNRecognizeTextRequest` via purego on macOS, `tesseract` on Linux when installed; text stored as a private never-pasted representation (`com.l92labs.myclip.recognized-text`), searched for image rows, shown under the image in preview; image rows keep their thumbnail (deviation: Maccy shows the OCR title in the row) | M2 |
 | copy notifications + sounds (Notifier.swift, General pane link) | content-bearing notifications on new unique copy + copy-back | MyGo notifications w/ content (parity); sounds via MyGo audio; on clear-all/clearOnQuit call `ClearNotifications()` — **MyClip-EXTRA: Maccy 2.7.1 has no notification-clear API (Notifier.swift authorize+notify only); recorded as ≥Maccy hardening, not parity**; macOS `usernoted` persistence of delivered notifications is system-level and identical for Maccy — documented, outside DB-forensics claim | M2/M4 |
 | item model | 1 item, N reps, source app, first/last copy time, count, pin, title | same (SQLite) | M1 |
 | write-back fidelity (HistoryItemContent restores all types) | all captured types incl. private UTIs | round-trip spike; purego `setData:forType:` fallback if transfer model lossy | M1 |
@@ -82,7 +82,7 @@
 | pin | ⌥P | **local** — matched inside popup key handler; global would hijack ⌥P system-wide | M2/M4 |
 | delete | ⌥⌫ | **local** (same) | M2/M4 |
 | togglePreview | ⌃Space | **local** (same; global would collide with input-source switching) | M2/M4 |
-| hold-to-cycle popup (Observables/Popup.swift) | hold hotkey → `.cycle` highlight advance; modifier release → select | same; acceptance: hold-cycle + release-select (mechanics row above) | M2 |
+| hold-to-cycle popup (Observables/Popup.swift) | hold hotkey → `.cycle` highlight advance; modifier release → select | **implemented (macOS)**: shortcut press while the hold lasts advances (wrapping); modifier release, polled via `NSEvent.modifierFlags` every 15 ms, selects; quick press-release leaves the popup open. Uses MyGo `GlobalShortcut` (not an own Carbon shim). Linux has no global modifier state: press only | M2 |
 | per-item quick select | ⌘n / ⌥n (paste) / ⌥⇧n (paste plain), n=1..9 | same | M2 |
 | clear chords | ⌥⌘⌫ clear unpinned; ⇧⌥⌘⌫ clear all incl. pins (pins preserved on the first) | same; pin-preservation asserted in clear tests | M2 |
 | full text on hover | wait `previewDelay` (default 1500ms) ⇒ tooltip/preview shows full text | preview panel per hover-delay row | M2 |
@@ -107,9 +107,16 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 | D6 | Per-item size cap + total DB budget, oversized skipped+recorded (Maccy: unbounded). M1 defaults: item ≤ 32 MiB, DB content ≤ 512 MiB (oldest unpinned evicted first); history length = Maccy `size` default 200 | **APPROVED (user, 2026-10-17)** |
 | D7 | Poll interval floor 100ms (Maccy allows any) | **APPROVED (user, 2026-10-17)** (poll loop ships at M1) |
 | D8 | If tray modifier-click spike fails: pause/ignore-next via tray menu items — and record that click-to-open popup is lost (MyGo: installed menu ⇒ plain click opens menu); spike must also prove left-click-popup + right-click-transient-menu coexistence | contingent on M1 spike |
-| D9 | No Vision OCR for image titles in v1 (image rows show placeholder title, unsearchable) — optional purego Vision spike later | **user sign-off pending** |
-| D10 | Copy sounds: implemented via MyGo audio; may differ from Maccy's NSSound set | minor — user sign-off before M2 |
+| D9 | ~~No Vision OCR~~ — resolved: OCR shipped (row above); remaining deviation: image rows keep their thumbnail rather than showing the recognized text as title | resolved 2026-10-18 |
+| D10 | Copy sounds: a synthesized 90 ms pop via MyGo audio (no NSSound set), opt-in "Play a sound on each copy", on new copies and selections | implemented 2026-10-18 — user-requested |
 | D11 | (contingent) If hold-to-cycle Carbon/flagsChanged spike fails: popup opens on press only, no hold-cycle semantics | contingent — user sign-off if triggered |
 | D12 | Maccy `migrations` key (Defaults.Keys+Names.swift:52 — Core Data→SQLite migration flags): no MyClip analogue (fresh start, no legacy store to migrate) | recorded deviation — user sign-off pending (non-blocking) |
 | D13 | (contingent) §3.6 LV-loss branch: `cs.disable-library-validation` entitlement delta + same-user code-injection residual (inheriting MyClip's TCC grants); bundled dylib validated by `SecStaticCodeCheckValidity` against the distinct pinned dylib DR (post-build identifier ∧ leaf/Team-ID anchor — NOT the CLI peer DR); residual = same-user code injection inheriting MyClip's TCC grants (NOT a 'downgrade'); post-load mapped-image cdhash tripwire is best-effort and contingent on the PRE-M1 (c') attestation spike | contingent — user sign-off if triggered |
 | D14 | `Clipboard.sync()` activate/hide quirk (Chrome Remote Desktop/NetBeans) not ported — call sites: `copyInMaccy` (Clipboard.swift:70) AND general `copy()` (Clipboard.swift:104) | recorded deviation — **user sign-off pending (non-blocking)** |
+
+## 7. MyClip additions
+
+| Feature | Behavior |
+|---|---|
+| paste stack | ⇧↑/⇧↓ or ⇧-click mark several rows; Enter (any action) copies them as one: their files when all are files, else their texts joined by new lines, in the order shown. The combination is not recorded as a clip. |
+| Linux | GTK clipboard backend, paste via xdotool/wtype/ydotool, WM_CLASS app names, KDE password hint = concealed (see README) |

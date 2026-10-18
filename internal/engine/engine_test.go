@@ -219,3 +219,69 @@ func TestSetLimitsTrims(t *testing.T) {
 		t.Fatalf("stored %+v", got)
 	}
 }
+
+// Text read in an image is stored and searchable, never pasted, and does
+// not stop the same image from merging when copied again.
+func TestRecognizedText(t *testing.T) {
+	r := newRig(t, Limits{})
+	img := []pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("png-bytes")}}}
+	r.f.SetItems(img, nil)
+	r.e.Tick(context.Background())
+	id := r.e.Items()[0].ID
+	if err := r.e.SetRecognizedText(id, "Invoice 42"); err != nil {
+		t.Fatal(err)
+	}
+	if got := r.e.Item(id).RecognizedText(); got != "Invoice 42" {
+		t.Fatalf("text %q", got)
+	}
+	if err := r.e.CopyBack(id, false); err != nil {
+		t.Fatal(err)
+	}
+	for _, it := range r.f.ReadItems() {
+		if _, ok := it.Types[pasteboard.TypeRecognizedText]; ok {
+			t.Fatal("recognized text written to the pasteboard")
+		}
+	}
+	r.f.SetItems(img, nil) // the same image, copied again
+	r.e.Tick(context.Background())
+	if items := r.e.Items(); len(items) != 1 || items[0].RecognizedText() != "Invoice 42" {
+		t.Fatalf("after recopy: %d items", len(items))
+	}
+	got, _ := r.s.Load(context.Background())
+	if len(got) != 1 || got[0].RecognizedText() != "Invoice 42" {
+		t.Fatalf("stored %+v", got)
+	}
+}
+
+func TestCopyManyJoinsInOrderAndIsNotRecorded(t *testing.T) {
+	r := newRig(t, Limits{})
+	for _, s := range []string{"first", "second", "third"} {
+		r.copy(t, s)
+	}
+	items := r.e.Items() // third second first
+	if err := r.e.CopyMany([]int64{items[2].ID, items[0].ID}); err != nil {
+		t.Fatal(err)
+	}
+	if got := string(r.f.ReadItems()[0].Types[pasteboard.TypeString]); got != "first\nthird" {
+		t.Fatalf("joined %q", got)
+	}
+	if o := r.e.Tick(context.Background()); o != capture.Ignored {
+		t.Fatalf("combined copy recorded: %v", o)
+	}
+	if n := len(r.e.Items()); n != 3 {
+		t.Fatalf("%d items", n)
+	}
+	// Files stay files.
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypeFileURL: []byte("file:///a")}}}, nil)
+	r.e.Tick(context.Background())
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypeFileURL: []byte("file:///b")}}}, nil)
+	r.e.Tick(context.Background())
+	files := r.e.Items()
+	if err := r.e.CopyMany([]int64{files[1].ID, files[0].ID}); err != nil {
+		t.Fatal(err)
+	}
+	got := r.f.ReadItems()
+	if len(got) != 2 || string(got[0].Types[pasteboard.TypeFileURL]) != "file:///a" || string(got[1].Types[pasteboard.TypeFileURL]) != "file:///b" {
+		t.Fatalf("files %+v", got)
+	}
+}

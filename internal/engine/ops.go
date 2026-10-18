@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
@@ -153,6 +154,19 @@ func (e *Engine) SetTitle(id int64, title string) error {
 	return e.update(id, func(it *history.Item) { it.Title = title })
 }
 
+// SetRecognizedText stores the text read in an item's image, replacing an
+// earlier reading; "" removes it.
+func (e *Engine) SetRecognizedText(id int64, text string) error {
+	return e.update(id, func(it *history.Item) {
+		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
+			return c.Type == pasteboard.TypeRecognizedText
+		})
+		if text != "" {
+			it.Contents = append(it.Contents, history.Content{Type: pasteboard.TypeRecognizedText, Value: []byte(text)})
+		}
+	})
+}
+
 // SetText replaces a text item's contents with plain text (Maccy's pin
 // content edit, which drops formatting).
 func (e *Engine) SetText(id int64, text string) error {
@@ -181,6 +195,51 @@ func (e *Engine) CopyBack(id int64, plain bool) error {
 	return err
 }
 
+// CopyMany puts several items on the pasteboard as one copy, in the order
+// given (the paste stack): their files when every item is files, else their
+// texts joined by new lines; images without text are left out. The combined
+// copy is not recorded as a new clip.
+func (e *Engine) CopyMany(ids []int64) error {
+	e.mu.Lock()
+	var texts []string
+	var files []history.Content
+	allFiles := true
+	for _, id := range ids {
+		it := e.find(id)
+		if it == nil {
+			continue
+		}
+		if len(it.FilePaths()) == 0 {
+			allFiles = false
+		}
+		for _, c := range it.Contents {
+			if c.Type == pasteboard.TypeFileURL {
+				files = append(files, c)
+			}
+		}
+		if s := strings.TrimRight(it.PreviewText(), "\n"); s != "" {
+			texts = append(texts, s)
+		}
+	}
+	e.mu.Unlock()
+	var items []pasteboard.Item
+	switch {
+	case allFiles && len(files) > 0:
+		items = boardItems(files, false)
+		delete(items[0].Types, pasteboard.TypeOwnWrite)
+	case len(texts) > 0:
+		items = []pasteboard.Item{{Types: map[string][]byte{pasteboard.TypeString: []byte(strings.Join(texts, "\n"))}}}
+	default:
+		return ErrNoItem
+	}
+	if !e.Paused() {
+		e.IgnoreNext() // the combination is not a clip of its own
+	}
+	var err error
+	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
+	return err
+}
+
 // boardItems lays contents out as pasteboard items: one item with every
 // representation, and a further item per extra file URL, so several copied
 // files paste as several (Clipboard.copy writes file URLs as objects).
@@ -193,6 +252,9 @@ func boardItems(contents []history.Content, plain bool) []pasteboard.Item {
 	first := pasteboard.Item{Types: map[string][]byte{pasteboard.TypeOwnWrite: {}}}
 	items := []pasteboard.Item{first}
 	for _, c := range contents {
+		if c.Type == pasteboard.TypeRecognizedText {
+			continue // MyClip's own reading, not part of the copy
+		}
 		if _, dup := first.Types[c.Type]; dup && c.Type == pasteboard.TypeFileURL {
 			items = append(items, pasteboard.Item{Types: map[string][]byte{c.Type: c.Value}})
 			continue

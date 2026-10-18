@@ -211,6 +211,7 @@ func (v *View) general(c *ui.Context) {
 		})
 		ui.Field(c, locales.PrefNotifications(), func() {
 			v.check(c, &s.NotifyOnCopy, locales.PrefNotifyOnCopy())
+			v.check(c, &s.PlaySounds, locales.PrefPlaySounds())
 		})
 	})
 }

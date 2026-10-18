@@ -138,6 +138,8 @@ type app struct {
 	prefs    *prefs.View
 
 	images *imageCache
+	cycle  cycler
+	ocr    ocrQueue
 }
 
 func (a *app) start(dbPath string) error {
@@ -161,7 +163,13 @@ func (a *app) start(dbPath string) error {
 		Limits:    a.limits(),
 		RunOnMain: mygo.RunOnMain,
 		OnChange:  func() { mygo.RunOnMain(a.refresh) },
-		OnNew:     func(it *history.Item) { mygo.RunOnMain(func() { a.notify(it) }) },
+		OnNew: func(it *history.Item) {
+			a.ocr.add(it)
+			mygo.RunOnMain(func() {
+				a.notify(it)
+				a.playCopySound()
+			})
+		},
 		OnError: func(err error) {
 			log.Print("myclip: store: ", err)
 			mygo.RunOnMain(func() { a.err = err; a.refresh() })
@@ -171,6 +179,11 @@ func (a *app) start(dbPath string) error {
 		return err
 	}
 	a.engine.SetCaptureSafe(a.captureSafe)
+	a.cycle.held = native.ModifierFlags
+	a.ocr.save = a.engine.SetRecognizedText
+	for _, it := range a.engine.Items() {
+		a.ocr.add(it) // images kept from before: read once
+	}
 	history.ResolveFileURL = native.ResolveFileURL
 	a.images = newImageCache(func() {
 		if a.panel != nil {

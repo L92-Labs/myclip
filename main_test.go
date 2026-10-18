@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/L92-Labs/myclip/internal/settings"
 )
@@ -103,5 +104,12 @@ func TestDecodeScaledKeepsOriginalSize(t *testing.T) {
 	}
 	if bmp, _ := decodeScaled([]byte("junk"), 10, 10); bmp != nil {
 		t.Fatal("decoded junk")
+	}
+}
+
+func TestCopySoundIsShortAndQuiet(t *testing.T) {
+	s := copySound()
+	if d := s.Duration(); d < 50*time.Millisecond || d > 200*time.Millisecond {
+		t.Fatalf("duration %v", d)
 	}
 }

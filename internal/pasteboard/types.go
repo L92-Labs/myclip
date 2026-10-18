@@ -27,6 +27,10 @@ const (
 	// MyClip own-write marker (occupies Maccy's .fromMaccy slot).
 	TypeOwnWrite = "com.l92labs.myclip.own-write"
 
+	// TypeRecognizedText holds the text MyClip read in an image (OCR), for
+	// search. It is stored only: never written back to the pasteboard.
+	TypeRecognizedText = "com.l92labs.myclip.recognized-text"
+
 	TypeUniversalClipboard = "com.apple.is-remote-clipboard"
 
 	TypeMicrosoftObjectLink = "com.microsoft.ObjectLink"
@@ -69,6 +73,7 @@ var DefaultEnabledPasteboardTypes = []string{
 var TransientTypes = []string{
 	TypeModified,
 	TypeOwnWrite,
+	TypeRecognizedText,
 	TypeLinkPresentationMetadata,
 	TypeCustomWebKitPasteboardData,
 	TypeSource,
