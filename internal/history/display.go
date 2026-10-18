@@ -261,3 +261,10 @@ func (it *Item) RecognizedText() string {
 	v, _ := it.Value(pasteboard.TypeRecognizedText)
 	return string(v)
 }
+
+// TextRecognized reports whether the image was read already, even when it
+// held no text: an empty reading is stored too, so it is not read again.
+func (it *Item) TextRecognized() bool {
+	_, ok := it.Value(pasteboard.TypeRecognizedText)
+	return ok
+}

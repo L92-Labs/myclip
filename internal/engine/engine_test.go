@@ -2,8 +2,10 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -283,5 +285,54 @@ func TestCopyManyJoinsInOrderAndIsNotRecorded(t *testing.T) {
 	got := r.f.ReadItems()
 	if len(got) != 2 || string(got[0].Types[pasteboard.TypeFileURL]) != "file:///a" || string(got[1].Types[pasteboard.TypeFileURL]) != "file:///b" {
 		t.Fatalf("files %+v", got)
+	}
+}
+
+type failingBoard struct{ *pasteboard.Fake }
+
+func (failingBoard) Write([]pasteboard.Item) error { return errors.New("rejected") }
+
+// A stack write the pasteboard rejects must not skip the user's next copy.
+func TestCopyManyFailureDoesNotArmIgnoreNext(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "a")
+	r.copy(t, "b")
+	ids := []int64{r.e.Items()[0].ID, r.e.Items()[1].ID}
+	s := r.s
+	e, err := New(context.Background(), Config{Board: failingBoard{r.f}, Store: s})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := e.CopyMany(ids); err == nil {
+		t.Fatal("write error lost")
+	}
+	if e.IgnoringNext() {
+		t.Fatal("ignore-next armed after a failed write")
+	}
+}
+
+// An empty reading marks the image read; recognized text counts toward the
+// byte budget.
+func TestRecognizedTextEmptyAndLimits(t *testing.T) {
+	r := newRig(t, Limits{MaxBytes: 64})
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("old-png")}}}, nil)
+	r.e.Tick(context.Background())
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("new-png")}}}, nil)
+	r.e.Tick(context.Background())
+	newID, oldID := r.e.Items()[0].ID, r.e.Items()[1].ID
+	if err := r.e.SetRecognizedText(oldID, ""); err != nil {
+		t.Fatal(err)
+	}
+	if it := r.e.Item(oldID); !it.TextRecognized() || it.RecognizedText() != "" {
+		t.Fatal("empty reading not recorded")
+	}
+	if err := r.e.SetRecognizedText(newID, strings.Repeat("x", 52)); err != nil {
+		t.Fatal(err)
+	}
+	if r.e.Item(oldID) != nil {
+		t.Fatal("over the byte budget, the oldest item stayed")
+	}
+	if got, _ := r.s.Load(context.Background()); len(got) != 1 {
+		t.Fatalf("stored %d items", len(got))
 	}
 }

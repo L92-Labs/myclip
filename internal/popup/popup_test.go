@@ -321,3 +321,33 @@ func TestChooseNextWrapsAndSelectChosen(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// Typing a query drops the paste stack: the marked rows may be filtered out.
+func TestTypingClearsTheStack(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown)
+	if len(p.Marked()) != 2 {
+		t.Fatalf("marked %v", p.Marked())
+	}
+	tt.Type("a")
+	if len(p.Marked()) != 0 {
+		t.Fatalf("marks kept after typing: %v", p.Marked())
+	}
+}
+
+// An image with its own text (and no OCR yet) is found by that text.
+func TestImageFoundByItsOwnText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeHTML, Value: []byte("<img alt=x>Quarterly chart")},
+	}, "", time.Unix(30, 0))
+	img.ID = 30
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("quarterly")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 30 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}

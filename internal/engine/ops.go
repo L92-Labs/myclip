@@ -154,17 +154,32 @@ func (e *Engine) SetTitle(id int64, title string) error {
 	return e.update(id, func(it *history.Item) { it.Title = title })
 }
 
+// MaxRecognizedRunes bounds the text kept from an image.
+const MaxRecognizedRunes = 20000
+
 // SetRecognizedText stores the text read in an item's image, replacing an
-// earlier reading; "" removes it.
+// earlier reading. An empty text is stored too: it marks the image read.
+// The storage limits apply again, since the item grew.
 func (e *Engine) SetRecognizedText(id int64, text string) error {
-	return e.update(id, func(it *history.Item) {
+	if r := []rune(text); len(r) > MaxRecognizedRunes {
+		text = string(r[:MaxRecognizedRunes])
+	}
+	err := e.update(id, func(it *history.Item) {
 		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
 			return c.Type == pasteboard.TypeRecognizedText
 		})
-		if text != "" {
-			it.Contents = append(it.Contents, history.Content{Type: pasteboard.TypeRecognizedText, Value: []byte(text)})
-		}
+		it.Contents = append(it.Contents, history.Content{Type: pasteboard.TypeRecognizedText, Value: []byte(text)})
 	})
+	if err == nil {
+		e.mu.Lock()
+		evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
+		e.mu.Unlock()
+		if len(evicted) > 0 {
+			e.report(e.deleteStored(evicted))
+			e.changed()
+		}
+	}
+	return err
 }
 
 // SetText replaces a text item's contents with plain text (Maccy's pin
@@ -232,11 +247,14 @@ func (e *Engine) CopyMany(ids []int64) error {
 	default:
 		return ErrNoItem
 	}
-	if !e.Paused() {
-		e.IgnoreNext() // the combination is not a clip of its own
-	}
 	var err error
-	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
+	e.cfg.RunOnMain(func() {
+		// Ticks run on this thread too: no check sees the write before the
+		// flag. Armed only once the write took.
+		if err = e.cfg.Board.Write(items); err == nil && !e.Paused() {
+			e.IgnoreNext() // the combination is not a clip of its own
+		}
+	})
 	return err
 }
 

@@ -187,8 +187,10 @@ func (p *Popup) filter() {
 	for i, it := range p.items {
 		titles[i] = it.ListTitle(s.ShowSpecialSymbols)
 		texts[i] = titles[i]
-		if texts[i] == "" {
-			texts[i] = it.RecognizedText() // an image row: search the text read in it
+		if texts[i] == "" { // an image row: search the text read in it, else its own text
+			if texts[i] = it.RecognizedText(); texts[i] == "" {
+				texts[i] = it.PreviewText()
+			}
 		}
 	}
 	results := search.Search(s.SearchMode, p.query, texts)
@@ -453,6 +455,7 @@ func (p *Popup) header(c *ui.Context) {
 			if ui.TextInputBase(c.Key("search"), &p.query).Bind(&p.search).Grow(1).FontSize(13).
 				Placeholder(locales.SearchPlaceholder()).Label(locales.SearchPlaceholder()).
 				HandleInput(p.input).Changed() {
+				p.marked = nil // a new query: the marked rows may be gone
 				p.filter()
 				p.chooseDefault()
 			}
@@ -499,7 +502,9 @@ func (p *Popup) row(c *ui.Context, i int) {
 	if x, y, ok := el.PointerPosition(); ok && el.Hovered() {
 		if p.hoverRow == -2 {
 			p.hoverRow, p.hoverX, p.hoverY = i, x, y // where the popup opened
-		} else if i != p.hoverRow || x != p.hoverX || y != p.hoverY {
+		} else if (i != p.hoverRow || x != p.hoverX || y != p.hoverY) && c.Modifiers()&ui.Shift == 0 {
+			// (⇧ held: the pointer is heading for a ⇧-click, which extends
+			// from the row chosen now.)
 			p.hoverRow, p.hoverX, p.hoverY = i, x, y
 			if i != p.chosen {
 				p.choose(i)
@@ -676,6 +681,9 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 			ui.Image(c, bmp).Fit(ui.ScaleDown).MaxHeight(float32(s.WindowHeight) * 0.6).MaxWidth(float32(s.PreviewWidth - 24))
 			if text := it.RecognizedText(); text != "" {
 				// The text read in the image, which search finds.
+				if r := []rune(text); len(r) > 10000 {
+					text = string(r[:10000]) + "…"
+				}
 				ui.Scroll(c).Grow(1).Shrink(1).Children(func() {
 					ui.Text(c, text).Wrap().FontSize(11).TextColor(t.TextMuted).Selectable()
 				})
