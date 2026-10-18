@@ -7,8 +7,8 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
 	"github.com/L92-Labs/myclip/internal/history"
+	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/popup"
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/internal/shortcut"
@@ -75,7 +75,7 @@ func (a *app) popupOrigin(w, h int) (int, int) {
 	case settings.PopupCenter:
 		x, y = center(area)
 	case settings.PopupWindow:
-		if f, ok := darwin.FrontmostWindowFrame(); ok {
+		if f, ok := native.FrontmostWindowFrame(); ok {
 			r := mygo.Rectangle{X: int(f.X), Y: int(f.Y), Width: int(f.Width), Height: int(f.Height)}
 			area = mygo.Screen.DisplayMatching(r).WorkArea
 			x, y = center(r)
@@ -145,18 +145,18 @@ func (a *app) Select(id int64, act popup.Action) {
 	if !act.Paste {
 		return
 	}
-	if !darwin.AccessibilityTrusted(true) {
-		go mygo.Dialog.Message(mygo.MessageOptions{Type: mygo.MessageInfo, Message: locales.PasteNeedsAccessibility()})
+	if !native.AccessibilityTrusted(true) {
+		go mygo.Dialog.Message(mygo.MessageOptions{Type: mygo.MessageInfo, Message: locales.PasteNeedsAccess()})
 		return
 	}
-	if darwin.SecureInputEnabled() {
+	if native.SecureInputEnabled() {
 		go mygo.Dialog.Message(mygo.MessageOptions{Type: mygo.MessageInfo, Message: locales.PasteSecureInput()})
 		return
 	}
 	// Let the pasteboard write and the focus settle before ⌘V.
 	time.AfterFunc(60*time.Millisecond, func() {
 		mygo.RunOnMain(func() {
-			if err := darwin.Paste(); err != nil {
+			if err := native.Paste(); err != nil {
 				log.Print("myclip: paste: ", err)
 			}
 		})
@@ -207,7 +207,7 @@ func (a *app) About() {
 	go mygo.Dialog.Message(mygo.MessageOptions{
 		Type:    mygo.MessageInfo,
 		Message: locales.AboutMessage(appVersion()),
-		Detail:  locales.AboutDetail(),
+		Detail:  locales.AboutDetailHere(),
 	})
 }
 
@@ -250,4 +250,14 @@ func appVersion() string {
 		return v
 	}
 	return "dev"
+}
+
+// toggleFromCommand shows or hides the popup for `myclip --toggle` (or a
+// second launch), as the shortcut does.
+func (a *app) toggleFromCommand() {
+	if a.panel.IsVisible() {
+		a.Close()
+		return
+	}
+	a.showPopup()
 }

@@ -269,5 +269,15 @@
   "prefCheckInterval": "Check every:",
   "prefCheckIntervalDescription": "How often MyClip looks for new copies, in milliseconds. Default: 500.",
   "prefLocalOnly": "Everything stays on this Mac: no network, no telemetry.",
-  "prefHistory": "History:"
+  "prefHistory": "History:",
+  "trayClipsLinux": "{count, plural, one {# clip} other {# clips}} · stored on this computer only",
+  "@trayClipsLinux": {"placeholders": {"count": {"type": "int", "example": "3"}}},
+  "aboutDetailLinux": "A local-only clipboard history, after Maccy. Nothing you copy leaves this computer.",
+  "pasteNeedsTool": "To paste, install xdotool (X11), or wtype or ydotool (Wayland). The item was copied.",
+  "prefPasteTool": "Pasting types Ctrl+V with xdotool (X11), or wtype or ydotool (Wayland): install one.",
+  "prefPasteToolFound": "A paste tool is installed.",
+  "prefFooterWarningLinux": "⚠️ Press Ctrl+, to open preferences when the footer is hidden.",
+  "prefMenuIconHiddenLinux": "With the menu icon hidden, open the popup with its shortcut; Ctrl+, in the popup opens these settings.",
+  "prefLocalOnlyLinux": "Everything stays on this computer: no network, no telemetry.",
+  "prefNewApp": "Window class (WM_CLASS), e.g. KeePassXC"
 }

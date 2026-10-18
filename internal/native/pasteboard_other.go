@@ -1,6 +1,6 @@
-//go:build !darwin
+//go:build !darwin && !linux
 
-package darwin
+package native
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 )
 
 // ErrUnsupported is returned off macOS; other platforms come later.
-var ErrUnsupported = errors.New("darwin: the system pasteboard needs macOS")
+var ErrUnsupported = errors.New("native: the system pasteboard needs macOS")
 
 // General is unavailable off macOS.
 type General struct{ pasteboard.Board }
@@ -40,3 +40,6 @@ func AppPath(bundleID string) string        { return "" }
 func AppName(bundleID string) string        { return bundleID }
 func BundleID(path string) string           { return "" }
 func ResolveFileURL(s string) string        { return s }
+
+// Prepare runs before the app starts; nothing to do here.
+func Prepare() {}

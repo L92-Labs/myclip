@@ -1,6 +1,6 @@
 //go:build darwin
 
-package darwin
+package native
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func loadInput() error {
 		open := func(path string) uintptr {
 			lib, err := purego.Dlopen(path, flags)
 			if err != nil && inputErr == nil {
-				inputErr = fmt.Errorf("darwin: load %s: %w", filepath.Base(path), err)
+				inputErr = fmt.Errorf("native: load %s: %w", filepath.Base(path), err)
 			}
 			return lib
 		}
@@ -79,7 +79,7 @@ func loadInput() error {
 		global := func(name string) uintptr {
 			p, err := purego.Dlsym(carbon, name)
 			if err != nil {
-				inputErr = fmt.Errorf("darwin: %s: %w", name, err)
+				inputErr = fmt.Errorf("native: %s: %w", name, err)
 				return 0
 			}
 			return **(**uintptr)(unsafe.Pointer(&p))
@@ -167,7 +167,7 @@ func Paste() error {
 	for _, down := range []bool{true, false} {
 		ev := cgEventCreateKeyboard(src, key, down)
 		if ev == 0 {
-			return fmt.Errorf("darwin: CGEventCreateKeyboardEvent failed")
+			return fmt.Errorf("native: CGEventCreateKeyboardEvent failed")
 		}
 		cgEventSetFlags(ev, flags)
 		cgEventPost(1, ev) // kCGSessionEventTap

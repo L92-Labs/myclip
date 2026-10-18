@@ -7,14 +7,19 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
+	"runtime"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
+	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/locales"
 )
+
+// menuOnlyTray: Linux tray icons (AppIndicator) only show a menu, with no
+// click events, so the menu stays installed there and holds Open MyClip.
+var menuOnlyTray = runtime.GOOS == "linux"
 
 // recentTitleRunes bounds the recent copy shown beside the menu icon.
 const recentTitleRunes = 30
@@ -37,17 +42,23 @@ func (a *app) applyTray() {
 		return
 	}
 	var err error
-	a.tray, err = mygo.NewTray(mygo.TrayOptions{Icon: icon, IconIsTemplate: true, ToolTip: "MyClip"})
+	opts := mygo.TrayOptions{Icon: icon, IconIsTemplate: true, ToolTip: "MyClip"}
+	if menuOnlyTray {
+		opts.Menu = mygo.NewMenu(a.trayMenu())
+	}
+	a.tray, err = mygo.NewTray(opts)
 	if err != nil {
 		log.Print("myclip: tray: ", err)
 		return
 	}
-	a.tray.OnClick(a.trayClick)
-	a.tray.OnRightClick(func() {
-		a.tray.SetMenu(mygo.NewMenu(a.trayMenu()))
-		a.tray.PopUpMenu()
-		a.tray.SetMenu(nil)
-	})
+	if !menuOnlyTray {
+		a.tray.OnClick(a.trayClick)
+		a.tray.OnRightClick(func() {
+			a.tray.SetMenu(mygo.NewMenu(a.trayMenu()))
+			a.tray.PopUpMenu()
+			a.tray.SetMenu(nil)
+		})
+	}
 	a.updateTray()
 }
 
@@ -55,15 +66,15 @@ func (a *app) applyTray() {
 // capture, ⌥⇧-click ignores only the next copy, a click opens the popup
 // below the icon.
 func (a *app) trayClick() {
-	mods := darwin.ModifierFlags()
-	if mods&darwin.ModOption != 0 && a.captureSafe {
+	mods := native.ModifierFlags()
+	if mods&native.ModOption != 0 && a.captureSafe {
 		return // capture is off until the settings are reset
 	}
-	if mods&darwin.ModOption != 0 {
+	if mods&native.ModOption != 0 {
 		switch {
 		case a.engine.Paused():
 			a.setPaused(false)
-		case mods&darwin.ModShift != 0:
+		case mods&native.ModShift != 0:
 			a.engine.IgnoreNext()
 			a.applyTray()
 		default:
@@ -95,6 +106,9 @@ func (a *app) setPaused(paused bool) {
 func (a *app) updateTray() {
 	if a.tray == nil {
 		return
+	}
+	if menuOnlyTray {
+		a.tray.SetMenu(mygo.NewMenu(a.trayMenu())) // its state changes with the history
 	}
 	title := ""
 	if a.settings.ShowRecentCopyInMenuBar {
@@ -153,7 +167,7 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 		{Label: locales.Preferences(), Accelerator: "Cmd+,", Click: func(*mygo.MenuItem, *mygo.Window) { a.openPrefs() }},
 		{Label: locales.About(), Click: func(*mygo.MenuItem, *mygo.Window) { a.About() }},
 		mygo.Separator(),
-		{Label: locales.TrayClips(n), Disabled: true},
+		{Label: locales.ClipsHere(n), Disabled: true},
 	}...)
 	if o := a.engine.Oversized(); o > 0 {
 		items = append(items, &mygo.MenuItem{Label: locales.TraySkipped(o), Disabled: true})

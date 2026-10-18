@@ -10,8 +10,8 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
-	"github.com/L92-Labs/myclip/internal/darwin"
 	"github.com/L92-Labs/myclip/internal/history"
+	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/prefs"
 	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/locales"
@@ -138,9 +138,9 @@ func (a *app) LaunchAtLogin() bool { return mygo.App.OpenAtLogin() }
 
 func (a *app) SetLaunchAtLogin(on bool) error { return mygo.App.SetOpenAtLogin(on) }
 
-func (a *app) AccessibilityTrusted() bool { return darwin.AccessibilityTrusted(false) }
+func (a *app) AccessibilityTrusted() bool { return native.AccessibilityTrusted(false) }
 
-func (a *app) RequestAccessibility() { darwin.AccessibilityTrusted(true) }
+func (a *app) RequestAccessibility() { native.AccessibilityTrusted(true) }
 
 // StorageSize is the history database's size on disk.
 func (a *app) StorageSize() string {
@@ -175,7 +175,7 @@ func (a *app) PickApp() {
 		}
 		mygo.RunOnMain(func() {
 			for _, p := range paths {
-				if id := darwin.BundleID(p); id != "" && !slices.Contains(a.settings.IgnoredApps, id) {
+				if id := native.BundleID(p); id != "" && !slices.Contains(a.settings.IgnoredApps, id) {
 					a.settings.IgnoredApps = append(slices.Clone(a.settings.IgnoredApps), id)
 				}
 			}

@@ -3,7 +3,7 @@
 // Package darwin binds the AppKit calls MyClip needs through purego (no cgo):
 // NSPasteboard changeCount, raw type enumeration, data reads and writes, and
 // the frontmost application's bundle ID.
-package darwin
+package native
 
 import (
 	"fmt"
@@ -37,12 +37,12 @@ func load() error {
 	loadOnce.Do(func() {
 		const flags = purego.RTLD_GLOBAL | purego.RTLD_NOW
 		if _, err := purego.Dlopen("/System/Library/Frameworks/AppKit.framework/AppKit", flags); err != nil {
-			loadErr = fmt.Errorf("darwin: load AppKit: %w", err)
+			loadErr = fmt.Errorf("native: load AppKit: %w", err)
 			return
 		}
 		lib, err := purego.Dlopen("/usr/lib/libobjc.A.dylib", flags)
 		if err != nil {
-			loadErr = fmt.Errorf("darwin: load libobjc: %w", err)
+			loadErr = fmt.Errorf("native: load libobjc: %w", err)
 			return
 		}
 		purego.RegisterLibFunc(&poolPush, lib, "objc_autoreleasePoolPush")
@@ -51,7 +51,7 @@ func load() error {
 		cls := func(name string) objc.ID {
 			c := objc.ID(objc.GetClass(name))
 			if c == 0 && loadErr == nil {
-				loadErr = fmt.Errorf("darwin: class %s not found", name)
+				loadErr = fmt.Errorf("native: class %s not found", name)
 			}
 			return c
 		}
@@ -244,7 +244,7 @@ func (g General) Write(items []pasteboard.Item) error {
 		ok = objc.Send[bool](pb, selWriteObjects, arr)
 	})
 	if !ok {
-		return fmt.Errorf("darwin: pasteboard rejected the write")
+		return fmt.Errorf("native: pasteboard rejected the write")
 	}
 	return nil
 }
@@ -263,3 +263,6 @@ func FrontmostBundleID() string {
 	})
 	return id
 }
+
+// Prepare runs before the app starts; nothing to do on macOS.
+func Prepare() {}

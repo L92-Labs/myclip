@@ -45,9 +45,13 @@ func ShouldIgnoreTypes(types []string, prefs Prefs) bool {
 }
 
 // ShouldIgnoreApp implements Clipboard.shouldIgnore(sourceAppBundle) @ eb03eba.
+//
+// A source that cannot be identified (no frontmost app, or an unnamed
+// window on Linux) is captured normally, but ignored in allowlist mode: an
+// unknown app is not on the list.
 func ShouldIgnoreApp(bundleID string, prefs Prefs) bool {
 	if bundleID == "" {
-		return false
+		return prefs.IgnoreAllAppsExceptListed
 	}
 	listed := false
 	for _, a := range prefs.IgnoredApps {

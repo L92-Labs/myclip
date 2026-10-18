@@ -82,3 +82,12 @@ func TestItemMatchesRegexp(t *testing.T) {
 		t.Fatal("expected no match")
 	}
 }
+
+func TestUnknownAppInAllowlistMode(t *testing.T) {
+	if capture.ShouldIgnoreApp("", capture.Prefs{}) {
+		t.Fatal("unknown app ignored in normal mode")
+	}
+	if !capture.ShouldIgnoreApp("", capture.Prefs{IgnoreAllAppsExceptListed: true, IgnoredApps: []string{"com.apple.TextEdit"}}) {
+		t.Fatal("unknown app captured in allowlist mode")
+	}
+}
