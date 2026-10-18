@@ -105,6 +105,15 @@ func (it *Item) FilePaths() []string {
 // PreviewText is HistoryItem.previewableText: files, else plain text, else
 // the text of RTF or HTML, else the title.
 func (it *Item) PreviewText() string {
+	if s := it.ContentText(); s != "" {
+		return s
+	}
+	return it.Title
+}
+
+// ContentText is the text the clip itself carries — file paths, plain,
+// RTF or HTML text — never its title; "" for an image or other data.
+func (it *Item) ContentText() string {
 	if files := it.FilePaths(); len(files) > 0 {
 		return strings.Join(files, "\n")
 	}
@@ -121,7 +130,7 @@ func (it *Item) PreviewText() string {
 			return s
 		}
 	}
-	return it.Title
+	return ""
 }
 
 var (
@@ -254,4 +263,17 @@ func isRTFDestination(word string) bool {
 		return true
 	}
 	return false
+}
+
+// RecognizedText is the text read in the item's image (OCR), or "".
+func (it *Item) RecognizedText() string {
+	v, _ := it.Value(pasteboard.TypeRecognizedText)
+	return string(v)
+}
+
+// TextRecognized reports whether the image was read already, even when it
+// held no text: an empty reading is stored too, so it is not read again.
+func (it *Item) TextRecognized() bool {
+	_, ok := it.Value(pasteboard.TypeRecognizedText)
+	return ok
 }

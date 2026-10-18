@@ -96,6 +96,7 @@ type Settings struct {
 	PasteByDefault            bool   `json:"pasteByDefault"`
 	RemoveFormattingByDefault bool   `json:"removeFormattingByDefault"`
 	NotifyOnCopy              bool   `json:"notifyOnCopy"` // MyClip: Maccy notifies once allowed
+	PlaySounds                bool   `json:"playSounds"`   // a soft sound on each copy (D10)
 
 	// Storage
 	EnabledPasteboardTypes []string `json:"enabledPasteboardTypes"`

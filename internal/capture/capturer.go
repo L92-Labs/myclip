@@ -1,6 +1,7 @@
 package capture
 
 import (
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -61,7 +62,8 @@ type Capturer struct {
 	mu    sync.Mutex
 	prefs Prefs
 	last  int
-	safe  bool // capture-safe latch: only a settings reset clears it
+	safe  bool   // capture-safe latch: only a settings reset clears it
+	stack string // the one-shot marker type of a stack write to skip
 }
 
 // NewCapturer starts at the pasteboard's current changeCount, so contents
@@ -121,6 +123,13 @@ func (c *Capturer) Check() (*Result, Outcome) {
 	if c.Frontmost != nil {
 		app = c.Frontmost()
 	}
+	c.mu.Lock()
+	stack := c.stack // one shot: cleared once a change is seen (seen)
+	c.mu.Unlock()
+	if stack != "" && slices.Contains(snap.Types, stack) {
+		c.seen(c0) // MyClip's own paste-stack copy: not a clip of its own
+		return nil, Ignored
+	}
 	if ShouldIgnoreApp(app, prefs) || ShouldIgnoreTypes(snap.Types, prefs) {
 		c.seen(c0)
 		return nil, Ignored
@@ -174,6 +183,7 @@ func (c *Capturer) Check() (*Result, Outcome) {
 func (c *Capturer) seen(n int) {
 	c.mu.Lock()
 	c.last = n
+	c.stack = "" // the expected stack write was this change, or is gone
 	c.mu.Unlock()
 }
 
@@ -193,4 +203,12 @@ func (c *Capturer) SetCaptureSafe(on bool) {
 	if !on {
 		c.last = c.Board.ChangeCount()
 	}
+}
+
+// ExpectStack names the marker type of the paste-stack copy about to be
+// written ("" cancels): the next change carrying it is skipped.
+func (c *Capturer) ExpectStack(typ string) {
+	c.mu.Lock()
+	c.stack = typ
+	c.mu.Unlock()
 }

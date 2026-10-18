@@ -7,6 +7,7 @@ package popup
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -76,6 +77,9 @@ func Resolve(mods ui.Modifiers, pasteByDefault, removeFormatting bool) (Action, 
 // Host is what the popup acts on. Its methods run on the main thread.
 type Host interface {
 	Select(id int64, a Action)
+	// SelectMany copies (and pastes) several items together, in the order
+	// shown: the paste stack.
+	SelectMany(ids []int64, a Action)
 	TogglePin(id int64)
 	Delete(id int64)
 	Clear(all bool)
@@ -114,6 +118,10 @@ type Popup struct {
 	rows   []row
 	query  string
 	chosen int
+	// marked holds the rows ⇧-selected for a paste stack, by item, from
+	// anchor to the chosen row.
+	marked   map[int64]bool
+	anchorID int64 // the item the stack extends from (rows may reorder)
 
 	list   ui.ListState
 	search ui.Handle
@@ -156,6 +164,7 @@ func (p *Popup) Reset() {
 	p.query = ""
 	p.previewOpen, p.previewShut = false, false
 	p.confirm = false
+	p.marked = nil
 	p.hoverRow = -2 // the pointer resting where the popup opens chooses nothing
 	p.filter()
 	p.chooseDefault()
@@ -175,15 +184,32 @@ func (p *Popup) Query() string { return p.query }
 func (p *Popup) filter() {
 	s := p.Settings
 	titles := make([]string, len(p.items))
+	texts := make([]string, len(p.items)) // what the query searches
 	for i, it := range p.items {
 		titles[i] = it.ListTitle(s.ShowSpecialSymbols)
+		texts[i] = titles[i]
+		if _, _, image := it.Image(); image {
+			// An image is found by its title (if renamed), the text read in
+			// it, and the text it carries itself (HTML, RTF…).
+			hay := []string{titles[i]}
+			for _, s := range []string{it.RecognizedText(), it.ContentText()} {
+				if s != "" && !slices.Contains(hay, s) {
+					hay = append(hay, s)
+				}
+			}
+			texts[i] = strings.TrimSpace(strings.Join(hay, "\n"))
+		}
 	}
-	results := search.Search(s.SearchMode, p.query, titles)
+	results := search.Search(s.SearchMode, p.query, texts)
 	p.rows = p.rows[:0]
 	n := 0
 	for _, r := range results {
 		it := p.items[r.Index]
 		rw := row{it: it, title: titles[r.Index], ranges: r.Ranges}
+		// Highlight only what the row shows: matches past the title are in
+		// an image's text.
+		shown := len(rw.title) // search.Range counts bytes
+		rw.ranges = slices.DeleteFunc(slices.Clone(rw.ranges), func(rg search.Range) bool { return rg.End > shown })
 		if it.Pin != "" {
 			rw.key, _ = shortcut.Letter([]rune(it.Pin)[0])
 		} else if n < 9 {
@@ -224,6 +250,7 @@ func (p *Popup) current() *history.Item {
 
 func (p *Popup) setQuery(q string) {
 	p.query = q
+	p.marked = nil
 	p.filter()
 	p.chooseDefault()
 }
@@ -236,7 +263,60 @@ func (p *Popup) selectRow(i int, mods ui.Modifiers) {
 	if !ok {
 		return
 	}
+	if ids := p.Marked(); len(ids) > 1 && p.marked[p.rows[i].it.ID] {
+		p.Host.SelectMany(ids, a)
+		return
+	}
 	p.Host.Select(p.rows[i].it.ID, a)
+}
+
+// ChooseNext moves the choice down, round to the top (hold-to-cycle).
+func (p *Popup) ChooseNext() {
+	if len(p.rows) == 0 {
+		return
+	}
+	p.marked = nil
+	p.choose((p.chosen + 1) % len(p.rows))
+}
+
+// SelectChosen selects the chosen row as Enter does (hold-to-cycle's
+// release).
+func (p *Popup) SelectChosen() { p.selectRow(p.chosen, 0) }
+
+// Marked returns the ⇧-selected items' IDs in the order shown.
+func (p *Popup) Marked() []int64 {
+	var ids []int64
+	for _, r := range p.rows {
+		if p.marked[r.it.ID] {
+			ids = append(ids, r.it.ID)
+		}
+	}
+	return ids
+}
+
+// extend moves the choice to row j and marks the rows from the anchor to
+// it, as ⇧↑/⇧↓ and ⇧-click do in lists.
+func (p *Popup) extend(j int) {
+	if len(p.rows) == 0 {
+		return
+	}
+	anchor := -1
+	if len(p.marked) > 0 {
+		for k, r := range p.rows {
+			if r.it.ID == p.anchorID {
+				anchor = k
+			}
+		}
+	}
+	if anchor < 0 { // a new stack, or its first row is gone: start here
+		anchor, p.anchorID = p.chosen, p.rows[min(p.chosen, len(p.rows)-1)].it.ID
+	}
+	p.choose(j)
+	p.marked = map[int64]bool{}
+	lo, hi := min(anchor, p.chosen), max(anchor, p.chosen)
+	for k := lo; k <= hi && k < len(p.rows); k++ {
+		p.marked[p.rows[k].it.ID] = true
+	}
 }
 
 func (p *Popup) requestClear(all bool) {
@@ -276,13 +356,21 @@ func (p *Popup) key(mods ui.Modifiers, k ui.Key) bool {
 		return ok && is(ch.Mods, ch.Key)
 	}
 	switch {
+	case is(ui.Shift, ui.KeyDown):
+		p.extend(p.chosen + 1)
+	case is(ui.Shift, ui.KeyUp):
+		p.extend(p.chosen - 1)
 	case is(0, ui.KeyDown), is(ui.Ctrl, ui.KeyN), is(ui.Ctrl, ui.KeyJ):
+		p.marked = nil
 		p.choose(p.chosen + 1)
 	case is(0, ui.KeyUp), is(ui.Ctrl, ui.KeyP), p.chosen > 0 && is(ui.Ctrl, ui.KeyK):
+		p.marked = nil
 		p.choose(p.chosen - 1)
 	case is(ui.Cmd, ui.KeyDown), is(ui.Alt, ui.KeyDown), is(ui.Ctrl|ui.Alt, ui.KeyN), is(0, ui.KeyPageDown):
+		p.marked = nil // any move but ⇧↑/⇧↓ drops the stack
 		p.choose(len(p.rows) - 1)
 	case is(ui.Cmd, ui.KeyUp), is(ui.Alt, ui.KeyUp), is(ui.Ctrl|ui.Alt, ui.KeyP), is(0, ui.KeyPageUp):
+		p.marked = nil
 		p.choose(0)
 	case is(ui.Cmd|ui.Alt, ui.KeyBackspace):
 		p.requestClear(false)
@@ -385,6 +473,7 @@ func (p *Popup) header(c *ui.Context) {
 			if ui.TextInputBase(c.Key("search"), &p.query).Bind(&p.search).Grow(1).FontSize(13).
 				Placeholder(locales.SearchPlaceholder()).Label(locales.SearchPlaceholder()).
 				HandleInput(p.input).Changed() {
+				p.marked = nil // a new query: the marked rows may be gone
 				p.filter()
 				p.chooseDefault()
 			}
@@ -425,11 +514,15 @@ func (p *Popup) row(c *ui.Context, i int) {
 	if chosen {
 		el.Background(t.Accent)
 		text, muted = t.AccentText, t.AccentText.Alpha(0.75)
+	} else if p.marked[r.it.ID] {
+		el.Background(t.Accent.Alpha(0.3)) // in the paste stack
 	}
 	if x, y, ok := el.PointerPosition(); ok && el.Hovered() {
 		if p.hoverRow == -2 {
 			p.hoverRow, p.hoverX, p.hoverY = i, x, y // where the popup opened
-		} else if i != p.hoverRow || x != p.hoverX || y != p.hoverY {
+		} else if (i != p.hoverRow || x != p.hoverX || y != p.hoverY) && c.Modifiers()&ui.Shift == 0 {
+			// (⇧ held: the pointer is heading for a ⇧-click, which extends
+			// from the row chosen now.)
 			p.hoverRow, p.hoverX, p.hoverY = i, x, y
 			if i != p.chosen {
 				p.choose(i)
@@ -437,7 +530,11 @@ func (p *Popup) row(c *ui.Context, i int) {
 		}
 	}
 	if el.Clicked() {
-		p.selectRow(i, el.ClickModifiers())
+		if el.ClickModifiers() == ui.Shift {
+			p.extend(i)
+		} else {
+			p.selectRow(i, el.ClickModifiers())
+		}
 	}
 	el.ContextMenu(func(m *ui.Menu) { p.rowMenu(m, r.it) })
 	el.Children(func() {
@@ -600,13 +697,36 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 	ui.Column(c).Width(float32(s.PreviewWidth)).FillHeight().Padding(12).Gap(10).Children(func() {
 		if bmp := p.Host.Preview(it); bmp != nil {
 			ui.Image(c, bmp).Fit(ui.ScaleDown).MaxHeight(float32(s.WindowHeight) * 0.6).MaxWidth(float32(s.PreviewWidth - 24))
+			if text := it.RecognizedText(); text != "" {
+				// The text read in the image, which search finds.
+				if r := []rune(text); len(r) > 10000 {
+					text = string(r[:10000]) + "…"
+				}
+				ui.Scroll(c).Grow(1).Shrink(1).Children(func() {
+					ui.Text(c, text).Wrap().FontSize(11).TextColor(t.TextMuted).Selectable()
+				})
+			}
 		} else {
 			text := it.PreviewText()
 			if r := []rune(text); len(r) > 10000 {
 				text = string(r[:10000]) + "…"
 			}
+			// An image Go cannot draw (HEIC) still shows what Vision read.
+			ocr := ""
+			if _, _, image := it.Image(); image && it.RecognizedText() != it.PreviewText() {
+				if ocr = it.RecognizedText(); len([]rune(ocr)) > 10000 {
+					ocr = string([]rune(ocr)[:10000]) + "…"
+				}
+			}
 			ui.Scroll(c).Grow(1).Shrink(1).Children(func() {
-				ui.Text(c, text).Wrap().FontSize(12).Selectable()
+				ui.Column(c).Gap(8).Children(func() {
+					if text != "" {
+						ui.Text(c, text).Wrap().FontSize(12).Selectable()
+					}
+					if ocr != "" {
+						ui.Text(c, ocr).Wrap().FontSize(11).TextColor(t.TextMuted).Selectable()
+					}
+				})
 			})
 		}
 		ui.Divider(c)

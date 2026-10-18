@@ -43,3 +43,9 @@ func ResolveFileURL(s string) string        { return s }
 
 // Prepare runs before the app starts; nothing to do here.
 func Prepare() {}
+
+// ErrNoOCR says this system cannot read text in images.
+var ErrNoOCR = errors.New("native: text recognition is not available")
+
+// RecognizeText is unavailable here.
+func RecognizeText(image []byte) (string, error) { return "", ErrNoOCR }

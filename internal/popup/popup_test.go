@@ -22,13 +22,18 @@ type call struct {
 
 type fakeHost struct {
 	calls  []call
+	many   []int64
 	width  int
 	height int
 }
 
 func (h *fakeHost) Select(id int64, a Action) { h.calls = append(h.calls, call{"select", id, a}) }
-func (h *fakeHost) TogglePin(id int64)        { h.calls = append(h.calls, call{what: "pin", id: id}) }
-func (h *fakeHost) Delete(id int64)           { h.calls = append(h.calls, call{what: "delete", id: id}) }
+func (h *fakeHost) SelectMany(ids []int64, a Action) {
+	h.calls = append(h.calls, call{what: "many", a: a})
+	h.many = append([]int64(nil), ids...)
+}
+func (h *fakeHost) TogglePin(id int64) { h.calls = append(h.calls, call{what: "pin", id: id}) }
+func (h *fakeHost) Delete(id int64)    { h.calls = append(h.calls, call{what: "delete", id: id}) }
 func (h *fakeHost) Clear(all bool) {
 	h.calls = append(h.calls, call{what: fmt.Sprint("clear ", all)})
 }
@@ -259,5 +264,163 @@ func TestHighlightAndSpecialSymbols(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("·a⇥b⏎") {
 		t.Fatalf("texts %q", tt.Texts())
+	}
+}
+
+// An image is found by the text read in it; its row still shows the image.
+func TestSearchFindsImageByRecognizedText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Invoice 42\nTotal due")},
+	}, "", time.Unix(20, 0))
+	img.ID = 20
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("invoice")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 20 || p.rows[0].title != "" || len(p.rows[0].ranges) != 0 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// ⇧↓ marks rows into a paste stack; Enter hands them over in order.
+func TestPasteStack(t *testing.T) {
+	p, h, tt := setup(t, nil)
+	// rows: pinned thing (9), apple pie (1, chosen), banana split (2), cherry tart (3)
+	tt.Key(ui.Shift, ui.KeyDown)
+	tt.Key(ui.Shift, ui.KeyDown)
+	if got := p.Marked(); len(got) != 3 || got[0] != 1 || got[2] != 3 {
+		t.Fatalf("marked %v", got)
+	}
+	tt.Key(ui.Shift, ui.KeyUp) // shrink back to two
+	tt.Key(0, ui.KeyEnter)
+	if got := h.last(); got.what != "many" || len(h.many) != 2 || h.many[0] != 1 || h.many[1] != 2 {
+		t.Fatalf("enter: %+v %v", got, h.many)
+	}
+	tt.Key(0, ui.KeyDown) // a plain move drops the stack
+	if len(p.Marked()) != 0 {
+		t.Fatal("marks kept after a plain move")
+	}
+	tt.Key(0, ui.KeyEnter)
+	if got := h.last(); got.what != "select" {
+		t.Fatalf("single enter: %+v", got)
+	}
+}
+
+func TestChooseNextWrapsAndSelectChosen(t *testing.T) {
+	p, h, _ := setup(t, nil)
+	for range len(p.rows) {
+		p.ChooseNext()
+	}
+	if p.chosen != 1 { // back where it started (apple pie), round the top
+		t.Fatalf("chosen %d", p.chosen)
+	}
+	p.SelectChosen()
+	if got := h.last(); got.what != "select" || got.id != 1 {
+		t.Fatalf("%+v", got)
+	}
+}
+
+// Typing a query drops the paste stack: the marked rows may be filtered out.
+func TestTypingClearsTheStack(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown)
+	if len(p.Marked()) != 2 {
+		t.Fatalf("marked %v", p.Marked())
+	}
+	tt.Type("a")
+	if len(p.Marked()) != 0 {
+		t.Fatalf("marks kept after typing: %v", p.Marked())
+	}
+}
+
+// An image with its own text (and no OCR yet) is found by that text.
+func TestImageFoundByItsOwnText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeHTML, Value: []byte("<img alt=x>Quarterly chart")},
+	}, "", time.Unix(30, 0))
+	img.ID = 30
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("quarterly")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 30 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// A renamed image is still found by the text read in it; the highlight
+// stays inside the title.
+func TestRenamedImageFoundByRecognizedText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Invoice 42")},
+	}, "", time.Unix(40, 0))
+	img.ID, img.Title = 40, "Receipt"
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("invoice")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 40 || len(p.rows[0].ranges) != 0 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// Any move but ⇧↑/⇧↓ drops the stack.
+func TestPageKeysDropTheStack(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown)
+	tt.Key(0, ui.KeyPageDown)
+	if len(p.Marked()) != 0 {
+		t.Fatalf("marks kept: %v", p.Marked())
+	}
+}
+
+// The stack's anchor is an item, not a row index: a refresh that shifts
+// the rows does not move it.
+func TestStackAnchorSurvivesRefresh(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown) // apple pie (1) + banana split (2)
+	p.SetItems(append([]*history.Item{item(50, "new on top", "")}, p.items...))
+	tt.Frame()
+	tt.Key(ui.Shift, ui.KeyDown)
+	if got := p.Marked(); len(got) != 3 || got[0] != 1 || got[2] != 3 {
+		t.Fatalf("marked %v, want [1 2 3]", got)
+	}
+}
+
+// Highlights stay on non-ASCII titles (ranges count bytes).
+func TestHighlightAfterAccents(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	p.SetItems(append([]*history.Item{item(60, "café facture", "")}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("facture")
+	if len(p.rows) != 1 || len(p.rows[0].ranges) != 1 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// An image keeps its own text searchable once OCR text arrives.
+func TestImageKeepsOwnTextAfterOCR(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeHTML, Value: []byte("<img alt=x>Quarterly chart")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Revenue 2026")},
+	}, "", time.Unix(31, 0))
+	img.ID = 31
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	for _, q := range []string{"quarterly", "revenue"} {
+		p.Reset()
+		tt.Frame()
+		tt.Type(q)
+		if len(p.rows) != 1 || p.rows[0].it.ID != 31 {
+			t.Fatalf("%q: rows %+v", q, p.rows)
+		}
 	}
 }

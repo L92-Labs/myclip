@@ -31,6 +31,7 @@ var (
 	// presence marks the copy concealed, before any data is read.
 	passwordHint = "x-kde-passwordManagerHint"
 	ownWrite     = "application/x-myclip-own-write"
+	stackWrite   = "application/x-myclip-stack-" // + nonce
 )
 
 // uti maps a Linux target to the type MyClip's rules use.
@@ -57,6 +58,8 @@ func uti(target string) string {
 		return pasteboard.TypeConcealed
 	case target == ownWrite:
 		return pasteboard.TypeOwnWrite
+	case strings.HasPrefix(target, stackWrite):
+		return pasteboard.StackWritePrefix + strings.TrimPrefix(target, stackWrite)
 	}
 	return target
 }
@@ -237,6 +240,10 @@ func (General) Write(items []pasteboard.Item) error {
 				uris = append(uris, string(v))
 			case pasteboard.TypeOwnWrite:
 				add(transfer.Format(ownWrite), []byte{1})
+			default:
+				if nonce, ok := strings.CutPrefix(typ, pasteboard.StackWritePrefix); ok {
+					add(transfer.Format(stackWrite+nonce), []byte{1})
+				}
 			}
 		}
 	}

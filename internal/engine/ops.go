@@ -2,9 +2,13 @@ package engine
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
@@ -44,11 +48,14 @@ func (e *Engine) SetPrefs(p capture.Prefs) {
 
 // SetLimits changes the history caps and trims to them now.
 func (e *Engine) SetLimits(l Limits) {
+	e.persist.Lock()
 	e.mu.Lock()
 	e.cfg.Limits = l
 	evicted := e.hist.Trim(l.MaxItems, l.MaxBytes)
 	e.mu.Unlock()
-	e.report(e.deleteStored(evicted))
+	err := e.deleteStored(evicted)
+	e.persist.Unlock()
+	e.report(err)
 	e.changed()
 }
 
@@ -65,9 +72,28 @@ func (e *Engine) deleteStored(items []*history.Item) error {
 // update replaces the item with id by a modified copy, so items already
 // handed out stay unchanged, and saves it.
 func (e *Engine) update(id int64, fn func(*history.Item)) error {
+	return e.updateIf(id, nil, fn)
+}
+
+// updateIf is update when ok (nil: always) holds for the stored item, both
+// checked and applied under the lock.
+func (e *Engine) updateIf(id int64, ok func(*history.Item) bool, fn func(*history.Item)) error {
+	e.persist.Lock()
+	err := e.updateHeld(id, ok, fn)
+	e.persist.Unlock()
+	if err == ErrNoItem {
+		return err
+	}
+	e.report(err)
+	e.changed()
+	return err
+}
+
+// updateHeld changes and saves the item; the caller holds persist.
+func (e *Engine) updateHeld(id int64, ok func(*history.Item) bool, fn func(*history.Item)) error {
 	e.mu.Lock()
 	old := e.find(id)
-	if old == nil {
+	if old == nil || ok != nil && !ok(old) {
 		e.mu.Unlock()
 		return ErrNoItem
 	}
@@ -76,14 +102,18 @@ func (e *Engine) update(id int64, fn func(*history.Item)) error {
 	fn(&it)
 	e.hist.Replace(old, &it)
 	e.mu.Unlock()
-	err := e.cfg.Store.Save(context.Background(), &it)
-	e.report(err)
-	e.changed()
-	return err
+	if beforeSave != nil {
+		beforeSave()
+	}
+	return e.cfg.Store.Save(context.Background(), &it)
 }
+
+// beforeSave is a test hook between an update's change and its write.
+var beforeSave func()
 
 // Delete removes an item.
 func (e *Engine) Delete(id int64) error {
+	e.persist.Lock()
 	e.mu.Lock()
 	it := e.find(id)
 	if it != nil {
@@ -91,9 +121,11 @@ func (e *Engine) Delete(id int64) error {
 	}
 	e.mu.Unlock()
 	if it == nil {
+		e.persist.Unlock()
 		return ErrNoItem
 	}
 	err := e.cfg.Store.Delete(context.Background(), id)
+	e.persist.Unlock()
 	e.report(err)
 	e.changed()
 	return err
@@ -102,6 +134,7 @@ func (e *Engine) Delete(id int64) error {
 // Clear removes the unpinned items, or every item with all
 // (History.clear / clearAll).
 func (e *Engine) Clear(all bool) error {
+	e.persist.Lock()
 	e.mu.Lock()
 	var gone []*history.Item
 	for _, it := range e.hist.Items() {
@@ -112,6 +145,7 @@ func (e *Engine) Clear(all bool) error {
 	}
 	e.mu.Unlock()
 	err := e.deleteStored(gone)
+	e.persist.Unlock()
 	e.report(err)
 	e.changed()
 	return err
@@ -153,6 +187,52 @@ func (e *Engine) SetTitle(id int64, title string) error {
 	return e.update(id, func(it *history.Item) { it.Title = title })
 }
 
+// MaxRecognizedRunes bounds the text kept from an image.
+const MaxRecognizedRunes = 20000
+
+// ImageDigest is the SHA-256 of an item's image (zero without one).
+func ImageDigest(it *history.Item) [32]byte {
+	data, _, ok := it.Image()
+	if !ok {
+		return [32]byte{}
+	}
+	return sha256.Sum256(data)
+}
+
+// SetRecognizedText stores the text read in an item's image, replacing an
+// earlier reading. An empty text is stored too: it marks the image read.
+// The storage limits apply again, since the item grew.
+//
+// The reading lands only on the image read: the item stored under id must
+// still hold an image with digest image (SHA-256), checked under the same
+// lock as the update, as an ID may be taken by a newer clip meanwhile.
+func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error {
+	if r := []rune(text); len(r) > MaxRecognizedRunes {
+		text = string(r[:MaxRecognizedRunes])
+	}
+	same := func(it *history.Item) bool { return ImageDigest(it) == image }
+	e.persist.Lock()
+	err := e.updateHeld(id, same, func(it *history.Item) {
+		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
+			return c.Type == pasteboard.TypeRecognizedText
+		})
+		it.Contents = append(it.Contents, history.Content{Type: pasteboard.TypeRecognizedText, Value: []byte(text)})
+	})
+	if err == nil {
+		e.mu.Lock()
+		evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
+		e.mu.Unlock()
+		err = e.deleteStored(evicted)
+	}
+	e.persist.Unlock()
+	if err == ErrNoItem {
+		return err
+	}
+	e.report(err)
+	e.changed()
+	return err
+}
+
 // SetText replaces a text item's contents with plain text (Maccy's pin
 // content edit, which drops formatting).
 func (e *Engine) SetText(id int64, text string) error {
@@ -181,6 +261,60 @@ func (e *Engine) CopyBack(id int64, plain bool) error {
 	return err
 }
 
+// CopyMany puts several items on the pasteboard as one copy, in the order
+// given (the paste stack): their files when every item is files, else their
+// texts joined by new lines; images without text are left out. The combined
+// copy is not recorded as a new clip.
+func (e *Engine) CopyMany(ids []int64) error {
+	e.mu.Lock()
+	var texts []string
+	var files []history.Content
+	allFiles := true
+	for _, id := range ids {
+		it := e.find(id)
+		if it == nil {
+			continue
+		}
+		if len(it.FilePaths()) == 0 {
+			allFiles = false
+		}
+		for _, c := range it.Contents {
+			if c.Type == pasteboard.TypeFileURL {
+				files = append(files, c)
+			}
+		}
+		if s := strings.TrimRight(it.ContentText(), "\n"); s != "" { // never a title
+			texts = append(texts, s)
+		}
+	}
+	e.mu.Unlock()
+	var items []pasteboard.Item
+	switch {
+	case allFiles && len(files) > 0:
+		items = boardItems(files, false)
+		delete(items[0].Types, pasteboard.TypeOwnWrite)
+	case len(texts) > 0:
+		items = []pasteboard.Item{{Types: map[string][]byte{pasteboard.TypeString: []byte(strings.Join(texts, "\n"))}}}
+	default:
+		return ErrNoItem
+	}
+	// The combination is not a clip of its own: a one-shot marker makes
+	// capture skip exactly this change — not a copy the user makes right
+	// after, nor a later replay of the marker by another app.
+	var nonce [8]byte
+	rand.Read(nonce[:])
+	marker := pasteboard.StackWritePrefix + hex.EncodeToString(nonce[:])
+	items[0].Types[marker] = []byte{}
+	var err error
+	e.cfg.RunOnMain(func() {
+		e.cap.ExpectStack(marker)
+		if err = e.cfg.Board.Write(items); err != nil {
+			e.cap.ExpectStack("")
+		}
+	})
+	return err
+}
+
 // boardItems lays contents out as pasteboard items: one item with every
 // representation, and a further item per extra file URL, so several copied
 // files paste as several (Clipboard.copy writes file URLs as objects).
@@ -193,6 +327,9 @@ func boardItems(contents []history.Content, plain bool) []pasteboard.Item {
 	first := pasteboard.Item{Types: map[string][]byte{pasteboard.TypeOwnWrite: {}}}
 	items := []pasteboard.Item{first}
 	for _, c := range contents {
+		if c.Type == pasteboard.TypeRecognizedText {
+			continue // MyClip's own reading, not part of the copy
+		}
 		if _, dup := first.Types[c.Type]; dup && c.Type == pasteboard.TypeFileURL {
 			items = append(items, pasteboard.Item{Types: map[string][]byte{c.Type: c.Value}})
 			continue

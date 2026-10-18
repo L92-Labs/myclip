@@ -279,5 +279,6 @@
   "prefFooterWarningLinux": "⚠️ Press Ctrl+, to open preferences when the footer is hidden.",
   "prefMenuIconHiddenLinux": "With the menu icon hidden, open the popup with its shortcut; Ctrl+, in the popup opens these settings.",
   "prefLocalOnlyLinux": "Everything stays on this computer: no network, no telemetry.",
-  "prefNewApp": "Window class (WM_CLASS), e.g. KeePassXC"
+  "prefNewApp": "Window class (WM_CLASS), e.g. KeePassXC",
+  "prefPlaySounds": "Play a sound on each copy"
 }

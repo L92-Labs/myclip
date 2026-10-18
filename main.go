@@ -138,6 +138,8 @@ type app struct {
 	prefs    *prefs.View
 
 	images *imageCache
+	cycle  cycler
+	ocr    ocrQueue
 }
 
 func (a *app) start(dbPath string) error {
@@ -161,7 +163,13 @@ func (a *app) start(dbPath string) error {
 		Limits:    a.limits(),
 		RunOnMain: mygo.RunOnMain,
 		OnChange:  func() { mygo.RunOnMain(a.refresh) },
-		OnNew:     func(it *history.Item) { mygo.RunOnMain(func() { a.notify(it) }) },
+		// Every copy made in another app sounds, merged into an old clip or
+		// not; MyClip's own selections sound in afterCopy.
+		OnCopy: func(*history.Item) { mygo.RunOnMain(a.playCopySound) },
+		OnNew: func(it *history.Item) {
+			a.ocr.addLive(it)
+			mygo.RunOnMain(func() { a.notify(it) })
+		},
 		OnError: func(err error) {
 			log.Print("myclip: store: ", err)
 			mygo.RunOnMain(func() { a.err = err; a.refresh() })
@@ -171,6 +179,12 @@ func (a *app) start(dbPath string) error {
 		return err
 	}
 	a.engine.SetCaptureSafe(a.captureSafe)
+	a.cycle.held = native.ModifierFlags
+	a.ocr.save = a.engine.SetRecognizedText
+	a.ocr.item = a.engine.Item
+	for _, it := range a.engine.Items() {
+		a.ocr.add(it) // images kept from before: read once
+	}
 	history.ResolveFileURL = native.ResolveFileURL
 	a.images = newImageCache(func() {
 		if a.panel != nil {

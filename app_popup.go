@@ -31,7 +31,7 @@ func (a *app) registerShortcut() {
 	if accel == "" {
 		return
 	}
-	if err := mygo.GlobalShortcut.Register(accel, a.togglePopup); err != nil {
+	if err := mygo.GlobalShortcut.Register(accel, a.shortcutPressed); err != nil {
 		log.Printf("myclip: shortcut %s: %v", accel, err)
 		go mygo.Dialog.Message(mygo.MessageOptions{
 			Type:    mygo.MessageWarning,
@@ -40,14 +40,6 @@ func (a *app) registerShortcut() {
 		return
 	}
 	a.shortcut = accel
-}
-
-func (a *app) togglePopup() {
-	if a.panel.IsVisible() {
-		a.Close()
-		return
-	}
-	a.showPopup()
 }
 
 // showPopup opens the popup where the settings say (PopupPosition).
@@ -142,6 +134,23 @@ func (a *app) Select(id int64, act popup.Action) {
 		log.Print("myclip: copy: ", err)
 		return
 	}
+	a.afterCopy(act)
+}
+
+// SelectMany copies several items as one (the paste stack), then pastes
+// when act says so.
+func (a *app) SelectMany(ids []int64, act popup.Action) {
+	a.Close()
+	if err := a.engine.CopyMany(ids); err != nil {
+		log.Print("myclip: copy: ", err)
+		return
+	}
+	a.afterCopy(act)
+}
+
+// afterCopy plays the copy sound and pastes when act asks.
+func (a *app) afterCopy(act popup.Action) {
+	a.playCopySound()
 	if !act.Paste {
 		return
 	}
