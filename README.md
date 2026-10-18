@@ -46,8 +46,9 @@ no cgo and no Xcode project; the app is about 14 MB.
 - **Fail closed.** If MyClip cannot read its settings, it stops capturing
   rather than fall back to defaults that could miss your ignore rules. The
   menu icon offers Reset Settings.
-- **Only Accessibility.** Pasting needs the Accessibility permission, and
-  only for ⌘V. Copying works without it.
+- **Few permissions.** Copying needs none. Pasting for you needs
+  Accessibility, used only to type ⌘V. *Notify on each new copy*, off by
+  default, asks for the Notifications permission when you turn it on.
 
 ## Keyboard
 
