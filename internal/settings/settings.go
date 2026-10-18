@@ -304,8 +304,7 @@ func Save(path string, s Settings) error {
 // error returned, so the caller can stay in capture-safe mode.
 func Reset(path string, now time.Time) (aside string, err error) {
 	if _, err := os.Lstat(path); err == nil {
-		aside = fmt.Sprintf("%s.unreadable-%d", path, now.Unix())
-		if err := os.Rename(path, aside); err != nil {
+		if aside, err = keepAside(path, now); err != nil {
 			return "", fmt.Errorf("keep the unreadable settings aside: %w", err)
 		}
 	}
@@ -318,4 +317,25 @@ func Reset(path string, now time.Time) (aside string, err error) {
 		return "", fmt.Errorf("write the default settings: %w", err)
 	}
 	return aside, nil
+}
+
+// keepAside moves path to a name of its own, path.unreadable-<unix>[-n],
+// never over an earlier backup: the link fails when the name is taken.
+func keepAside(path string, now time.Time) (string, error) {
+	base := fmt.Sprintf("%s.unreadable-%d", path, now.Unix())
+	for n := 0; n < 100; n++ {
+		name := base
+		if n > 0 {
+			name = fmt.Sprintf("%s-%d", base, n)
+		}
+		err := os.Link(path, name)
+		if errors.Is(err, fs.ErrExist) {
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		return name, os.Remove(path)
+	}
+	return "", errors.New("too many unreadable settings backups")
 }

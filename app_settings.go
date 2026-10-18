@@ -218,6 +218,9 @@ func (a *app) confirmReset() {
 // unreadable file aside and writes the defaults. Capture resumes only once
 // both succeeded; otherwise the latch and the menu's reset item stay.
 func (a *app) resetSettings() {
+	if !a.captureSafe {
+		return // a second confirmation after the first reset: nothing to do
+	}
 	aside, err := settings.Reset(a.settingsPath, time.Now())
 	if err != nil {
 		log.Print("myclip: reset settings: ", err)

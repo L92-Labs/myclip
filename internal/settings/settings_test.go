@@ -116,3 +116,24 @@ func TestResetFailureRestores(t *testing.T) {
 		t.Fatalf("original changed: %q", b)
 	}
 }
+
+// Two resets in the same second keep both backups.
+func TestResetNeverOverwritesABackup(t *testing.T) {
+	path := filepath.Join(t.TempDir(), FileName)
+	now := time.Unix(1700000000, 0)
+	os.WriteFile(path, []byte("first"), 0o600)
+	a1, err := Reset(path, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(path, []byte("second"), 0o600)
+	a2, err := Reset(path, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b1, _ := os.ReadFile(a1)
+	b2, _ := os.ReadFile(a2)
+	if a1 == a2 || string(b1) != "first" || string(b2) != "second" {
+		t.Fatalf("%s=%q %s=%q", a1, b1, a2, b2)
+	}
+}
