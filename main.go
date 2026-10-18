@@ -167,7 +167,7 @@ func (a *app) start(dbPath string) error {
 		// not; MyClip's own selections sound in afterCopy.
 		OnCopy: func(*history.Item) { mygo.RunOnMain(a.playCopySound) },
 		OnNew: func(it *history.Item) {
-			a.ocr.add(it)
+			a.ocr.addLive(it)
 			mygo.RunOnMain(func() { a.notify(it) })
 		},
 		OnError: func(err error) {

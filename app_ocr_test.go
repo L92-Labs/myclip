@@ -133,3 +133,46 @@ func TestOCRBacklogIsNotDropped(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 }
+
+// A copy made now is read before the startup backlog.
+func TestLiveOCRJumpsTheBacklog(t *testing.T) {
+	block := make(chan struct{})
+	var mu sync.Mutex
+	var order []int64
+	all := map[int64]*history.Item{}
+	for id := int64(1); id <= 4; id++ {
+		all[id] = pngItem(t, id, int(id)+3)
+	}
+	q := ocrQueue{
+		item:      func(id int64) *history.Item { return all[id] },
+		recognize: func([]byte) (string, error) { <-block; return "w", nil },
+		save: func(id int64, _ [32]byte, _ string) error {
+			mu.Lock()
+			order = append(order, id)
+			mu.Unlock()
+			return nil
+		},
+	}
+	q.add(all[1]) // the worker takes 1 and waits
+	time.Sleep(20 * time.Millisecond)
+	q.add(all[2])
+	q.add(all[3])
+	q.addLive(all[4])
+	close(block)
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		mu.Lock()
+		got := append([]int64(nil), order...)
+		mu.Unlock()
+		if len(got) == 4 {
+			if got[1] != 4 {
+				t.Fatalf("order %v: the live copy waited", got)
+			}
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("order %v", got)
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}

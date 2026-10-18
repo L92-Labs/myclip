@@ -38,7 +38,14 @@ type ocrJob struct {
 	digest [32]byte
 }
 
-func (q *ocrQueue) add(it *history.Item) {
+// add queues an image kept from before, behind the others.
+func (q *ocrQueue) add(it *history.Item) { q.enqueue(it, false) }
+
+// addLive queues an image just copied ahead of the startup backlog: the
+// screenshot you just took is the one you will search for.
+func (q *ocrQueue) addLive(it *history.Item) { q.enqueue(it, true) }
+
+func (q *ocrQueue) enqueue(it *history.Item, live bool) {
 	if !needsOCR(it) {
 		return
 	}
@@ -47,7 +54,12 @@ func (q *ocrQueue) add(it *history.Item) {
 	if q.stopped {
 		return
 	}
-	q.pending = append(q.pending, ocrJob{it.ID, engine.ImageDigest(it)})
+	job := ocrJob{it.ID, engine.ImageDigest(it)}
+	if live {
+		q.pending = append([]ocrJob{job}, q.pending...)
+	} else {
+		q.pending = append(q.pending, job)
+	}
 	if !q.running {
 		q.running = true
 		go q.run()

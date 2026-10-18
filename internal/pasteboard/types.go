@@ -31,9 +31,11 @@ const (
 	// search. It is stored only: never written back to the pasteboard.
 	TypeRecognizedText = "com.l92labs.myclip.recognized-text"
 
-	// TypeStackWrite marks a paste-stack copy MyClip wrote: capture skips
-	// exactly that change, recognized from the types alone.
-	TypeStackWrite = "com.l92labs.myclip.stack"
+	// StackWritePrefix starts the one-shot type that marks a paste-stack
+	// copy MyClip wrote (prefix + a random nonce per write): capture skips the
+	// one change carrying the type it expects, from the types alone. A
+	// replay of the type later, by another owner, no longer matches.
+	StackWritePrefix = "com.l92labs.myclip.stack."
 
 	TypeUniversalClipboard = "com.apple.is-remote-clipboard"
 

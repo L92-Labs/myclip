@@ -2,7 +2,9 @@ package engine
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -296,11 +298,20 @@ func (e *Engine) CopyMany(ids []int64) error {
 	default:
 		return ErrNoItem
 	}
-	// The combination is not a clip of its own: its marker makes capture
-	// skip exactly this change, and not a copy the user makes right after.
-	items[0].Types[pasteboard.TypeStackWrite] = []byte{}
+	// The combination is not a clip of its own: a one-shot marker makes
+	// capture skip exactly this change — not a copy the user makes right
+	// after, nor a later replay of the marker by another app.
+	var nonce [8]byte
+	rand.Read(nonce[:])
+	marker := pasteboard.StackWritePrefix + hex.EncodeToString(nonce[:])
+	items[0].Types[marker] = []byte{}
 	var err error
-	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
+	e.cfg.RunOnMain(func() {
+		e.cap.ExpectStack(marker)
+		if err = e.cfg.Board.Write(items); err != nil {
+			e.cap.ExpectStack("")
+		}
+	})
 	return err
 }
 

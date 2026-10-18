@@ -487,3 +487,24 @@ func TestDelayedWriterDoesNotOverwriteNewer(t *testing.T) {
 		t.Fatalf("memory %q, stored %q", got, stored[0].Title)
 	}
 }
+
+// The stack marker is one-shot: the same marker type replayed later by
+// another app is an ordinary copy.
+func TestReplayedStackMarkerIsCaptured(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "a")
+	r.copy(t, "b")
+	if err := r.e.CopyMany([]int64{r.e.Items()[0].ID, r.e.Items()[1].ID}); err != nil {
+		t.Fatal(err)
+	}
+	written := r.f.ReadItems()
+	if o := r.e.Tick(context.Background()); o != capture.Ignored {
+		t.Fatalf("stack write %v", o)
+	}
+	r.copy(t, "something else")
+	// Another clipboard manager restores the stack copy, marker and all.
+	r.f.SetItems(written, nil)
+	if o := r.e.Tick(context.Background()); o != capture.Captured {
+		t.Fatalf("replayed marker %v, want captured", o)
+	}
+}
