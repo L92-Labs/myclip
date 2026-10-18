@@ -165,5 +165,13 @@
   "prefCheckInterval": "Comprobar cada:",
   "prefCheckIntervalDescription": "Cada cuánto busca MyClip nuevas copias, en milisegundos. Por defecto: 500.",
   "prefLocalOnly": "Todo se queda en este Mac: sin red, sin telemetría.",
-  "prefHistory": "Historial:"
+  "prefHistory": "Historial:",
+  "trayClipsLinux": "{count, plural, one {# elemento} many {# elementos} other {# elementos}} · guardados solo en este equipo",
+  "aboutDetailLinux": "Un historial del portapapeles solo local, inspirado en Maccy. Nada de lo que copias sale de este equipo.",
+  "pasteNeedsTool": "Para pegar, instala xdotool (X11), o wtype o ydotool (Wayland). El elemento se copió.",
+  "prefPasteTool": "Pegar escribe Ctrl+V con xdotool (X11), o wtype o ydotool (Wayland): instala uno.",
+  "prefPasteToolFound": "Hay una herramienta de pegado instalada.",
+  "prefFooterWarningLinux": "⚠️ Pulsa Ctrl+, para abrir las preferencias cuando el pie está oculto.",
+  "prefMenuIconHiddenLinux": "Sin el icono de menú, abre la ventana con su atajo; Ctrl+, en la ventana abre estos ajustes.",
+  "prefLocalOnlyLinux": "Todo se queda en este equipo: sin red, sin telemetría."
 }

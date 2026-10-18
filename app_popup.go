@@ -146,7 +146,7 @@ func (a *app) Select(id int64, act popup.Action) {
 		return
 	}
 	if !native.AccessibilityTrusted(true) {
-		go mygo.Dialog.Message(mygo.MessageOptions{Type: mygo.MessageInfo, Message: locales.PasteNeedsAccessibility()})
+		go mygo.Dialog.Message(mygo.MessageOptions{Type: mygo.MessageInfo, Message: locales.PasteNeedsAccess()})
 		return
 	}
 	if native.SecureInputEnabled() {
@@ -207,7 +207,7 @@ func (a *app) About() {
 	go mygo.Dialog.Message(mygo.MessageOptions{
 		Type:    mygo.MessageInfo,
 		Message: locales.AboutMessage(appVersion()),
-		Detail:  locales.AboutDetail(),
+		Detail:  locales.AboutDetailHere(),
 	})
 }
 

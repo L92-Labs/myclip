@@ -5,6 +5,8 @@
 | `test.sh` | macOS, Linux | `go vet` + `go test` (cgo off; `-race` turns cgo on) |
 | `dev-mac.sh` | macOS | `mygo dev`: live reload, ad-hoc signed |
 | `build-mac.sh` | macOS (`--cross` elsewhere) | preflight → test → `mygo build` → codesign report |
+| `build-linux.sh` | any (run on Linux) | test → `mygo build linux/<arch>`: binary, `.deb`, `.tar.gz` |
+| `linux-smoke.sh` | Linux | end-to-end on Xvfb: capture, password hint skipped, hotkey + popup copy-back, capture-safe |
 
 First time on a Mac: `xcode-select --install`, plus Go matching `go.mod`.
 

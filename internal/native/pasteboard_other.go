@@ -1,4 +1,4 @@
-//go:build !darwin
+//go:build !darwin && !linux
 
 package native
 
@@ -40,3 +40,6 @@ func AppPath(bundleID string) string        { return "" }
 func AppName(bundleID string) string        { return bundleID }
 func BundleID(path string) string           { return "" }
 func ResolveFileURL(s string) string        { return s }
+
+// Prepare runs before the app starts; nothing to do here.
+func Prepare() {}

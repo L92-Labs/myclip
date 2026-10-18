@@ -153,7 +153,7 @@ func (a *app) trayMenu() []*mygo.MenuItem {
 		{Label: locales.Preferences(), Accelerator: "Cmd+,", Click: func(*mygo.MenuItem, *mygo.Window) { a.openPrefs() }},
 		{Label: locales.About(), Click: func(*mygo.MenuItem, *mygo.Window) { a.About() }},
 		mygo.Separator(),
-		{Label: locales.TrayClips(n), Disabled: true},
+		{Label: locales.ClipsHere(n), Disabled: true},
 	}...)
 	if o := a.engine.Oversized(); o > 0 {
 		items = append(items, &mygo.MenuItem{Label: locales.TraySkipped(o), Disabled: true})

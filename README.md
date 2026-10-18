@@ -1,6 +1,7 @@
 # MyClip
 
-A clipboard history for the macOS menu bar that never leaves your Mac.
+A clipboard history for the menu bar that never leaves your computer — macOS
+and Linux.
 No account, no cloud, no network, no telemetry. Open source (MIT).
 
 MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
@@ -9,8 +10,8 @@ image OCR). It is written in Go with
 [MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
 no cgo and no Xcode project; the app is about 14 MB.
 
-> **Status:** pre-release, private. Builds and runs on macOS; Linux and
-> Windows are planned.
+> **Status:** pre-release, private. Runs on macOS and Linux (X11, and Wayland
+> through XWayland); Windows is planned.
 
 ## What it does
 
@@ -86,9 +87,24 @@ The first launch of an ad-hoc signed build needs right-click → Open.
 `MYCLIP_SHOW=popup` (or `popup-preview`, `prefs:<tab>`) opens a window at
 launch, for screenshots.
 
-On Linux the code compiles and the tests run (`scripts/test.sh`,
-`scripts/build-mac.sh --cross`), but the app has no Linux clipboard
-backend yet.
+On Linux (GTK 3):
+
+```sh
+scripts/build-linux.sh    # test, build build/linux-<arch>/: binary, .deb, .tar.gz + install.sh
+scripts/linux-smoke.sh    # end-to-end on a virtual display (Xvfb + openbox)
+```
+
+| Linux needs | for |
+|---|---|
+| `libayatana-appindicator3` | the menu icon (without it, open MyClip with its shortcut) |
+| `xdotool` (X11) or `wtype` / `ydotool` (Wayland) | pasting for you; copying works without |
+| `xprop` | telling apps apart for Ignore › Applications (by WM_CLASS) |
+
+Under Wayland, MyClip runs through XWayland, whose clipboard the compositor
+keeps in sync, because native Wayland apps cannot read the clipboard while
+unfocused. Password managers following KDE's convention (KeePassXC…) mark
+secrets with `x-kde-passwordManagerHint`; MyClip skips them unread. ⌘ in
+the key map is Ctrl on Linux, and ⇧⌘C is ⇧+Super+C.
 
 ## Layout
 

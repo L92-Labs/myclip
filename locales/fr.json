@@ -165,5 +165,13 @@
   "prefCheckInterval": "Vérifier toutes les :",
   "prefCheckIntervalDescription": "Fréquence à laquelle MyClip cherche de nouvelles copies, en millisecondes. Par défaut : 500.",
   "prefLocalOnly": "Tout reste sur ce Mac : aucun réseau, aucune télémétrie.",
-  "prefHistory": "Historique :"
+  "prefHistory": "Historique :",
+  "trayClipsLinux": "{count, plural, one {# élément} many {# éléments} other {# éléments}} · stockés sur cet ordinateur uniquement",
+  "aboutDetailLinux": "Un historique du presse-papiers 100 % local, inspiré de Maccy. Rien de ce que vous copiez ne quitte cet ordinateur.",
+  "pasteNeedsTool": "Pour coller, installez xdotool (X11), ou wtype ou ydotool (Wayland). L’élément a été copié.",
+  "prefPasteTool": "Le collage tape Ctrl+V avec xdotool (X11), ou wtype ou ydotool (Wayland) : installez-en un.",
+  "prefPasteToolFound": "Un outil de collage est installé.",
+  "prefFooterWarningLinux": "⚠️ Appuyez sur Ctrl+, pour ouvrir les préférences quand le pied de page est masqué.",
+  "prefMenuIconHiddenLinux": "Sans l’icône de menu, ouvrez la fenêtre avec son raccourci ; Ctrl+, dans la fenêtre ouvre ces réglages.",
+  "prefLocalOnlyLinux": "Tout reste sur cet ordinateur : pas de réseau, pas de télémétrie."
 }

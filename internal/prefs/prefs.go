@@ -197,10 +197,10 @@ func (v *View) general(c *ui.Context) {
 		ui.Field(c, "", func() {
 			ui.Column(c).Gap(6).Children(func() {
 				if v.Host.AccessibilityTrusted() {
-					muted(c, locales.PrefAccessibilityGranted())
+					muted(c, locales.PrefPasteGranted())
 				} else {
-					muted(c, locales.PrefAccessibility())
-					if ui.Button(c, locales.PrefAccessibilityOpen()).AlignSelf(ui.Start).Clicked() {
+					muted(c, locales.PrefPasteAccess())
+					if locales.CanRequestPasteAccess() && ui.Button(c, locales.PrefAccessibilityOpen()).AlignSelf(ui.Start).Clicked() {
 						v.Host.RequestAccessibility()
 					}
 				}
@@ -391,7 +391,7 @@ func (v *View) appearance(c *ui.Context) {
 						locales.PrefIconMyClip(), locales.PrefIconClipboard(), locales.PrefIconScissors(), locales.PrefIconPaperclip()})
 					v.check(c, &s.ShowRecentCopyInMenuBar, locales.PrefShowRecentCopy())
 				} else {
-					muted(c, locales.PrefMenuIconHidden())
+					muted(c, locales.MenuIconHiddenHere())
 				}
 			})
 		})
@@ -412,7 +412,7 @@ func (v *View) appearance(c *ui.Context) {
 				v.check(c, &s.ShowHexColorSwatch, locales.PrefShowHexSwatch())
 				v.check(c, &s.ShowFooter, locales.PrefShowFooter())
 				if !s.ShowFooter {
-					muted(c, locales.PrefFooterWarning())
+					muted(c, locales.FooterWarningHere())
 				}
 			})
 		})
@@ -575,5 +575,5 @@ func (v *View) advanced(c *ui.Context) {
 			v.number(c, &v.interval, &s.ClipboardCheckInterval, settings.MinCheckIntervalMs, 60000, 100)
 		}).Description(locales.PrefCheckIntervalDescription())
 	})
-	muted(c, locales.PrefLocalOnly())
+	muted(c, locales.LocalOnlyHere())
 }

@@ -1694,3 +1694,83 @@ func PrefHistory() string { return In(i18n.Locale()).PrefHistory() }
 func (msgs Messages) PrefHistory() string {
 	return Catalog.Format(msgs.locale, "prefHistory", nil)
 }
+
+// TrayClipsLinux says "{count, plural, one {# clip} other {# clips}} · stored on this computer only"
+// in the language the app shows.
+func TrayClipsLinux(count int) string { return In(i18n.Locale()).TrayClipsLinux(count) }
+
+// TrayClipsLinux says "{count, plural, one {# clip} other {# clips}} · stored on this computer only"
+// in the language of msgs.
+func (msgs Messages) TrayClipsLinux(count int) string {
+	return Catalog.Format(msgs.locale, "trayClipsLinux", map[string]any{"count": count})
+}
+
+// AboutDetailLinux says "A local-only clipboard history, after Maccy. Nothing you copy leaves this computer."
+// in the language the app shows.
+func AboutDetailLinux() string { return In(i18n.Locale()).AboutDetailLinux() }
+
+// AboutDetailLinux says "A local-only clipboard history, after Maccy. Nothing you copy leaves this computer."
+// in the language of msgs.
+func (msgs Messages) AboutDetailLinux() string {
+	return Catalog.Format(msgs.locale, "aboutDetailLinux", nil)
+}
+
+// PasteNeedsTool says "To paste, install xdotool (X11), or wtype or ydotool (Wayland). The item was copied."
+// in the language the app shows.
+func PasteNeedsTool() string { return In(i18n.Locale()).PasteNeedsTool() }
+
+// PasteNeedsTool says "To paste, install xdotool (X11), or wtype or ydotool (Wayland). The item was copied."
+// in the language of msgs.
+func (msgs Messages) PasteNeedsTool() string {
+	return Catalog.Format(msgs.locale, "pasteNeedsTool", nil)
+}
+
+// PrefPasteTool says "Pasting types Ctrl+V with xdotool (X11), or wtype or ydotool (Wayland): install one."
+// in the language the app shows.
+func PrefPasteTool() string { return In(i18n.Locale()).PrefPasteTool() }
+
+// PrefPasteTool says "Pasting types Ctrl+V with xdotool (X11), or wtype or ydotool (Wayland): install one."
+// in the language of msgs.
+func (msgs Messages) PrefPasteTool() string {
+	return Catalog.Format(msgs.locale, "prefPasteTool", nil)
+}
+
+// PrefPasteToolFound says "A paste tool is installed."
+// in the language the app shows.
+func PrefPasteToolFound() string { return In(i18n.Locale()).PrefPasteToolFound() }
+
+// PrefPasteToolFound says "A paste tool is installed."
+// in the language of msgs.
+func (msgs Messages) PrefPasteToolFound() string {
+	return Catalog.Format(msgs.locale, "prefPasteToolFound", nil)
+}
+
+// PrefFooterWarningLinux says "⚠️ Press Ctrl+, to open preferences when the footer is hidden."
+// in the language the app shows.
+func PrefFooterWarningLinux() string { return In(i18n.Locale()).PrefFooterWarningLinux() }
+
+// PrefFooterWarningLinux says "⚠️ Press Ctrl+, to open preferences when the footer is hidden."
+// in the language of msgs.
+func (msgs Messages) PrefFooterWarningLinux() string {
+	return Catalog.Format(msgs.locale, "prefFooterWarningLinux", nil)
+}
+
+// PrefMenuIconHiddenLinux says "With the menu icon hidden, open the popup with its shortcut; Ctrl+, in the popup opens these settings."
+// in the language the app shows.
+func PrefMenuIconHiddenLinux() string { return In(i18n.Locale()).PrefMenuIconHiddenLinux() }
+
+// PrefMenuIconHiddenLinux says "With the menu icon hidden, open the popup with its shortcut; Ctrl+, in the popup opens these settings."
+// in the language of msgs.
+func (msgs Messages) PrefMenuIconHiddenLinux() string {
+	return Catalog.Format(msgs.locale, "prefMenuIconHiddenLinux", nil)
+}
+
+// PrefLocalOnlyLinux says "Everything stays on this computer: no network, no telemetry."
+// in the language the app shows.
+func PrefLocalOnlyLinux() string { return In(i18n.Locale()).PrefLocalOnlyLinux() }
+
+// PrefLocalOnlyLinux says "Everything stays on this computer: no network, no telemetry."
+// in the language of msgs.
+func (msgs Messages) PrefLocalOnlyLinux() string {
+	return Catalog.Format(msgs.locale, "prefLocalOnlyLinux", nil)
+}

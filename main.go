@@ -46,6 +46,7 @@ func dataDir() (string, error) {
 }
 
 func main() {
+	native.Prepare() // before MyGo starts the toolkit (Linux: X11 under Wayland)
 	// ① data root 0700 (+ run/), ② pinned as userData before anything else.
 	dir, err := dataDir()
 	if err == nil {

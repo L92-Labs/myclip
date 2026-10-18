@@ -263,3 +263,6 @@ func FrontmostBundleID() string {
 	})
 	return id
 }
+
+// Prepare runs before the app starts; nothing to do on macOS.
+func Prepare() {}
