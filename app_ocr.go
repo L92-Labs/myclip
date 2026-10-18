@@ -1,11 +1,11 @@
 package main
 
 import (
-	"crypto/sha256"
 	"errors"
 	"log"
 	"sync"
 
+	"github.com/L92-Labs/myclip/internal/engine"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
@@ -21,8 +21,9 @@ type ocrQueue struct {
 	mu      sync.Mutex
 	pending []*history.Item // waiting, oldest first; never dropped
 	running bool
-	save    func(id int64, text string) error
-	current func(id int64) *history.Item // the item now stored under id
+	// save stores a reading for the image with that digest, refusing it
+	// atomically when the ID now holds another image.
+	save func(id int64, image [32]byte, text string) error
 	// recognize reads an image's text; nil uses the system's recognizer.
 	recognize func([]byte) (string, error)
 	stopped   bool // no recognizer on this system
@@ -63,11 +64,6 @@ func needsOCR(it *history.Item) bool {
 	return ok && len(data) <= ocrMaxBytes && len(it.FilePaths()) == 0 && !it.TextRecognized() && it.Text() == ""
 }
 
-func digest(it *history.Item) [32]byte {
-	data, _, _ := it.Image()
-	return sha256.Sum256(data)
-}
-
 func (q *ocrQueue) run() {
 	for {
 		it, ok := q.next()
@@ -79,7 +75,7 @@ func (q *ocrQueue) run() {
 		if typ != pasteboard.TypeHEIC && !decodable(data) {
 			continue
 		}
-		sum := digest(it)
+		sum := engine.ImageDigest(it)
 		recognize := q.recognize
 		if recognize == nil {
 			recognize = native.RecognizeText
@@ -95,13 +91,12 @@ func (q *ocrQueue) run() {
 			}
 			continue
 		}
-		// The item may be gone meanwhile, its ID taken by a newer clip:
-		// save only onto the very image read. An empty reading is saved
-		// too, so the image is not read again at the next launch.
-		if cur := q.current(it.ID); cur == nil || digest(cur) != sum {
+		// The item may be gone meanwhile, its ID taken by a newer clip: save
+		// checks the image under its lock. An empty reading is saved too, so
+		// the image is not read again at the next launch.
+		if err := q.save(it.ID, sum, text); errors.Is(err, engine.ErrNoItem) {
 			continue
-		}
-		if err := q.save(it.ID, text); err != nil {
+		} else if err != nil {
 			log.Print("myclip: text in image: ", err)
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/L92-Labs/myclip/internal/engine"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
 )
@@ -38,8 +39,12 @@ func TestOCRSavesOnlyOntoTheImageRead(t *testing.T) {
 			}
 			return "new words", nil
 		},
-		current: func(int64) *history.Item { return reused }, // id 7 is another image now
-		save: func(id int64, text string) error {
+		// The store holds the reused clip under id 7 and checks the digest,
+		// as Engine.SetRecognizedText does under its lock.
+		save: func(id int64, image [32]byte, text string) error {
+			if engine.ImageDigest(reused) != image {
+				return engine.ErrNoItem
+			}
 			mu.Lock()
 			defer mu.Unlock()
 			saved = append(saved, text)
@@ -90,8 +95,7 @@ func TestOCRBacklogIsNotDropped(t *testing.T) {
 	}
 	q := ocrQueue{
 		recognize: func([]byte) (string, error) { return "w", nil },
-		current:   func(id int64) *history.Item { return all[id] },
-		save: func(int64, string) error {
+		save: func(int64, [32]byte, string) error {
 			mu.Lock()
 			saved++
 			mu.Unlock()

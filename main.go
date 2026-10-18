@@ -181,7 +181,6 @@ func (a *app) start(dbPath string) error {
 	a.engine.SetCaptureSafe(a.captureSafe)
 	a.cycle.held = native.ModifierFlags
 	a.ocr.save = a.engine.SetRecognizedText
-	a.ocr.current = a.engine.Item
 	for _, it := range a.engine.Items() {
 		a.ocr.add(it) // images kept from before: read once
 	}

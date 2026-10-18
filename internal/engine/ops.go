@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"slices"
@@ -66,9 +67,15 @@ func (e *Engine) deleteStored(items []*history.Item) error {
 // update replaces the item with id by a modified copy, so items already
 // handed out stay unchanged, and saves it.
 func (e *Engine) update(id int64, fn func(*history.Item)) error {
+	return e.updateIf(id, nil, fn)
+}
+
+// updateIf is update when ok (nil: always) holds for the stored item, both
+// checked and applied under the lock.
+func (e *Engine) updateIf(id int64, ok func(*history.Item) bool, fn func(*history.Item)) error {
 	e.mu.Lock()
 	old := e.find(id)
-	if old == nil {
+	if old == nil || ok != nil && !ok(old) {
 		e.mu.Unlock()
 		return ErrNoItem
 	}
@@ -157,14 +164,28 @@ func (e *Engine) SetTitle(id int64, title string) error {
 // MaxRecognizedRunes bounds the text kept from an image.
 const MaxRecognizedRunes = 20000
 
+// ImageDigest is the SHA-256 of an item's image (zero without one).
+func ImageDigest(it *history.Item) [32]byte {
+	data, _, ok := it.Image()
+	if !ok {
+		return [32]byte{}
+	}
+	return sha256.Sum256(data)
+}
+
 // SetRecognizedText stores the text read in an item's image, replacing an
 // earlier reading. An empty text is stored too: it marks the image read.
 // The storage limits apply again, since the item grew.
-func (e *Engine) SetRecognizedText(id int64, text string) error {
+//
+// The reading lands only on the image read: the item stored under id must
+// still hold an image with digest image (SHA-256), checked under the same
+// lock as the update, as an ID may be taken by a newer clip meanwhile.
+func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error {
 	if r := []rune(text); len(r) > MaxRecognizedRunes {
 		text = string(r[:MaxRecognizedRunes])
 	}
-	err := e.update(id, func(it *history.Item) {
+	same := func(it *history.Item) bool { return ImageDigest(it) == image }
+	err := e.updateIf(id, same, func(it *history.Item) {
 		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
 			return c.Type == pasteboard.TypeRecognizedText
 		})

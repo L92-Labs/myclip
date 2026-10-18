@@ -279,7 +279,7 @@ func TestSearchFindsImageByRecognizedText(t *testing.T) {
 	p.Reset()
 	tt.Frame()
 	tt.Type("invoice")
-	if len(p.rows) != 1 || p.rows[0].it.ID != 20 || p.rows[0].title != "" || p.rows[0].ranges != nil {
+	if len(p.rows) != 1 || p.rows[0].it.ID != 20 || p.rows[0].title != "" || len(p.rows[0].ranges) != 0 {
 		t.Fatalf("rows %+v", p.rows)
 	}
 }
@@ -349,5 +349,33 @@ func TestImageFoundByItsOwnText(t *testing.T) {
 	tt.Type("quarterly")
 	if len(p.rows) != 1 || p.rows[0].it.ID != 30 {
 		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// A renamed image is still found by the text read in it; the highlight
+// stays inside the title.
+func TestRenamedImageFoundByRecognizedText(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	img := history.NewItem([]history.Content{
+		{Type: pasteboard.TypePNG, Value: []byte("png")},
+		{Type: pasteboard.TypeRecognizedText, Value: []byte("Invoice 42")},
+	}, "", time.Unix(40, 0))
+	img.ID, img.Title = 40, "Receipt"
+	p.SetItems(append([]*history.Item{img}, p.items...))
+	p.Reset()
+	tt.Frame()
+	tt.Type("invoice")
+	if len(p.rows) != 1 || p.rows[0].it.ID != 40 || len(p.rows[0].ranges) != 0 {
+		t.Fatalf("rows %+v", p.rows)
+	}
+}
+
+// Any move but ⇧↑/⇧↓ drops the stack.
+func TestPageKeysDropTheStack(t *testing.T) {
+	p, _, tt := setup(t, nil)
+	tt.Key(ui.Shift, ui.KeyDown)
+	tt.Key(0, ui.KeyPageDown)
+	if len(p.Marked()) != 0 {
+		t.Fatalf("marks kept: %v", p.Marked())
 	}
 }

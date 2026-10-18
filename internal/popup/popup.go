@@ -7,6 +7,7 @@ package popup
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -187,9 +188,15 @@ func (p *Popup) filter() {
 	for i, it := range p.items {
 		titles[i] = it.ListTitle(s.ShowSpecialSymbols)
 		texts[i] = titles[i]
-		if texts[i] == "" { // an image row: search the text read in it, else its own text
-			if texts[i] = it.RecognizedText(); texts[i] == "" {
-				texts[i] = it.PreviewText()
+		if _, _, image := it.Image(); image {
+			// An image is found by its title (if renamed) and by the text
+			// read in it, else its own text.
+			extra := it.RecognizedText()
+			if extra == "" {
+				extra = it.PreviewText()
+			}
+			if extra != "" && extra != titles[i] {
+				texts[i] = strings.TrimSpace(titles[i] + "\n" + extra)
 			}
 		}
 	}
@@ -199,9 +206,10 @@ func (p *Popup) filter() {
 	for _, r := range results {
 		it := p.items[r.Index]
 		rw := row{it: it, title: titles[r.Index], ranges: r.Ranges}
-		if rw.title == "" {
-			rw.ranges = nil // the ranges are in the image's text, not shown in the row
-		}
+		// Highlight only what the row shows: matches past the title are in
+		// an image's text.
+		shown := len([]rune(rw.title))
+		rw.ranges = slices.DeleteFunc(slices.Clone(rw.ranges), func(rg search.Range) bool { return rg.End > shown })
 		if it.Pin != "" {
 			rw.key, _ = shortcut.Letter([]rune(it.Pin)[0])
 		} else if n < 9 {
@@ -351,8 +359,10 @@ func (p *Popup) key(mods ui.Modifiers, k ui.Key) bool {
 		p.marked = nil
 		p.choose(p.chosen - 1)
 	case is(ui.Cmd, ui.KeyDown), is(ui.Alt, ui.KeyDown), is(ui.Ctrl|ui.Alt, ui.KeyN), is(0, ui.KeyPageDown):
+		p.marked = nil // any move but ⇧↑/⇧↓ drops the stack
 		p.choose(len(p.rows) - 1)
 	case is(ui.Cmd, ui.KeyUp), is(ui.Alt, ui.KeyUp), is(ui.Ctrl|ui.Alt, ui.KeyP), is(0, ui.KeyPageUp):
+		p.marked = nil
 		p.choose(0)
 	case is(ui.Cmd|ui.Alt, ui.KeyBackspace):
 		p.requestClear(false)
@@ -690,14 +700,25 @@ func (p *Popup) preview(c *ui.Context, it *history.Item) {
 			}
 		} else {
 			text := it.PreviewText()
-			if text == "" {
-				text = it.RecognizedText() // an image Go cannot draw (HEIC), read by Vision
-			}
 			if r := []rune(text); len(r) > 10000 {
 				text = string(r[:10000]) + "…"
 			}
+			// An image Go cannot draw (HEIC) still shows what Vision read.
+			ocr := ""
+			if _, _, image := it.Image(); image && it.RecognizedText() != it.PreviewText() {
+				if ocr = it.RecognizedText(); len([]rune(ocr)) > 10000 {
+					ocr = string([]rune(ocr)[:10000]) + "…"
+				}
+			}
 			ui.Scroll(c).Grow(1).Shrink(1).Children(func() {
-				ui.Text(c, text).Wrap().FontSize(12).Selectable()
+				ui.Column(c).Gap(8).Children(func() {
+					if text != "" {
+						ui.Text(c, text).Wrap().FontSize(12).Selectable()
+					}
+					if ocr != "" {
+						ui.Text(c, ocr).Wrap().FontSize(11).TextColor(t.TextMuted).Selectable()
+					}
+				})
 			})
 		}
 		ui.Divider(c)

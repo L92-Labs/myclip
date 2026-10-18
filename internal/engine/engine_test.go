@@ -230,7 +230,7 @@ func TestRecognizedText(t *testing.T) {
 	r.f.SetItems(img, nil)
 	r.e.Tick(context.Background())
 	id := r.e.Items()[0].ID
-	if err := r.e.SetRecognizedText(id, "Invoice 42"); err != nil {
+	if err := r.e.SetRecognizedText(id, ImageDigest(r.e.Item(id)), "Invoice 42"); err != nil {
 		t.Fatal(err)
 	}
 	if got := r.e.Item(id).RecognizedText(); got != "Invoice 42" {
@@ -320,13 +320,13 @@ func TestRecognizedTextEmptyAndLimits(t *testing.T) {
 	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("new-png")}}}, nil)
 	r.e.Tick(context.Background())
 	newID, oldID := r.e.Items()[0].ID, r.e.Items()[1].ID
-	if err := r.e.SetRecognizedText(oldID, ""); err != nil {
+	if err := r.e.SetRecognizedText(oldID, ImageDigest(r.e.Item(oldID)), ""); err != nil {
 		t.Fatal(err)
 	}
 	if it := r.e.Item(oldID); !it.TextRecognized() || it.RecognizedText() != "" {
 		t.Fatal("empty reading not recorded")
 	}
-	if err := r.e.SetRecognizedText(newID, strings.Repeat("x", 52)); err != nil {
+	if err := r.e.SetRecognizedText(newID, ImageDigest(r.e.Item(newID)), strings.Repeat("x", 52)); err != nil {
 		t.Fatal(err)
 	}
 	if r.e.Item(oldID) != nil {
@@ -353,5 +353,20 @@ func TestCopyRightAfterAStackIsKept(t *testing.T) {
 	}
 	if got := r.e.Items()[0].Text(); got != "typed right after" {
 		t.Fatalf("top %q", got)
+	}
+}
+
+// A reading for another image (same ID reused) is refused under the lock.
+func TestRecognizedTextNeedsTheSameImage(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.f.SetItems([]pasteboard.Item{{Types: map[string][]byte{pasteboard.TypePNG: []byte("this image")}}}, nil)
+	r.e.Tick(context.Background())
+	id := r.e.Items()[0].ID
+	other := ImageDigest(&history.Item{Contents: []history.Content{{Type: pasteboard.TypePNG, Value: []byte("deleted image")}}})
+	if err := r.e.SetRecognizedText(id, other, "wrong words"); err == nil {
+		t.Fatal("reading of another image accepted")
+	}
+	if r.e.Item(id).TextRecognized() {
+		t.Fatal("stored onto the wrong image")
 	}
 }
