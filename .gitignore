@@ -2,3 +2,12 @@
 /.mygo/
 mygo_windows_*.syso
 .serena/
+__pycache__/
+*.pyc
+/.env
+/.env.*
+*.p12
+*.pfx
+*.key
+*.mobileprovision
+/myclip

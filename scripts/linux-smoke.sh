@@ -13,23 +13,31 @@ need python3
 
 work="$(mktemp -d)"
 pids=()
-cleanup() { for p in "${pids[@]}"; do kill "$p" 2>/dev/null; done; rm -rf "$work"; }
+cleanup() {
+	for p in "${pids[@]}"; do kill "$p" 2>/dev/null || true; done
+	for p in "${pids[@]}"; do wait "$p" 2>/dev/null || true; done
+	rm -rf "$work"
+}
 trap cleanup EXIT
 
 step "build"
-go build -o "$work/myclip" . && go build -o "$work/cliphelper" ./_tools/cliphelper
+app_bin="${MYCLIP_SMOKE_BINARY:-$work/myclip}"
+if [ -z "${MYCLIP_SMOKE_BINARY:-}" ]; then go build -o "$app_bin" .; fi
+[ -x "$app_bin" ] || die "not executable: $app_bin"
+go build -o "$work/cliphelper" ./_tools/cliphelper
 ok "built"
 
-export DISPLAY=:$((90 + RANDOM % 9))
-Xvfb "$DISPLAY" -screen 0 1280x800x24 >"$work/xvfb.log" 2>&1 & pids+=($!)
-sleep 1
+Xvfb -displayfd 3 -screen 0 1280x800x24 3>"$work/display" >"$work/xvfb.log" 2>&1 & pids+=($!)
+for _ in {1..50}; do [ ! -s "$work/display" ] || break; sleep 0.1; done
+[ -s "$work/display" ] || die "Xvfb did not start"
+export DISPLAY=":$(cat "$work/display")"
 wm=0
 if command -v openbox >/dev/null; then openbox >"$work/wm.log" 2>&1 & pids+=($!); wm=1; sleep 1; fi
-export HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config"
+export XDG_CONFIG_HOME="$work/home/.config"
 cfg="$XDG_CONFIG_HOME/com.l92labs.myclip"
-mkdir -p "$HOME"
+mkdir -p "$XDG_CONFIG_HOME"
 
-launch() { "$work/myclip" >"$work/myclip.log" 2>&1 & app=$!; pids+=($app); sleep 3; }
+launch() { "$app_bin" >"$work/myclip.log" 2>&1 & app=$!; pids+=($app); sleep 3; kill -0 "$app" || die "app exited during startup"; }
 copies=()
 copy() { "$work/cliphelper" write "$1" "${2:-none}" 2 & copies+=($!); sleep 1.5; }
 settle() { wait "${copies[@]}"; copies=(); }
@@ -47,21 +55,28 @@ check() {
 
 step "capture"
 launch
-copy "hello from linux"; copy "hunter2-secret" hint; copy "second clip"; copy "hello from linux"; settle
+copy "hello from linux"
+check "first copy captured before continuing" '[[ "$(history)" == *"hello from linux"* ]]'
+copy "hunter2-secret" hint; copy "second clip"; copy "hello from linux"; settle
 h="$(history)"
 check "text captured" '[[ "$h" == *"\"second clip\""* ]]'
-check "duplicate merged (2 copies)" 'grep -q $'"'"'^1\t2\t"hello from linux"'"'"' <<<"$h"'
+check "duplicate merged (2 copies)" 'grep -Eq $'"'"'^[0-9]+\t2\t"hello from linux"'"'"' <<<"$h"'
 check "password-manager copy not stored" '[[ "$h" != *hunter2* ]]'
 check "data dir 0700, db 0600" '[ "$(stat -c %a "$cfg")" = 700 ] && [ "$(stat -c %a "$cfg/history.db")" = 600 ]'
 
 if [ "$wm" = 1 ]; then
 	step "popup"
 	keys super+shift+c; sleep 2.5 # the first frame draws in software here
+	if [ -n "${MYCLIP_SMOKE_EVIDENCE_DIR:-}" ]; then
+		need scrot
+		mkdir -p "$MYCLIP_SMOKE_EVIDENCE_DIR"
+		scrot -o "$MYCLIP_SMOKE_EVIDENCE_DIR/linux-popup.png"
+	fi
 	keys down; sleep 0.5; keys return; sleep 1
 	# Whole outputs, compared afterwards: pipefail + head would SIGPIPE the reader.
 	check "Enter copies the second row back" '[ "$("$work/cliphelper" read | sed -n 1p)" = "second clip" ]'
 	check "copy-back bumps it to the top" '[[ "$(history | sed -n 1p)" == *"second clip"* ]]'
-	"$work/myclip" --toggle >/dev/null 2>&1; sleep 2 # a second launch: the popup opens
+	"$app_bin" --toggle >/dev/null 2>&1; sleep 2 # a second launch: the popup opens
 	keys down; sleep 0.5; keys return; sleep 1 # the other clip, so the check is not vacuous
 	check "myclip --toggle opens the popup" '[ "$("$work/cliphelper" read | sed -n 1p)" = "hello from linux" ]'
 else

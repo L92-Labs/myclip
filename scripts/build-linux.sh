@@ -28,6 +28,9 @@ if [ -z "$arch" ]; then
 	esac
 fi
 need go "install Go from https://go.dev/dl"
+need python3
+case "$arch" in amd64|arm64) ;; *) die "--arch must be amd64 or arm64" ;; esac
+python3 scripts/licenses.py --check
 
 [ "$skip_tests" = 1 ] || "$ROOT/scripts/test.sh"
 
