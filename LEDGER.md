@@ -1,5 +1,8 @@
 # Finding ledger — plan phase
 
+> Historical design-review record. Current build, CI and public-preview
+> release instructions live in [docs/RELEASING.md](docs/RELEASING.md).
+
 Per-finding dispositions (round → reviewed plan version). Rounds: R1 (v1), R2 (v2), R3 (v3), R4 (v4), R5 (v5), R6 (v6), R7 (v7), R8 (v8), R9 (v9), R10 (v10), R11 (v11), R12 (v12), R13 (v13), R14 (v14), R15 (v15), R16 (v16), R17 (v17), R18 (v18), R19 (v19), R20 (v20), R21 (v21), R22 (v22), R23 (v23), R24 (v24), R25 (v25), R26 (v26), R27 (v27), R28 (v27), R29 (v28), R30 (v28), R31 (v28), R32 (v28), R33 (v28), R34 (v28), R35 (v28), R36 (v28), R37 (v28), R38 (v28), R39 (v28), R40 (v28), R41 (v28), R42 (v28), R43 (v28).
 
 ## Round 1 → v2 (45 findings: Cursor 14 + Opus 17 + GLM 14)

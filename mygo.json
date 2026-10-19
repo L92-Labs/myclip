@@ -2,7 +2,14 @@
   "name": "myclip",
   "identifier": "com.l92labs.myclip",
   "version": "0.1.0",
+  "copyright": "Copyright (c) 2026 L92-Labs / loiu92",
+  "resources": ["LICENSE", "NOTICE.md", "THIRD_PARTY_NOTICES.txt"],
   "out": "build",
+  "linux": {
+    "comment": "Local-only clipboard history for macOS and Linux",
+    "command": "myclip",
+    "depends": ["libayatana-appindicator3-1", "xdotool", "tesseract-ocr"]
+  },
   "macos": {
     "infoPlist": {
       "LSUIElement": true

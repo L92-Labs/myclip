@@ -31,5 +31,12 @@ Maccy's MIT license notice:
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 > THE SOFTWARE.
 
-Third-party notices for bundled dependencies (MyGo, purego, go-text, x/image,
-SQLite and others) are generated at release time into THIRD_PARTY_NOTICES.
+Lucide icons are used under the ISC license, with the upstream Feather MIT
+notice where applicable; see licenses/Lucide.txt. The initial application
+icon comes from MyGo's MIT-licensed native template.
+
+Verbatim third-party notices for the pinned runtime dependencies (MyGo,
+purego, go-text, x/image, x/text, Go and SQLite) are collected in
+THIRD_PARTY_NOTICES.txt. Regenerate them with `python3 scripts/licenses.py`;
+CI rejects stale notices. All installers include LICENSE, this notice,
+and THIRD_PARTY_NOTICES.txt.

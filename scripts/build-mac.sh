@@ -35,6 +35,8 @@ on_mac=0
 # --- preflight ---------------------------------------------------------------
 step "preflight"
 need go "install Go from https://go.dev/dl (go.mod pins $(sed -nE 's/^go //p' go.mod))"
+need python3
+python3 scripts/licenses.py --check
 ok "$(go version)"
 if [ "$on_mac" = 1 ]; then
 	xcode-select -p >/dev/null 2>&1 || die "Xcode Command Line Tools missing — run: xcode-select --install"

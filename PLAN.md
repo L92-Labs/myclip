@@ -1,5 +1,9 @@
 # MyClip — Implementation Plan (v28)
 
+> Historical planning snapshot. Earlier private/no-CI/signing decisions below
+> are superseded by the public-preview workflow in [docs/RELEASING.md](docs/RELEASING.md).
+> See [README.md](README.md) for implemented features and validation limits.
+
 Lightweight, open-source, 100%-local clipboard manager for macOS. **Parity contract: Maccy 2.7.1 @ `eb03eba` — `PARITY.md` is the authoritative inventory.** Stack: Go + [MyGo](https://mygo.egoist.dev) v0.5.5 (pure Go, no cgo, native GPU UI, tray, global shortcuts, clipboard APIs, SQLite plugin, updater).
 
 Repo: `L92-Labs/myclip` (private now; public later). MIT + `NOTICE.md` (Maccy notice reproduced verbatim @ 2.7.1). Bundle ID `com.l92labs.myclip` (locked; TCC keys off code-signing identity ⇒ stable signing identity required from M1). Go module `github.com/L92-Labs/myclip`.
