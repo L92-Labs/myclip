@@ -2,6 +2,7 @@ package instance
 
 import (
 	"errors"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -63,7 +64,7 @@ func TestLockRefusesSymlink(t *testing.T) {
 }
 
 func TestToggleCommand(t *testing.T) {
-	root, _ := DataRoot(filepath.Join(t.TempDir(), "root"))
+	root := socketTestRoot(t)
 	got := make(chan string, 2)
 	c, err := Serve(root, func(cmd string) { got <- cmd })
 	if err != nil {
@@ -91,15 +92,35 @@ func TestToggleCommand(t *testing.T) {
 }
 
 func TestServeReplacesAStaleSocket(t *testing.T) {
-	root, _ := DataRoot(filepath.Join(t.TempDir(), "root"))
+	root := socketTestRoot(t)
 	c1, err := Serve(root, func(string) {})
 	if err != nil {
 		t.Fatal(err)
 	}
-	c1.Close() // as after a crash, the path may linger
+	c1.(*net.UnixListener).SetUnlinkOnClose(false)
+	c1.Close() // a crash leaves the socket inode behind
+	if info, err := os.Lstat(socketPath(root)); err != nil || info.Mode()&os.ModeSocket == 0 {
+		t.Fatalf("stale socket missing: %v", err)
+	}
 	c2, err := Serve(root, func(string) {})
 	if err != nil {
 		t.Fatalf("relaunch: %v", err)
 	}
 	c2.Close()
+}
+
+func socketTestRoot(t *testing.T) string {
+	t.Helper()
+	// macOS limits Unix socket paths to 104 bytes. Its long TMPDIR plus
+	// t.TempDir's test-name prefix can exceed that before the socket name.
+	dir, err := os.MkdirTemp("/tmp", "myclip-test-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	root, err := DataRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return root
 }
