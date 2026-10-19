@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
@@ -202,6 +203,8 @@ func ImageDigest(it *history.Item) [32]byte {
 // SetRecognizedText stores the text read in an item's image, replacing an
 // earlier reading. An empty text is stored too: it marks the image read.
 // The storage limits apply again, since the item grew.
+// OCR text uses only the bytes left under the capture-time per-item cap;
+// an empty reading still marks a full item as processed.
 //
 // The reading lands only on the image read: the item stored under id must
 // still hold an image with digest image (SHA-256), checked under the same
@@ -211,11 +214,23 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 		text = string(r[:MaxRecognizedRunes])
 	}
 	same := func(it *history.Item) bool { return ImageDigest(it) == image }
+	limit := e.cap.MaxItemBytes
+	if limit == 0 {
+		limit = capture.DefaultMaxItemBytes
+	}
 	e.persist.Lock()
 	err := e.updateHeld(id, same, func(it *history.Item) {
 		it.Contents = slices.DeleteFunc(it.Contents, func(c history.Content) bool {
 			return c.Type == pasteboard.TypeRecognizedText
 		})
+		// Reclaim an earlier reading's bytes before budgeting its replacement.
+		if remaining := max(limit-it.Size(), 0); int64(len(text)) > remaining {
+			end := int(remaining)
+			for end > 0 && !utf8.RuneStart(text[end]) {
+				end--
+			}
+			text = text[:end]
+		}
 		it.Contents = append(it.Contents, history.Content{Type: pasteboard.TypeRecognizedText, Value: []byte(text)})
 	})
 	if err == nil {
