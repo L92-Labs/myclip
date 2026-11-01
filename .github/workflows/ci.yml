@@ -114,6 +114,7 @@ jobs:
         run: scripts/build-mac.sh --skip-tests --universal --dmg
       - name: Build Windows executable
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           $version = (Get-Content mygo.json | ConvertFrom-Json).version
           go build -trimpath -ldflags "-s -w" -o build/windows-amd64/myclip.exe .
