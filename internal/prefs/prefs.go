@@ -5,6 +5,8 @@ package prefs
 
 import (
 	"fmt"
+	"image"
+	"image/color"
 	"regexp"
 	"runtime"
 	"slices"
@@ -46,6 +48,9 @@ type Host interface {
 	AppName(bundleID string) string
 	AppIcon(bundleID string) *ui.Bitmap
 	Displays() []string
+	// Refit sizes the window to the pane again, after the frame that
+	// asked for it: it runs on the main thread once that build is done.
+	Refit()
 }
 
 // Content type groups of the Storage pane (StorageType @ eb03eba).
@@ -98,7 +103,10 @@ func (v *View) Load() {
 	v.newRuleSeconds = 60
 }
 
-func (v *View) changed() { v.Host.Changed() }
+func (v *View) changed() {
+	v.Host.Changed()
+	v.Host.Refit() // edits move the pane's rows: the window follows
+}
 
 // View builds the window.
 func (v *View) View(c *ui.Context) {
@@ -106,37 +114,93 @@ func (v *View) View(c *ui.Context) {
 	c.Root().Background(t.Background)
 	c.OnShortcut(ui.Cmd, ui.KeyW, func() { v.stopRecording() })
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).Padding(12, 16, 0, 16).Justify(ui.Center).Children(func() {
-			if ui.Tabs(c, &v.tab, locales.PrefGeneral(), locales.PrefStorage(), locales.PrefAppearance(),
-				locales.PrefPins(), locales.PrefIgnore(), locales.PrefRules(), locales.PrefAdvanced()).Changed() {
-				v.stopRecording()
-			}
-		})
+		v.tabStrip(c)
 		ui.Scroll(c.Key(v.tab)).Grow(1).Children(func() {
-			ui.Column(c).Padding(16, 24).Gap(12).Children(func() {
-				switch v.tab {
-				case 0:
-					v.general(c)
-				case 1:
-					v.storage(c)
-				case 2:
-					v.appearance(c)
-				case 3:
-					v.pins(c)
-				case 4:
-					v.ignore(c)
-				case 5:
-					v.rules(c)
-				case 6:
-					v.advanced(c)
-				}
-			})
+			v.paneBody(c)
 		})
 	})
 }
 
+func (v *View) tabStrip(c *ui.Context) {
+	ui.Row(c).Padding(12, 16, 0, 16).Justify(ui.Center).Children(func() {
+		if ui.Tabs(c, &v.tab, locales.PrefGeneral(), locales.PrefStorage(), locales.PrefAppearance(),
+			locales.PrefPins(), locales.PrefIgnore(), locales.PrefRules(), locales.PrefAdvanced()).Changed() {
+			v.stopRecording()
+			v.Host.Refit()
+		}
+	})
+}
+
+// paneBody is the current pane's content, under the tab strip.
+func (v *View) paneBody(c *ui.Context) {
+	ui.Column(c).Padding(16, 24).Gap(12).Children(func() {
+		switch v.tab {
+		case 0:
+			v.general(c)
+		case 1:
+			v.storage(c)
+		case 2:
+			v.appearance(c)
+		case 3:
+			v.pins(c)
+		case 4:
+			v.ignore(c)
+		case 5:
+			v.rules(c)
+		case 6:
+			v.advanced(c)
+		}
+	})
+}
+
 // SetTab shows a pane: 0 General … 6 Advanced.
-func (v *View) SetTab(i int) { v.tab = max(0, min(i, 6)) }
+func (v *View) SetTab(i int) {
+	v.tab = max(0, min(i, 6))
+	if v.Host != nil {
+		v.Host.Refit()
+	}
+}
+
+// The window's width; its height follows the pane it shows.
+const (
+	fitWidth     = 680
+	fitRenderMax = 2400 // the tallest pane the measurement renders
+	fitMargin    = 4    // a little room under the last control
+)
+
+// Fit is the window size that shows the current pane without scrolling.
+// It renders the tab strip and the pane in memory and measures the
+// drawing, so the panes that grow with their content — pins, ignored
+// applications, rules — keep the window as tall as they need and no
+// taller. Maccy's panes, whose lists sit in their own scroll views, are
+// fixed; ours show everything at once, as they are short.
+func (v *View) Fit() (w, h int) {
+	img := ui.Render(func(c *ui.Context) {
+		t := c.Theme()
+		c.Root().Background(t.Background)
+		ui.Column(c).Children(func() {
+			v.tabStrip(c)
+			v.paneBody(c)
+		})
+	}, fitWidth, fitRenderMax, 1)
+	bottom := lastDrawnRow(img, img.RGBAAt(2, 2)) // (2, 2): the strip's padding
+	return fitWidth, min(fitRenderMax, bottom+1+panePadY+fitMargin)
+}
+
+// panePadY is the pane column's vertical padding.
+const panePadY = 16
+
+// lastDrawnRow is the last row of img that drew anything but bg.
+func lastDrawnRow(img *image.RGBA, bg color.RGBA) int {
+	for y := img.Rect.Max.Y - 1; y >= img.Rect.Min.Y; y-- {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			if img.RGBAAt(x, y) != bg {
+				return y
+			}
+		}
+	}
+	return 0
+}
 
 // StopRecording ends a shortcut recording, as the window hides.
 func (v *View) StopRecording() { v.stopRecording() }
@@ -478,6 +542,7 @@ func (v *View) pins(c *ui.Context) {
 			}
 			if ui.Button(c.Key(fmt.Sprint("unpin", id)), locales.PrefUnpin()).Clicked() {
 				v.Host.Unpin(id)
+				v.Host.Refit()
 			}
 		}
 	})

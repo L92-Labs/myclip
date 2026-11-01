@@ -248,6 +248,7 @@ func (a *app) showOnLaunch(what string) {
 		var tab int
 		fmt.Sscan(strings.TrimPrefix(what, "prefs:"), &tab)
 		a.prefs.SetTab(tab)
+		a.fitPrefs()
 		a.logBounds(a.prefsWin)
 	}
 }

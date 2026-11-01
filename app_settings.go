@@ -94,6 +94,7 @@ func (a *app) openPrefs() {
 		})
 	}
 	a.prefs.Load()
+	a.fitPrefs()
 	if !a.prefsWin.IsVisible() {
 		a.prefsWin.Center()
 	}
@@ -193,6 +194,36 @@ func (a *app) PickApp() {
 			a.Changed()
 		})
 	}()
+}
+
+// Refit sizes the settings window to its pane again, after the frame
+// that asked for it: Update runs on the main thread once that build is
+// done, as the pane is measured by rendering it.
+func (a *app) Refit() {
+	if a.prefsWin != nil {
+		a.prefsWin.Update(a.fitPrefs)
+	}
+}
+
+// fitPrefs measures the pane and resizes the window, keeping its top
+// left where it is unless that puts it off its screen.
+func (a *app) fitPrefs() {
+	if a.prefs == nil || a.prefsWin == nil {
+		return
+	}
+	w, h := a.prefs.Fit()
+	if cw, ch := a.prefsWin.ContentSize(); cw == w && ch == h {
+		return
+	}
+	b := a.prefsWin.Bounds()
+	area := mygo.Screen.DisplayMatching(b).WorkArea
+	h = min(h, area.Height)
+	x := max(area.X, min(b.X, area.X+area.Width-w))
+	y := max(area.Y, min(b.Y, area.Y+area.Height-h))
+	a.prefsWin.SetContentSize(w, h)
+	if x != b.X || y != b.Y {
+		a.prefsWin.SetPosition(x, y)
+	}
 }
 
 func (a *app) Displays() []string {

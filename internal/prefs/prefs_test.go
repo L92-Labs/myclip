@@ -19,6 +19,7 @@ type fakeHost struct {
 	pins      []*history.Item
 	exported  int
 	imported  int
+	refits    int
 }
 
 func (h *fakeHost) Changed()                     { h.changed++ }
@@ -40,6 +41,7 @@ func (h *fakeHost) ImportBackup() error          { h.imported++; return nil }
 func (h *fakeHost) AppName(id string) string     { return id }
 func (h *fakeHost) AppIcon(string) *ui.Bitmap    { return nil }
 func (h *fakeHost) Displays() []string           { return []string{"Built-in"} }
+func (h *fakeHost) Refit()                       { h.refits++ }
 
 func setup(t *testing.T) (*View, *fakeHost, *ui.Tester) {
 	t.Helper()
@@ -155,5 +157,66 @@ func TestRulesPane(t *testing.T) {
 	tt.Click(locales.PrefRemove())
 	if len(s.Rules) != 3 {
 		t.Fatalf("rules after remove: %d", len(s.Rules))
+	}
+}
+
+func TestFitSizesEachPane(t *testing.T) {
+	v, _, _ := setup(t)
+	heights := map[int]int{}
+	for tab := 0; tab < 7; tab++ {
+		v.SetTab(tab)
+		w, h := v.Fit()
+		if w != fitWidth {
+			t.Errorf("tab %d: width %d, want %d", tab, w, fitWidth)
+		}
+		if h < 120 || h > fitRenderMax {
+			t.Errorf("tab %d: height %d out of range", tab, h)
+		}
+		heights[tab] = h
+	}
+	if heights[6] >= heights[2] {
+		t.Errorf("Advanced (%d) should measure shorter than Appearance (%d)", heights[6], heights[2])
+	}
+}
+
+func TestFitGrowsWithPins(t *testing.T) {
+	s := settings.Default()
+	h := &fakeHost{}
+	v := &View{Host: h, S: &s}
+	v.Load()
+	v.SetTab(3)
+	_, empty := v.Fit()
+	for i := 0; i < 5; i++ {
+		p := history.NewItem([]history.Content{{Type: pasteboard.TypeString, Value: []byte("pinned text")}}, "", time.Now())
+		p.ID, p.Pin = int64(i+10), "b"
+		h.pins = append(h.pins, p)
+	}
+	_, full := v.Fit()
+	if full <= empty {
+		t.Errorf("pins pane: %d with 5 pins should be taller than %d with none", full, empty)
+	}
+}
+
+func TestEditsAskForRefit(t *testing.T) {
+	v, h, _ := setup(t)
+	h.refits = 0
+	v.changed()
+	if h.refits == 0 {
+		t.Error("an edit did not ask for a refit")
+	}
+}
+
+func TestTabClickAsksForRefit(t *testing.T) {
+	_, h, tt := setup(t)
+	h.refits = 0
+	if err := tt.Click("Advanced"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if h.refits == 0 {
+		t.Error("clicking a tab did not ask for a refit")
+	}
+	if !tt.HasText("Clear history on quit") {
+		t.Errorf("Advanced pane not shown: %v", tt.Texts())
 	}
 }
