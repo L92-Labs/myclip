@@ -124,6 +124,36 @@ func TestDIBBitfieldsUseDeclaredMasks(t *testing.T) {
 		t.Fatalf("blue became %d %d %d %d", r>>8, g>>8, b>>8, a>>8)
 	}
 
+	// A V2 header (52 bytes) declares RGB masks but no alpha mask: the
+	// first pixel must not be mistaken for one.
+	dib = make([]byte, 52+2*4)
+	binary.LittleEndian.PutUint32(dib[0:4], 52)
+	binary.LittleEndian.PutUint32(dib[4:8], 2)
+	binary.LittleEndian.PutUint32(dib[8:12], 1)
+	binary.LittleEndian.PutUint16(dib[12:14], 1)
+	binary.LittleEndian.PutUint16(dib[14:16], 32)
+	binary.LittleEndian.PutUint32(dib[16:20], 3)
+	binary.LittleEndian.PutUint32(dib[40:44], 0x000000ff)
+	binary.LittleEndian.PutUint32(dib[44:48], 0x0000ff00)
+	binary.LittleEndian.PutUint32(dib[48:52], 0x00ff0000)
+	binary.LittleEndian.PutUint32(dib[52:56], 0x000000ff) // opaque red
+	binary.LittleEndian.PutUint32(dib[56:60], 0x00ff0000) // opaque blue
+	if got, ok = dibToPNG(dib); !ok {
+		t.Fatal("V2 bitfields DIB rejected")
+	}
+	img, err = png.Decode(bytes.NewReader(got))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, g, b, a = img.At(0, 0).RGBA()
+	if r>>8 != 255 || g>>8 != 0 || b>>8 != 0 || a>>8 != 255 {
+		t.Fatalf("pixel 0: %d %d %d %d", r>>8, g>>8, b>>8, a>>8)
+	}
+	r, g, b, a = img.At(1, 0).RGBA()
+	if r>>8 != 0 || g>>8 != 0 || b>>8 != 255 || a>>8 != 255 {
+		t.Fatalf("pixel 1 (read as an alpha mask?): %d %d %d %d", r>>8, g>>8, b>>8, a>>8)
+	}
+
 	// Non-contiguous masks are refused, not silently misdecoded.
 	dib = make([]byte, 40+12+4)
 	binary.LittleEndian.PutUint32(dib[0:4], 40)

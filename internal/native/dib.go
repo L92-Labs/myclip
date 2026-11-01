@@ -78,7 +78,7 @@ func dibToPNG(dib []byte) ([]byte, bool) {
 			if bm, ok = maskLayout(b0); !ok {
 				return nil, false
 			}
-			if size > 40 && at+16 <= len(dib) { // only a V4/V5 header declares alpha
+			if size > 40 && at+16 <= size { // only a header large enough to declare alpha (V4/V5)
 				if a0 := binary.LittleEndian.Uint32(dib[at+12:]); a0 != 0 {
 					am, ok = maskLayout(a0)
 					if !ok {

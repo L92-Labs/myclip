@@ -63,11 +63,11 @@ func (e *Engine) applyRules() {
 	e.mu.Unlock()
 
 	for {
-		// Find the target, check its pin is still free and allocate the key
-		// in one locked section: two concurrent appliers, or a capture,
-		// must not take the same key (it is assigned to the history here,
-		// before the persistence lock, so another goroutine cannot claim it
-		// in between).
+		// Find the target, allocate its key and swap it in while holding
+		// persist: another applier, a capture or an edit must not save or
+		// delete the item between the replace and the write, or a stale
+		// snapshot would come back out of the store.
+		e.persist.Lock()
 		e.mu.Lock()
 		var target *history.Item
 		for _, it := range e.hist.Items() {
@@ -80,11 +80,13 @@ func (e *Engine) applyRules() {
 		}
 		if target == nil {
 			e.mu.Unlock()
+			e.persist.Unlock()
 			return
 		}
 		free := history.AvailablePins(e.hist.Items(), reserved...)
 		if len(free) == 0 {
 			e.mu.Unlock()
+			e.persist.Unlock()
 			return
 		}
 		pinned := *target
@@ -92,7 +94,6 @@ func (e *Engine) applyRules() {
 		e.hist.Replace(target, &pinned)
 		e.mu.Unlock()
 
-		e.persist.Lock()
 		err := e.cfg.Store.Save(context.Background(), &pinned)
 		e.persist.Unlock()
 		e.report(err)

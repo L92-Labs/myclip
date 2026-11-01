@@ -145,7 +145,9 @@ var (
 	ownerWindow uintptr
 )
 
-// clipboardOwnerWindow makes the message-only window once and returns it.
+// clipboardOwnerWindow makes the message-only window once and returns it
+// (0 when creation failed, which Write reports rather than publishing
+// ownerless).
 func clipboardOwnerWindow() uintptr {
 	ownerOnce.Do(func() {
 		name, err := windows.UTF16PtrFromString("MyClipClipboard")
@@ -153,6 +155,7 @@ func clipboardOwnerWindow() uintptr {
 			return
 		}
 		wc := wndClassEx{
+			Size:      uint32(unsafe.Sizeof(wndClassEx{})),
 			ClassName: name,
 			WndProc:   windows.NewCallback(clipboardWndProc),
 		}
@@ -161,8 +164,10 @@ func clipboardOwnerWindow() uintptr {
 		if atom == 0 {
 			return
 		}
-		// hwndParent = HWND_MESSAGE: invisible, no taskbar presence.
-		ownerWindow, _, _ = procWindow.Call(0, atom, 0, 0, 0, 0, 0, 0, 0, 0, ^uintptr(2), 0, 0)
+		// (exStyle, class, name, style, x, y, w, h, parent, menu, instance,
+		// param) — parent HWND_MESSAGE: invisible, no taskbar presence.
+		ownerWindow, _, _ = procWindow.Call(0, atom, 0, 0, 0, 0, 0, 0,
+			^uintptr(2), 0, wc.Instance, 0)
 	})
 	return ownerWindow
 }
@@ -340,6 +345,9 @@ func (General) Write(items []pasteboard.Item) error {
 	// Writes need a real owner window: an emptied clipboard without one
 	// cannot hold data (SetClipboardData fails silently).
 	hwnd := clipboardOwnerWindow()
+	if hwnd == 0 {
+		return errors.New("native: no clipboard owner window")
+	}
 	if len(items) == 0 {
 		if !openClipboard(hwnd) {
 			return errors.New("native: the clipboard is busy")
@@ -407,30 +415,28 @@ func (General) Write(items []pasteboard.Item) error {
 }
 
 // setClipboard puts data on the clipboard, transferring ownership of the
-// global allocation; nil data registers the format with no data. A failure
-// is reported: the caller clears the clipboard first, so a silent failure
-// would leave it empty while claiming success.
+// global allocation; empty data publishes a zero-length block, which is
+// how the own-write and paste-stack markers ride along. (NULL would ask
+// for delayed rendering, whose success is indistinguishable from failure.)
+// A failure is reported: the caller clears the clipboard first, so a
+// silent failure would leave it empty while claiming success.
 func setClipboard(f uintptr, data []byte) error {
 	if f == 0 {
 		return errors.New("native: clipboard format did not register")
-	}
-	if data == nil {
-		if v, _, _ := procSet.Call(f, 0); v == 0 {
-			return errors.New("native: SetClipboardData failed")
-		}
-		return nil
 	}
 	h, _, _ := procAlloc.Call(gmemMoveable, uintptr(len(data)))
 	if h == 0 {
 		return errors.New("native: clipboard allocation failed")
 	}
-	p, _, _ := procLock.Call(h)
-	if p == 0 {
-		procFree.Call(h)
-		return errors.New("native: clipboard lock failed")
+	if len(data) > 0 {
+		p, _, _ := procLock.Call(h)
+		if p == 0 {
+			procFree.Call(h)
+			return errors.New("native: clipboard lock failed")
+		}
+		procMove.Call(p, uintptr(unsafe.Pointer(unsafe.SliceData(data))), uintptr(len(data)))
+		procUnlck.Call(h)
 	}
-	procMove.Call(p, uintptr(unsafe.Pointer(unsafe.SliceData(data))), uintptr(len(data)))
-	procUnlck.Call(h)
 	if v, _, _ := procSet.Call(f, h); v == 0 { // the clipboard owns h now
 		procFree.Call(h)
 		return errors.New("native: SetClipboardData failed")

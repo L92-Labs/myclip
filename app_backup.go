@@ -94,13 +94,19 @@ func (a *app) importBackup() error {
 	if err != nil || r.Button != 0 {
 		return nil
 	}
+	// The backup's settings go in first, when it carries them: importing
+	// then applies the restored rules to the imported clips, not the
+	// outgoing ones (and applyRules never unpins, so a late install could
+	// not undo the outgoing rules' pins).
+	if archive.Settings != nil {
+		a.settings = *archive.Settings
+		a.Changed()
+	}
 	added, skipped, err := a.engine.ImportItems(archive.HistoryItems())
 	if err != nil {
 		return err
 	}
 	if archive.Settings != nil {
-		a.settings = *archive.Settings
-		a.Changed()
 		// The open preferences window's controls mirror the old values:
 		// reload them, or saving one pane would restore the stale rest.
 		if a.prefs != nil {
