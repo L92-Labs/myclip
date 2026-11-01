@@ -47,6 +47,20 @@
   "menuPin": "Épingler",
   "menuUnpin": "Détacher",
   "menuDelete": "Supprimer",
+  "menuRename": "Renommer…",
+  "menuEdit": "Modifier…",
+  "editRenameTitle": "Renommer le clip",
+  "editTitle": "Modifier le clip",
+  "editNote": "Modifier remplace le contenu du clip par du texte brut.",
+  "editSave": "Enregistrer",
+  "editCancel": "Annuler",
+  "prefRules": "Règles",
+  "prefRulesDescription": "Les règles comparent le texte d'un clip à une expression régulière : la première qui correspond épingle le clip, ou le supprime après un délai.",
+  "prefNewRule": "Expression régulière à chercher",
+  "prefRulePin": "Épingler",
+  "prefRuleExpire": "Supprimer après",
+  "prefRuleSeconds": "s",
+  "prefRulesHint": "Les règles s'appliquent aussi au texte lu dans les images et au titre renommé d'un clip.",
   "prefWindowTitle": "Réglages de MyClip",
   "prefGeneral": "Général",
   "prefLaunchAtLogin": "Lancer au démarrage",
@@ -175,5 +189,41 @@
   "prefMenuIconHiddenLinux": "Sans l’icône de menu, ouvrez la fenêtre avec son raccourci ; Ctrl+, dans la fenêtre ouvre ces réglages.",
   "prefLocalOnlyLinux": "Tout reste sur cet ordinateur : pas de réseau, pas de télémétrie.",
   "prefNewApp": "Classe de fenêtre (WM_CLASS), p. ex. KeePassXC",
-  "prefPlaySounds": "Jouer un son à chaque copie"
+  "prefPlaySounds": "Jouer un son à chaque copie",
+  "prefBackup": "Sauvegarde",
+  "prefBackupExport": "Exporter…",
+  "prefBackupImport": "Importer…",
+  "prefBackupHint": "L'exportation écrit l'historique et ces réglages dans un fichier JSON. L'importation fusionne les extraits du fichier (les contenus identiques sont ignorés) et applique ses réglages.",
+  "backupExportTitle": "Exporter la sauvegarde",
+  "backupImportTitle": "Importer la sauvegarde",
+  "backupImport": "Importer",
+  "backupCancel": "Annuler",
+  "backupImportAsk": "Fusionner {count} extraits dans l'historique{andSettings} ?",
+  "@backupImportAsk": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "andSettings": {
+        "type": "String",
+        "example": " and replace the settings"
+      }
+    }
+  },
+  "backupImportDone": "{added} extraits importés ; {skipped} étaient déjà dans l'historique.",
+  "@backupImportDone": {
+    "placeholders": {
+      "added": {
+        "type": "int",
+        "example": "3"
+      },
+      "skipped": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "backupImportSettings": " et remplacer les réglages",
+  "menuSnippet": "Extrait"
 }

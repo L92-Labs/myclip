@@ -1,9 +1,10 @@
 # Releases
 
-The CI workflow tests Linux/macOS and builds macOS universal (Apple Silicon
-and Intel) plus Linux amd64/arm64. Linux ARM64 is cross-built on an amd64
-runner. Non-tag runs upload installers and Linux smoke evidence as Actions
-artifacts retained for 14 days.
+The CI workflow tests Linux/macOS/Windows and builds macOS universal (Apple
+Silicon and Intel), Linux amd64/arm64, and a Windows installer plus portable
+zip. Linux ARM64 is cross-built on an amd64 runner. Non-tag runs upload
+installers and Linux smoke evidence as Actions artifacts retained for 14
+days.
 
 ## Publish a preview
 
@@ -21,7 +22,7 @@ artifacts retained for 14 days.
    ```
 
 4. The tag workflow verifies the version and main ancestry, repeats the
-   full gates, gathers all six installers, creates SHA256SUMS and GitHub
+   full gates, gathers all eight installers, creates SHA256SUMS and GitHub
    build-provenance attestations, and uploads them to a draft Release. It
    publishes the prerelease only after all artifacts have uploaded.
 5. Download and check a release on a real desktop. Never label the preview
@@ -36,12 +37,14 @@ remove that draft before rerunning the release job, or prepare a new version.
 - `myclip-VERSION-macos-universal.dmg` and `.zip`
 - `myclip-VERSION-linux-amd64.deb` and `.tar.gz`
 - `myclip-VERSION-linux-arm64.deb` and `.tar.gz`
+- `myclip-VERSION-windows-amd64-setup.exe` and `.zip`
 - `SHA256SUMS`
 
 All installers include the project license, Maccy/Lucide attribution and
 dependency notices. macOS verification checks both architectures of the app
 and SQLite library and verifies the app's signature. Linux verification
-checks notices and SQLite in both the Debian and portable packages.
+checks notices and SQLite in both the Debian and portable packages. Windows
+verification checks the executable's PE header and the archive's notices.
 
 ## Signing and permissions
 

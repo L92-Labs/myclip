@@ -22,6 +22,7 @@ type Item struct {
 	NumberOfCopies int
 	Pin            string
 	Title          string
+	Snippet        bool // paste-time placeholder expansion
 	Contents       []Content
 }
 

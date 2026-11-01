@@ -47,6 +47,20 @@
   "menuPin": "Anclar",
   "menuUnpin": "Desanclar",
   "menuDelete": "Borrar",
+  "menuRename": "Renombrar…",
+  "menuEdit": "Editar…",
+  "editRenameTitle": "Renombrar clip",
+  "editTitle": "Editar clip",
+  "editNote": "Al editar se reemplaza el contenido del clip por texto sin formato.",
+  "editSave": "Guardar",
+  "editCancel": "Cancelar",
+  "prefRules": "Reglas",
+  "prefRulesDescription": "Las reglas comparan el texto del clip con una expresión regular: la primera que coincida lo ancla, o lo borra tras un plazo.",
+  "prefNewRule": "Expresión regular que buscar",
+  "prefRulePin": "Anclar",
+  "prefRuleExpire": "Borrar tras",
+  "prefRuleSeconds": "s",
+  "prefRulesHint": "Las reglas también aplican al texto leído en las imágenes y al título renombrado de un clip.",
   "prefWindowTitle": "Ajustes de MyClip",
   "prefGeneral": "General",
   "prefLaunchAtLogin": "Abrir al iniciar sesión",
@@ -175,5 +189,41 @@
   "prefMenuIconHiddenLinux": "Sin el icono de menú, abre la ventana con su atajo; Ctrl+, en la ventana abre estos ajustes.",
   "prefLocalOnlyLinux": "Todo se queda en este equipo: sin red, sin telemetría.",
   "prefNewApp": "Clase de ventana (WM_CLASS), p. ej. KeePassXC",
-  "prefPlaySounds": "Reproducir un sonido en cada copia"
+  "prefPlaySounds": "Reproducir un sonido en cada copia",
+  "prefBackup": "Copia de seguridad",
+  "prefBackupExport": "Exportar…",
+  "prefBackupImport": "Importar…",
+  "prefBackupHint": "La exportación escribe el historial y estos ajustes en un archivo JSON. La importación fusiona los clips del archivo (los contenidos iguales se omiten) y aplica sus ajustes.",
+  "backupExportTitle": "Exportar copia de seguridad",
+  "backupImportTitle": "Importar copia de seguridad",
+  "backupImport": "Importar",
+  "backupCancel": "Cancelar",
+  "backupImportAsk": "¿Fusionar {count} clips en el historial{andSettings}?",
+  "@backupImportAsk": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "andSettings": {
+        "type": "String",
+        "example": " and replace the settings"
+      }
+    }
+  },
+  "backupImportDone": "Se importaron {added} clips; {skipped} ya estaban en el historial.",
+  "@backupImportDone": {
+    "placeholders": {
+      "added": {
+        "type": "int",
+        "example": "3"
+      },
+      "skipped": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "backupImportSettings": " y reemplazar los ajustes",
+  "menuSnippet": "Fragmento"
 }
