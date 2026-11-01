@@ -120,3 +120,12 @@ General (launch at login, hotkeys, paste behavior, notifications link, check-upd
 |---|---|
 | paste stack | ⇧↑/⇧↓ or ⇧-click mark several rows; Enter (any action) copies them as one: their files when all are files, else their texts joined by new lines, in the order shown. The combination is not recorded as a clip. |
 | Linux | GTK clipboard backend, paste via xdotool/wtype/ydotool, WM_CLASS app names, KDE password hint = concealed (see README) |
+| Windows | Win32 clipboard backend (CF_UNICODETEXT/HTML Format/RTF/PNG/DIB/CF_HDROP), SendInput paste, executable-path app identity, OCR through the built-in Windows engine via a PowerShell sidecar, per-user Inno Setup installer; hands-on validation on real hardware pending |
+| text recognition (OCR) | images get their recognized text searched, matched by rules, and shown as fallback title; macOS Vision, Linux tesseract, Windows OcrEngine |
+| copy sounds | a synthesized 90 ms pop on new copies and selections, opt-in (D10) |
+| hold-to-cycle popup | hold the shortcut to advance the highlight, release modifiers to select (macOS) |
+| CLI | `myclip` over a local socket/pipe (opt-in, D1): toggle, pause, select, set |
+| edit and rename | per-row Edit… (text clips) and Rename… with in-popup dialogs |
+| smart rules | regular-expression rules pin or expire matching clips (popup Settings › Rules) |
+| backup | export/import history + settings as one JSON file (Settings › Advanced › Backup) |
+| snippets | a clip marked as a snippet expands {date}, {time}, {clipboard}, {uuid} at paste time |

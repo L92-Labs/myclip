@@ -117,6 +117,12 @@ func (h *History) Load(items []*Item) {
 	h.sessionLog = map[int]*Item{}
 }
 
+// Import appends an imported item with its own timestamps and contents
+// intact. Callers dedupe first; nothing here merges or re-times it.
+func (h *History) Import(it *Item) {
+	h.items = append(h.items, it)
+}
+
 // Replace puts updated in old's place in the list and the session log.
 func (h *History) Replace(old, updated *Item) {
 	for i, x := range h.items {
