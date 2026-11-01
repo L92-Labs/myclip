@@ -14,11 +14,12 @@ additions. It is written in Go with
 no cgo and no Xcode project. Single-architecture executables are about
 12–14 MB; the universal macOS app contains both architectures.
 
-> **Status:** early preview. macOS and Linux (X11; Wayland through XWayland).
-> Linux desktop behavior is tested under Xvfb/Openbox. Real Mac permission,
-> paste, OCR and sound checks, plus native Wayland desktop checks, still need
-> hands-on validation. Windows builds and CI pass, but clipboard, paste and
-> tray behavior still need hands-on validation on real hardware.
+> **Status:** early preview. macOS and Linux (X11; Wayland through XWayland)
+> and Windows. Linux desktop behavior is tested under Xvfb/Openbox. Real Mac
+> permission, paste, OCR and sound checks, plus native Wayland desktop
+> checks, still need hands-on validation. Windows CI builds, tests, OCR and
+> the installer are exercised automatically, but clipboard, paste and tray
+> behavior still need hands-on validation on real hardware.
 
 ## Download and install
 
@@ -31,6 +32,7 @@ also retain downloadable build artifacts for 14 days.
 | macOS, Apple Silicon or Intel | `myclip-VERSION-macos-universal.dmg` (or `.zip`) | Drag MyClip to Applications |
 | Linux x86-64 | `myclip-VERSION-linux-amd64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install ./myclip-VERSION-linux-amd64.deb` |
 | Linux ARM64 | `myclip-VERSION-linux-arm64.deb` or `.tar.gz` | Same procedure, using the ARM64 file |
+| Windows 10/11 x86-64 | `myclip-VERSION-windows-amd64-setup.exe` (or `.zip`) | Run the installer — per-user, no admin rights; the `.zip` is portable |
 
 For a portable Linux installation, extract the archive, then run `./install.sh`
 from its extracted directory. The installer adds a desktop entry and a

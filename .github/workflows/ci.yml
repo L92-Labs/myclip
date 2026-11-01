@@ -115,9 +115,13 @@ jobs:
       - name: Build Windows executable
         if: runner.os == 'Windows'
         run: |
+          $version = (Get-Content mygo.json | ConvertFrom-Json).version
           go build -trimpath -ldflags "-s -w" -o build/windows-amd64/myclip.exe .
           Copy-Item LICENSE, NOTICE.md, THIRD_PARTY_NOTICES.txt build/windows-amd64/
           Compress-Archive -Path build/windows-amd64/* -DestinationPath build/windows-amd64/myclip-windows-amd64.zip
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
+          & $iscc /DAppVersion=$version scripts/windows.iss
       - name: Verify and collect release packages
         env:
           TARGET: ${{ matrix.target }}

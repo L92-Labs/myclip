@@ -2,6 +2,7 @@ package native
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"image"
 	"image/color"
@@ -9,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"unicode/utf16"
 )
 
 func TestCFHTMLParse(t *testing.T) {
@@ -197,5 +199,24 @@ func TestUTF16Helpers(t *testing.T) {
 	}
 	if s := utf16BytesToString([]byte{'h', 0, 'i', 0, 0, 0}); s != "hi" {
 		t.Fatalf("terminator kept: %q", s)
+	}
+}
+
+func TestPowerShellScriptEncoding(t *testing.T) {
+	raw, err := base64.StdEncoding.DecodeString(powershellCommand())
+	if err != nil {
+		t.Fatal(err)
+	}
+	u := make([]uint16, len(raw)/2)
+	for i := range u {
+		u[i] = uint16(raw[i*2]) | uint16(raw[i*2+1])<<8
+	}
+	if got := string(utf16.Decode(u)); got != ocrScript {
+		t.Fatal("round trip through -EncodedCommand encoding changed the script")
+	}
+	// The script must not contain a raw backtick: it would break the Go
+	// raw string and PowerShell's single-quoted strings alike.
+	if strings.Contains(ocrScript, "`") {
+		t.Fatal("script contains a backtick")
 	}
 }

@@ -63,6 +63,10 @@ def collect(target):
             if not required <= names or "myclip.exe" not in names:
                 raise RuntimeError("Windows archive is missing bundled notices or the executable")
         shutil.copy2(archive, output / f"{name}-windows-amd64.zip")
+        setup = next(source.glob("myclip-setup*.exe"))
+        if setup.read_bytes()[:2] != b"MZ":
+            raise RuntimeError(f"Not a Windows installer: {setup}")
+        shutil.copy2(setup, output / f"{name}-windows-amd64-setup.exe")
     else:
         raise ValueError("Unsupported target: " + target)
     print("Release packages verified:", target)
@@ -84,7 +88,7 @@ if __name__ == "__main__":
         prefix = f'myclip-{CONFIG["version"]}'
         expected = {f"{prefix}-linux-{arch}.{suffix}" for arch in ("amd64", "arm64") for suffix in ("deb", "tar.gz")}
         expected |= {f"{prefix}-macos-universal.{suffix}" for suffix in ("dmg", "zip")}
-        expected |= {f"{prefix}-windows-amd64.zip"}
+        expected |= {f"{prefix}-windows-amd64.zip", f"{prefix}-windows-amd64-setup.exe"}
         if {x.name for x in files} != expected:
             raise SystemExit("Release requires exactly the six expected installers")
         (directory / "SHA256SUMS").write_text("".join(
