@@ -124,9 +124,7 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
           & $iscc /DAppVersion=$version scripts/windows.iss
       - name: Verify and collect release packages
-        env:
-          TARGET: ${{ matrix.target }}
-        run: python3 scripts/release.py "$TARGET"
+        run: python3 scripts/release.py "${{ matrix.target }}"
       - name: Install Linux smoke tools
         if: matrix.target == 'linux/amd64'
         run: |
