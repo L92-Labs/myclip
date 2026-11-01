@@ -3,6 +3,7 @@
 package engine
 
 import (
+	"context"
 	"regexp"
 	"time"
 
@@ -62,6 +63,11 @@ func (e *Engine) applyRules() {
 	e.mu.Unlock()
 
 	for {
+		// Find the target, check its pin is still free and allocate the key
+		// in one locked section: two concurrent appliers, or a capture,
+		// must not take the same key (it is assigned to the history here,
+		// before the persistence lock, so another goroutine cannot claim it
+		// in between).
 		e.mu.Lock()
 		var target *history.Item
 		for _, it := range e.hist.Items() {
@@ -72,14 +78,25 @@ func (e *Engine) applyRules() {
 				}
 			}
 		}
-		free := history.AvailablePins(e.hist.Items(), reserved...)
-		e.mu.Unlock()
-		if target == nil || len(free) == 0 {
+		if target == nil {
+			e.mu.Unlock()
 			return
 		}
-		if err := e.update(target.ID, func(it *history.Item) { it.Pin = free[0] }); err != nil {
-			return // gone, or already pinned meanwhile
+		free := history.AvailablePins(e.hist.Items(), reserved...)
+		if len(free) == 0 {
+			e.mu.Unlock()
+			return
 		}
+		pinned := *target
+		pinned.Pin = free[0]
+		e.hist.Replace(target, &pinned)
+		e.mu.Unlock()
+
+		e.persist.Lock()
+		err := e.cfg.Store.Save(context.Background(), &pinned)
+		e.persist.Unlock()
+		e.report(err)
+		e.changed()
 	}
 }
 

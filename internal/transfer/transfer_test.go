@@ -113,3 +113,48 @@ func TestExportIsPlainJSON(t *testing.T) {
 		t.Fatal("nil settings marshaled")
 	}
 }
+
+// A settings-only backup — the app's own export after clearing history —
+// must round-trip instead of being refused on read.
+func TestSettingsOnlyBackupRoundTrip(t *testing.T) {
+	var buf bytes.Buffer
+	def := settings.Default()
+	if err := Export(&buf, &def, nil); err != nil {
+		t.Fatal(err)
+	}
+	a, err := Read(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("settings-only backup rejected: %v", err)
+	}
+	if a.Settings == nil || a.Settings.SearchMode != settings.SearchExact || len(a.Items) != 0 {
+		t.Fatalf("archive: %+v", a)
+	}
+	if items := a.HistoryItems(); len(items) != 0 {
+		t.Fatalf("items out of an empty archive: %+v", items)
+	}
+	// History-only junk stays rejected.
+	if _, err := Read(bytes.NewReader([]byte(`{"myclip":1,"items":[]}`))); err == nil {
+		t.Fatal("empty history-only backup accepted")
+	}
+}
+
+// The snippet flag survives export and import.
+func TestSnippetRoundTrip(t *testing.T) {
+	now := time.Now().UTC()
+	items := []*history.Item{
+		{FirstCopiedAt: now, LastCopiedAt: now, NumberOfCopies: 1, Snippet: true,
+			Contents: []history.Content{{Type: pasteboard.TypeString, Value: []byte("on {date}")}}},
+	}
+	var buf bytes.Buffer
+	if err := Export(&buf, nil, items); err != nil {
+		t.Fatal(err)
+	}
+	a, err := Read(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := a.HistoryItems()
+	if len(got) != 1 || !got[0].Snippet {
+		t.Fatalf("snippet flag lost: %+v", got)
+	}
+}

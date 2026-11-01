@@ -55,6 +55,9 @@ func (e *Engine) SetLimits(l Limits) {
 	e.mu.Lock()
 	e.cfg.Limits = l
 	evicted := e.hist.Trim(l.MaxItems, l.MaxBytes)
+	for _, x := range evicted {
+		delete(e.expires, x.ID)
+	}
 	e.mu.Unlock()
 	err := e.deleteStored(evicted)
 	e.persist.Unlock()
@@ -116,12 +119,11 @@ var beforeSave func()
 
 // ImportItems merges imported items into the history and the store,
 // preserving their timestamps. An item matching an existing clip
-// (same contents) is skipped; a pin the history already uses moves to the
-// next free key, or is dropped when none is free. It reports how many
-// were added and skipped.
+// (same contents) is skipped; a pin the history already uses, or a pin
+// key an in-popup shortcut reserves, moves to the next free key, or is
+// dropped when none is free. It reports how many were added and skipped.
 func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err error) {
 	e.persist.Lock()
-	defer e.persist.Unlock()
 	for _, cand := range items {
 		e.mu.Lock()
 		if e.hist.FindSimilarItem(cand) != nil {
@@ -130,10 +132,17 @@ func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err err
 			continue
 		}
 		taken := false
-		for _, x := range e.hist.Items() {
-			if x.Pin == cand.Pin && cand.Pin != "" {
+		if cand.Pin != "" {
+			for _, x := range e.hist.Items() {
+				if x.Pin == cand.Pin {
+					taken = true
+					break
+				}
+			}
+			// A reserved key is a conflict even on empty history: the
+			// popup checks pinned rows before its own shortcuts.
+			if !taken && slices.Contains(e.pinReserved, cand.Pin) {
 				taken = true
-				break
 			}
 		}
 		if taken {
@@ -146,6 +155,7 @@ func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err err
 		e.mu.Unlock()
 		if err := e.cfg.Store.Save(context.Background(), cand); err != nil {
 			e.report(err)
+			e.persist.Unlock()
 			return added, skipped, err
 		}
 		e.mu.Lock()
@@ -153,6 +163,10 @@ func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err err
 		e.mu.Unlock()
 		added++
 	}
+	e.persist.Unlock()
+	// The import may carry clips a live expiry rule covers (or pin rule
+	// matches): give them the rules' effects, as a fresh capture would.
+	e.applyRules()
 	e.changed()
 	return added, skipped, nil
 }
@@ -164,6 +178,7 @@ func (e *Engine) Delete(id int64) error {
 	it := e.find(id)
 	if it != nil {
 		e.hist.Remove(it)
+		delete(e.expires, id) // its deadline dies with it (the id may be reused)
 	}
 	e.mu.Unlock()
 	if it == nil {
@@ -186,6 +201,7 @@ func (e *Engine) Clear(all bool) error {
 	for _, it := range e.hist.Items() {
 		if all || it.Pin == "" {
 			e.hist.Remove(it)
+			delete(e.expires, it.ID)
 			gone = append(gone, it)
 		}
 	}
@@ -281,6 +297,9 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 	if err == nil {
 		e.mu.Lock()
 		evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
+		for _, x := range evicted {
+			delete(e.expires, x.ID)
+		}
 		e.mu.Unlock()
 		err = e.deleteStored(evicted)
 	}
@@ -337,7 +356,24 @@ func (e *Engine) CopyBack(id int64, plain bool) error {
 			}
 			contents = expandContents(contents, time.Now(), clip)
 		}
-		err = e.cfg.Board.Write(boardItems(contents, plain))
+		items := boardItems(contents, plain)
+		if it.Snippet {
+			// The expanded text is no longer the stored template, so the
+			// ordinary own-write merge cannot match it: capture would file
+			// every paste as a new clip and evict the template. Skip the
+			// write exactly once, like a paste-stack copy.
+			var nonce [8]byte
+			rand.Read(nonce[:])
+			marker := pasteboard.StackWritePrefix + hex.EncodeToString(nonce[:])
+			items[0].Types[marker] = []byte{}
+			e.cap.ExpectStack(marker)
+			defer func() {
+				if err != nil {
+					e.cap.ExpectStack("")
+				}
+			}()
+		}
+		err = e.cfg.Board.Write(items)
 	})
 	return err
 }

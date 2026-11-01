@@ -186,12 +186,14 @@ func (a *app) start(dbPath string) error {
 		a.ocr.add(it) // images kept from before: read once
 	}
 	history.ResolveFileURL = native.ResolveFileURL
-	a.applyRules()
+	// The image cache exists before the rules: applyRules fires OnChange,
+	// whose refresh forgets images through it.
 	a.images = newImageCache(func() {
 		if a.panel != nil {
 			a.panel.Invalidate()
 		}
 	})
+	a.applyRules()
 	a.popup = &popup.Popup{Host: a, Settings: &a.settings}
 	a.panel = mygo.NewWindow(mygo.WindowOptions{
 		Panel:         true,

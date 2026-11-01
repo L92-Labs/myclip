@@ -3,6 +3,8 @@ package engine
 import (
 	"context"
 	"strings"
+
+	"github.com/L92-Labs/myclip/internal/capture"
 	"testing"
 	"time"
 
@@ -74,5 +76,35 @@ func TestCopyBackPlainSnippetLeavesOthersUntouched(t *testing.T) {
 	}
 	if r.f.ReadItems()[0].Types[pasteboard.TypeOwnWrite] == nil {
 		t.Fatal("own-write marker lost")
+	}
+}
+
+// A pasted snippet's expanded text is not the stored template: capture
+// must skip that write, not file it as a new clip (which, on a short
+// history, would evict the template).
+func TestCopyBackSnippetWriteIsNotRecaptured(t *testing.T) {
+	r := newRig(t, Limits{MaxItems: 1})
+	r.copy(t, "template {uuid}")
+	id := r.e.Items()[0].ID
+	if err := r.e.SetSnippet(id, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.e.CopyBack(id, false); err != nil {
+		t.Fatal(err)
+	}
+	if o := r.e.Tick(context.Background()); o != capture.Ignored {
+		t.Fatalf("expanded write was captured: %v", o)
+	}
+	items := r.e.Items()
+	if len(items) != 1 || items[0].ID != id || !items[0].Snippet {
+		t.Fatalf("template evicted or altered: %+v", items)
+	}
+	if got := items[0].ContentText(); !strings.Contains(got, "{uuid}") {
+		t.Fatalf("stored clip was rewritten: %q", got)
+	}
+	// The pasteboard carries the expanded text, with the marker.
+	written := r.f.ReadItems()[0]
+	if strings.Contains(string(written.Types[pasteboard.TypeString]), "{uuid}") {
+		t.Fatal("placeholders not expanded on the pasteboard")
 	}
 }

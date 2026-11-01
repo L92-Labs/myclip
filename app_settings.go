@@ -46,7 +46,12 @@ func (a *app) Changed() {
 		p.IgnoreEvents = a.engine.Paused()
 		a.engine.SetPrefs(p)
 	}
-	if !slices.Equal(old.Rules, s.Rules) {
+	if !slices.Equal(old.Rules, s.Rules) ||
+		old.PinShortcut != s.PinShortcut ||
+		old.DeleteShortcut != s.DeleteShortcut ||
+		old.PreviewShortcut != s.PreviewShortcut {
+		// The rules reinstall with the reserved keys either way: a shortcut
+		// change alone must keep rule-matched pins off the new shortcut key.
 		a.applyRules()
 	}
 	if old.IgnoreEvents != s.IgnoreEvents {

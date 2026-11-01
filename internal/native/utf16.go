@@ -6,11 +6,18 @@ import "unicode/utf16"
 // tested everywhere.
 
 // utf16BytesToString decodes UTF-16LE clipboard bytes (dropping the NUL).
+// CF_UNICODETEXT is NUL-terminated and GlobalSize may report more than the
+// text asked for, so decoding stops at the first zero code unit; anything
+// past it is the allocation's spare capacity, not text.
 func utf16BytesToString(b []byte) string {
-	if n := len(b); n >= 2 && b[n-1] == 0 && b[n-2] == 0 {
-		b = b[:n-2]
+	n := len(b) / 2
+	for i := 0; i < n; i++ {
+		if b[i*2] == 0 && b[i*2+1] == 0 {
+			n = i
+			break
+		}
 	}
-	u := make([]uint16, len(b)/2)
+	u := make([]uint16, n)
 	for i := range u {
 		u[i] = uint16(b[i*2]) | uint16(b[i*2+1])<<8
 	}

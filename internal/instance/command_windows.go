@@ -5,16 +5,28 @@ package instance
 import (
 	"io"
 	"net"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-// Serve listens on \\.\pipe\<name> for one command at a time; fn gets each
-// known command. The pipe is per data root, so two MyClips with different
-// data roots do not cross wires.
+// Windows 10 1803+ has AF_UNIX sockets, which Go's net package speaks.
+// The pipe-shaped path would need hand-rolled win32 code; the socket sits
+// in the data root, where DataRoot has made everything 0700.
+func socketPath(root string) string { return filepath.Join(root, "run", "myclip.sock") }
+
+// Serve listens for commands until the returned closer runs; fn gets each
+// known command. Call it while holding the lock: a socket left by a crash
+// is removed first, which only the lock holder may do.
 func Serve(root string, fn func(cmd string)) (io.Closer, error) {
-	l, err := net.Listen("pipe", pipePath(root))
+	path := socketPath(root)
+	// A socket left by a crash is removed; only the lock holder runs this.
+	// (Windows' Lstat does not flag socket files, so anything stale goes.)
+	if _, err := os.Lstat(path); err == nil {
+		os.Remove(path)
+	}
+	l, err := net.Listen("unix", path)
 	if err != nil {
 		return nil, err
 	}
@@ -38,16 +50,11 @@ func Serve(root string, fn func(cmd string)) (io.Closer, error) {
 
 // Send gives the running MyClip a command.
 func Send(root, cmd string) error {
-	conn, err := net.DialTimeout("pipe", pipePath(root), time.Second)
+	conn, err := net.DialTimeout("unix", socketPath(root), time.Second)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 	_, err = conn.Write([]byte(cmd + "\n"))
 	return err
-}
-
-func pipePath(root string) string {
-	// A short, stable name: pipe names are flat and length-bound.
-	return `myclip-` + filepath.Base(filepath.Clean(root))
 }

@@ -114,3 +114,41 @@ func TestNoDupOnDistinctItems(t *testing.T) {
 		t.Fatalf("len=%d want 2", h.Len())
 	}
 }
+
+// Recopying a template keeps it a snippet: the flag is user-set metadata,
+// like the pin and the title.
+func TestMergeKeepsSnippetFlag(t *testing.T) {
+	h := history.New()
+	first := textItem("template {uuid}")
+	first.Snippet = true
+	h.Add(first, 1, false, time.Unix(100, 0))
+	if !h.Items()[0].Snippet {
+		t.Fatal("setup: flag unset before the merge")
+	}
+	res := h.Add(textItem("template {uuid}"), 2, false, time.Unix(101, 0))
+	if !res.Merged {
+		t.Fatal("re-copy did not merge")
+	}
+	if !res.Item.Snippet {
+		t.Fatalf("snippet flag lost on merge: %+v", res.Item)
+	}
+}
+
+// An imported clip slots by its own LastCopiedAt, so Trim evicts the
+// genuinely oldest clip, not the freshly restored one.
+func TestImportSlotsByTimestamp(t *testing.T) {
+	h := history.New()
+	h.Add(textItem("old"), 1, false, time.Unix(100, 0))
+	h.Add(textItem("newest"), 2, false, time.Unix(300, 0))
+	imp := textItem("restored")
+	imp.LastCopiedAt = time.Unix(200, 0)
+	h.Import(imp)
+	items := h.Items()
+	if len(items) != 3 || items[0].Text() != "newest" || items[1].Text() != "restored" || items[2].Text() != "old" {
+		t.Fatalf("order: %q", []string{items[0].Text(), items[1].Text(), items[2].Text()})
+	}
+	evicted := h.Trim(2, 0)
+	if len(evicted) != 1 || evicted[0].Text() != "old" {
+		t.Fatalf("trim evicted %v", evicted)
+	}
+}

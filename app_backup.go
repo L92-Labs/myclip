@@ -32,7 +32,14 @@ func (a *app) exportBackup() error {
 	if err != nil || path == "" { // "" is a canceled dialog
 		return err
 	}
-	f, err := os.Create(path)
+	// The backup carries the whole history: owner-only, like the database.
+	// An existing file is tightened before anything is written into it.
+	if info, err := os.Stat(path); err == nil && info.Mode().Perm() != 0o600 {
+		if err := os.Chmod(path, 0o600); err != nil {
+			return err
+		}
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}
@@ -94,6 +101,12 @@ func (a *app) importBackup() error {
 	if archive.Settings != nil {
 		a.settings = *archive.Settings
 		a.Changed()
+		// The open preferences window's controls mirror the old values:
+		// reload them, or saving one pane would restore the stale rest.
+		if a.prefs != nil {
+			a.prefs.Load()
+			a.fitPrefs()
+		}
 	}
 	go mygo.Dialog.Message(mygo.MessageOptions{
 		Type:    mygo.MessageInfo,
