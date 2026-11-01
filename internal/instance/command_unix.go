@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
 )
 
 func socketPath(root string) string { return filepath.Join(root, "run", "myclip.sock") }
