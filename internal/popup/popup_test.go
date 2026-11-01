@@ -34,6 +34,12 @@ func (h *fakeHost) SelectMany(ids []int64, a Action) {
 }
 func (h *fakeHost) TogglePin(id int64) { h.calls = append(h.calls, call{what: "pin", id: id}) }
 func (h *fakeHost) Delete(id int64)    { h.calls = append(h.calls, call{what: "delete", id: id}) }
+func (h *fakeHost) Rename(id int64, title string) {
+	h.calls = append(h.calls, call{what: "title " + title, id: id})
+}
+func (h *fakeHost) EditText(id int64, text string) {
+	h.calls = append(h.calls, call{what: "text " + text, id: id})
+}
 func (h *fakeHost) Clear(all bool) {
 	h.calls = append(h.calls, call{what: fmt.Sprint("clear ", all)})
 }
@@ -422,5 +428,86 @@ func TestImageKeepsOwnTextAfterOCR(t *testing.T) {
 		if len(p.rows) != 1 || p.rows[0].it.ID != 31 {
 			t.Fatalf("%q: rows %+v", q, p.rows)
 		}
+	}
+}
+
+func TestCanEdit(t *testing.T) {
+	if !canEdit(item(1, "text", "")) {
+		t.Error("text clip not editable")
+	}
+	rich := history.NewItem([]history.Content{
+		{Type: pasteboard.TypeHTML, Value: []byte("<b>hi</b>")},
+	}, "", time.Unix(1, 0))
+	if !canEdit(rich) {
+		t.Error("rich-text clip not editable")
+	}
+	img := history.NewItem([]history.Content{{Type: pasteboard.TypePNG, Value: []byte("png")}}, "", time.Unix(2, 0))
+	if canEdit(img) {
+		t.Error("image editable")
+	}
+	files := history.NewItem([]history.Content{{Type: pasteboard.TypeFileURL, Value: []byte("file:///tmp/a")}}, "", time.Unix(3, 0))
+	if canEdit(files) {
+		t.Error("file clip editable")
+	}
+}
+
+func TestRenameDialog(t *testing.T) {
+	p, h, tt := setup(t, nil)
+	p.startRename(2)
+	if !p.edit.open || p.edit.text != "" {
+		t.Fatalf("edit %+v", p.edit)
+	}
+	tt.Frame()
+	tt.Type("banana bread")
+	tt.Key(0, ui.KeyEnter)
+	last := h.last()
+	if last.what != "title banana bread" || last.id != 2 {
+		t.Fatalf("host got %+v", last)
+	}
+	if p.edit.open {
+		t.Error("dialog left open")
+	}
+}
+
+// An empty rename goes back to the title from the contents.
+func TestRenameEmptyReverts(t *testing.T) {
+	p, h, tt := setup(t, nil)
+	p.startRename(2)
+	p.edit.text = "  "
+	tt.Frame()
+	tt.Key(0, ui.KeyEscape)
+	if h.last().what != "delete" && len(h.calls) != 0 {
+		t.Fatalf("escape applied %+v", h.calls)
+	}
+	p.startRename(2)
+	p.edit.text = "  "
+	p.saveEdit()
+	if last := h.last(); last.what != "title " || last.id != 2 {
+		t.Fatalf("host got %+v", last)
+	}
+}
+
+func TestEditDialog(t *testing.T) {
+	p, h, tt := setup(t, nil)
+	p.startEdit(2)
+	if !p.edit.open || p.edit.text != "banana split" {
+		t.Fatalf("edit %+v", p.edit)
+	}
+	tt.Frame()
+	tt.Key(ui.Cmd, ui.KeyEnter) // nothing changed yet: still saved as-is
+	if last := h.last(); last.what != "text banana split" || last.id != 2 {
+		t.Fatalf("host got %+v", last)
+	}
+	p.startEdit(3)
+	p.edit.text = "cherry tart\nwith cream"
+	tt.Frame()
+	tt.Key(0, ui.KeyEnter) // plain Enter is a newline in the editor
+	if len(h.calls) != 1 {
+		t.Fatalf("plain Enter saved: %+v", h.calls)
+	}
+	tt.Key(ui.Cmd, ui.KeyEnter)
+	// The plain Enter left a newline the save keeps.
+	if last := h.last(); last.what != "text cherry tart\nwith cream\n" || last.id != 3 {
+		t.Fatalf("host got %+v", last)
 	}
 }

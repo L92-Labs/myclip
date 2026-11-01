@@ -501,6 +501,76 @@ func (msgs Messages) MenuDelete() string {
 	return Catalog.Format(msgs.locale, "menuDelete", nil)
 }
 
+// MenuRename says "Rename…"
+// in the language the app shows.
+func MenuRename() string { return In(i18n.Locale()).MenuRename() }
+
+// MenuRename says "Rename…"
+// in the language of msgs.
+func (msgs Messages) MenuRename() string {
+	return Catalog.Format(msgs.locale, "menuRename", nil)
+}
+
+// MenuEdit says "Edit…"
+// in the language the app shows.
+func MenuEdit() string { return In(i18n.Locale()).MenuEdit() }
+
+// MenuEdit says "Edit…"
+// in the language of msgs.
+func (msgs Messages) MenuEdit() string {
+	return Catalog.Format(msgs.locale, "menuEdit", nil)
+}
+
+// EditRenameTitle says "Rename Clip"
+// in the language the app shows.
+func EditRenameTitle() string { return In(i18n.Locale()).EditRenameTitle() }
+
+// EditRenameTitle says "Rename Clip"
+// in the language of msgs.
+func (msgs Messages) EditRenameTitle() string {
+	return Catalog.Format(msgs.locale, "editRenameTitle", nil)
+}
+
+// EditTitle says "Edit Clip"
+// in the language the app shows.
+func EditTitle() string { return In(i18n.Locale()).EditTitle() }
+
+// EditTitle says "Edit Clip"
+// in the language of msgs.
+func (msgs Messages) EditTitle() string {
+	return Catalog.Format(msgs.locale, "editTitle", nil)
+}
+
+// EditNote says "Editing replaces the clip's contents with plain text."
+// in the language the app shows.
+func EditNote() string { return In(i18n.Locale()).EditNote() }
+
+// EditNote says "Editing replaces the clip's contents with plain text."
+// in the language of msgs.
+func (msgs Messages) EditNote() string {
+	return Catalog.Format(msgs.locale, "editNote", nil)
+}
+
+// EditSave says "Save"
+// in the language the app shows.
+func EditSave() string { return In(i18n.Locale()).EditSave() }
+
+// EditSave says "Save"
+// in the language of msgs.
+func (msgs Messages) EditSave() string {
+	return Catalog.Format(msgs.locale, "editSave", nil)
+}
+
+// EditCancel says "Cancel"
+// in the language the app shows.
+func EditCancel() string { return In(i18n.Locale()).EditCancel() }
+
+// EditCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) EditCancel() string {
+	return Catalog.Format(msgs.locale, "editCancel", nil)
+}
+
 // PrefWindowTitle says "MyClip Settings"
 // in the language the app shows.
 func PrefWindowTitle() string { return In(i18n.Locale()).PrefWindowTitle() }
