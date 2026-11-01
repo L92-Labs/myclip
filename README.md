@@ -17,7 +17,8 @@ no cgo and no Xcode project. Single-architecture executables are about
 > **Status:** early preview. macOS and Linux (X11; Wayland through XWayland).
 > Linux desktop behavior is tested under Xvfb/Openbox. Real Mac permission,
 > paste, OCR and sound checks, plus native Wayland desktop checks, still need
-> hands-on validation. Windows is not supported.
+> hands-on validation. Windows builds and CI pass, but clipboard, paste and
+> tray behavior still need hands-on validation on real hardware.
 
 ## Download and install
 

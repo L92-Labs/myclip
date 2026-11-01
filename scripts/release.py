@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import tarfile
+import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = json.loads((ROOT / "mygo.json").read_text())
@@ -52,6 +53,16 @@ def collect(target):
         shutil.copy2(next(source.glob("*.dmg")), output / f"{name}-macos-universal.dmg")
         subprocess.run(["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(app),
                         str(output / f"{name}-macos-universal.zip")], check=True)
+    elif system == "windows":
+        exe = source / "myclip.exe"
+        if exe.read_bytes()[:2] != b"MZ":
+            raise RuntimeError(f"Not a Windows executable: {exe}")
+        archive = next(source.glob("*.zip"))
+        with zipfile.ZipFile(archive) as zf:
+            names = {Path(x).name for x in zf.namelist()}
+            if not required <= names or "myclip.exe" not in names:
+                raise RuntimeError("Windows archive is missing bundled notices or the executable")
+        shutil.copy2(archive, output / f"{name}-windows-amd64.zip")
     else:
         raise ValueError("Unsupported target: " + target)
     print("Release packages verified:", target)
@@ -59,7 +70,7 @@ def collect(target):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("target", nargs="?", choices=["linux/amd64", "linux/arm64", "darwin/universal"])
+    parser.add_argument("target", nargs="?", choices=["linux/amd64", "linux/arm64", "darwin/universal", "windows/amd64"])
     parser.add_argument("--check-tag")
     parser.add_argument("--checksums", action="store_true")
     args = parser.parse_args()
@@ -73,6 +84,7 @@ if __name__ == "__main__":
         prefix = f'myclip-{CONFIG["version"]}'
         expected = {f"{prefix}-linux-{arch}.{suffix}" for arch in ("amd64", "arm64") for suffix in ("deb", "tar.gz")}
         expected |= {f"{prefix}-macos-universal.{suffix}" for suffix in ("dmg", "zip")}
+        expected |= {f"{prefix}-windows-amd64.zip"}
         if {x.name for x in files} != expected:
             raise SystemExit("Release requires exactly the six expected installers")
         (directory / "SHA256SUMS").write_text("".join(
