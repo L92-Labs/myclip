@@ -10,12 +10,16 @@ import (
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
 	"github.com/L92-Labs/myclip/internal/settings"
+	"github.com/L92-Labs/myclip/locales"
 )
 
 type fakeHost struct {
 	changed   int
 	recording []bool
 	pins      []*history.Item
+	exported  int
+	imported  int
+	refits    int
 }
 
 func (h *fakeHost) Changed()                     { h.changed++ }
@@ -32,9 +36,12 @@ func (h *fakeHost) AccessibilityTrusted() bool   { return false }
 func (h *fakeHost) RequestAccessibility()        {}
 func (h *fakeHost) StorageSize() string          { return "1.0 MB" }
 func (h *fakeHost) PickApp()                     {}
+func (h *fakeHost) ExportBackup() error          { h.exported++; return nil }
+func (h *fakeHost) ImportBackup() error          { h.imported++; return nil }
 func (h *fakeHost) AppName(id string) string     { return id }
 func (h *fakeHost) AppIcon(string) *ui.Bitmap    { return nil }
 func (h *fakeHost) Displays() []string           { return []string{"Built-in"} }
+func (h *fakeHost) Refit()                       { h.refits++ }
 
 func setup(t *testing.T) (*View, *fakeHost, *ui.Tester) {
 	t.Helper()
@@ -53,7 +60,7 @@ func setup(t *testing.T) (*View, *fakeHost, *ui.Tester) {
 
 func TestEveryPaneBuilds(t *testing.T) {
 	v, _, tt := setup(t)
-	want := []string{"Launch at login", "Size:", "Popup at:", "pinned text", "com.example.secret", "Clear history on quit"}
+	want := []string{"Launch at login", "Size:", "Popup at:", "pinned text", "com.example.secret", "regular expression", "Clear history on quit"}
 	for tab, text := range want {
 		v.SetTab(tab)
 		tt.Frame()
@@ -101,5 +108,115 @@ func TestStorageTypes(t *testing.T) {
 	}
 	if !slices.Contains(v.S.EnabledPasteboardTypes, pasteboard.TypeString) {
 		t.Fatal("lost text types")
+	}
+}
+
+func TestRulesPane(t *testing.T) {
+	s := settings.Default()
+	s.Rules = []settings.Rule{
+		{Pattern: `^\d{6}$`, Action: settings.RulePin},
+		{Pattern: "temp", Action: settings.RuleExpire, Seconds: 60},
+	}
+	h := &fakeHost{}
+	v := &View{Host: h, S: &s}
+	v.Load()
+	tt := ui.NewTester(v.View, 800, 600)
+	tt.Frame()
+	v.SetTab(5)
+	tt.Frame()
+	for _, want := range []string{`^\d{6}$`, "temp", "60"} {
+		if !tt.HasText(want) {
+			t.Errorf("rule %q not shown", want)
+		}
+	}
+	// A bad pattern refuses to be added.
+	v.newRegexp = "("
+	tt.Click(locales.PrefAdd())
+	if len(s.Rules) != 2 || v.regexpErr == "" {
+		t.Fatalf("bad pattern accepted: %+v err %q", s.Rules, v.regexpErr)
+	}
+	// A good one is added and applied through Changed.
+	v.newRegexp = `^otp`
+	tt.Click(locales.PrefAdd())
+	if len(s.Rules) != 3 || s.Rules[2].Pattern != `^otp` || s.Rules[2].Action != settings.RulePin {
+		t.Fatalf("rules %+v", s.Rules)
+	}
+	if h.changed == 0 {
+		t.Error("no change reported")
+	}
+	// The expire picker shows the delay field and the default applies.
+	v.newRegexp = "later"
+	v.newRuleAction = settings.RuleExpire
+	tt.Frame()
+	tt.Click(locales.PrefAdd())
+	last := s.Rules[len(s.Rules)-1]
+	if last.Action != settings.RuleExpire || last.Seconds != 60 {
+		t.Fatalf("expire rule %+v", last)
+	}
+	// Removing works too.
+	tt.Click(locales.PrefRemove())
+	if len(s.Rules) != 3 {
+		t.Fatalf("rules after remove: %d", len(s.Rules))
+	}
+}
+
+func TestFitSizesEachPane(t *testing.T) {
+	v, _, _ := setup(t)
+	heights := map[int]int{}
+	for tab := 0; tab < 7; tab++ {
+		v.SetTab(tab)
+		w, h := v.Fit()
+		if w != fitWidth {
+			t.Errorf("tab %d: width %d, want %d", tab, w, fitWidth)
+		}
+		if h < 120 || h > fitRenderMax {
+			t.Errorf("tab %d: height %d out of range", tab, h)
+		}
+		heights[tab] = h
+	}
+	if heights[6] >= heights[2] {
+		t.Errorf("Advanced (%d) should measure shorter than Appearance (%d)", heights[6], heights[2])
+	}
+}
+
+func TestFitGrowsWithPins(t *testing.T) {
+	s := settings.Default()
+	h := &fakeHost{}
+	v := &View{Host: h, S: &s}
+	v.Load()
+	v.SetTab(3)
+	_, empty := v.Fit()
+	for i := 0; i < 5; i++ {
+		p := history.NewItem([]history.Content{{Type: pasteboard.TypeString, Value: []byte("pinned text")}}, "", time.Now())
+		p.ID, p.Pin = int64(i+10), "b"
+		h.pins = append(h.pins, p)
+	}
+	_, full := v.Fit()
+	if full <= empty {
+		t.Errorf("pins pane: %d with 5 pins should be taller than %d with none", full, empty)
+	}
+}
+
+func TestEditsAskForRefit(t *testing.T) {
+	v, h, _ := setup(t)
+	h.refits = 0
+	v.changed()
+	if h.refits == 0 {
+		t.Error("an edit did not ask for a refit")
+	}
+}
+
+func TestTabClickAsksForRefit(t *testing.T) {
+	_, h, tt := setup(t)
+	h.refits = 0
+	if err := tt.Click("Advanced"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if h.refits == 0 {
+		t.Error("clicking a tab did not ask for a refit")
+	}
+	if !tt.HasText("Clear history on quit") {
+		t.Errorf("Advanced pane not shown: %v", tt.Texts())
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"time"
 
@@ -52,7 +53,12 @@ const (
 	IconClipboard = "clipboard"
 	IconScissors  = "scissors"
 	IconPaperclip = "paperclip"
+
+	RulePin    = "pin"    // pin the clip as it is captured
+	RuleExpire = "expire" // delete the clip after a delay
 )
+
+var RuleActions = []string{RulePin, RuleExpire}
 
 var (
 	SearchModes      = []string{SearchExact, SearchFuzzy, SearchRegexp, SearchMixed}
@@ -83,7 +89,21 @@ const (
 	MaxPreviewDelay    = 100000
 	MinCheckIntervalMs = 100 // D7
 	MaxCheckIntervalMs = 3600_000
+
+	MinRuleSeconds = 1
+	MaxRuleSeconds = 365 * 24 * 3600
+
+	// DefaultRuleSeconds fills in an expire rule whose delay is missing.
+	DefaultRuleSeconds = 60
 )
+
+// Rule is a smart rule: a regular expression matched against a clip's
+// text, with the action taken when it matches.
+type Rule struct {
+	Pattern string `json:"pattern"`
+	Action  string `json:"action"`
+	Seconds int    `json:"seconds,omitempty"` // the expire delay
+}
 
 // Settings are the preferences. JSON names follow Maccy's Defaults keys.
 type Settings struct {
@@ -133,6 +153,9 @@ type Settings struct {
 	IgnoredPasteboardTypes    []string `json:"ignoredPasteboardTypes"`
 	IgnoreRegexp              []string `json:"ignoreRegexp"`
 
+	// MyClip's smart rules, in order; the first match wins.
+	Rules []Rule `json:"rules"`
+
 	// Advanced
 	IgnoreEvents           bool `json:"ignoreEvents"`
 	ClearOnQuit            bool `json:"clearOnQuit"`
@@ -177,6 +200,7 @@ func Default() Settings {
 		IgnoredApps:            []string{},
 		IgnoredPasteboardTypes: slices.Clone(pasteboard.DefaultIgnoredPasteboardTypes),
 		IgnoreRegexp:           []string{},
+		Rules:                  []Rule{},
 
 		ClipboardCheckInterval: int(capture.DefaultInterval / time.Millisecond),
 	}
@@ -237,6 +261,28 @@ func (s *Settings) Normalize() {
 	if s.IgnoreRegexp == nil {
 		s.IgnoreRegexp = []string{}
 	}
+	// A rule that no longer parses cannot fire; drop it rather than keep
+	// dead weight in every capture.
+	kept := s.Rules[:0]
+	for _, r := range s.Rules {
+		if r.Pattern == "" {
+			continue
+		}
+		if _, err := regexp.Compile(r.Pattern); err != nil {
+			continue
+		}
+		if !slices.Contains(RuleActions, r.Action) {
+			continue
+		}
+		if r.Action == RuleExpire {
+			if r.Seconds < MinRuleSeconds {
+				r.Seconds = DefaultRuleSeconds
+			}
+			r.Seconds = min(r.Seconds, MaxRuleSeconds)
+		}
+		kept = append(kept, r)
+	}
+	s.Rules = kept
 }
 
 // CapturePrefs are the settings the capturer reads. Pause state stays with

@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
+	"github.com/L92-Labs/myclip/internal/snippet"
 )
 
 // ErrNoItem is returned for an ID the history no longer has.
@@ -111,6 +113,49 @@ func (e *Engine) updateHeld(id int64, ok func(*history.Item) bool, fn func(*hist
 
 // beforeSave is a test hook between an update's change and its write.
 var beforeSave func()
+
+// ImportItems merges imported items into the history and the store,
+// preserving their timestamps. An item matching an existing clip
+// (same contents) is skipped; a pin the history already uses moves to the
+// next free key, or is dropped when none is free. It reports how many
+// were added and skipped.
+func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err error) {
+	e.persist.Lock()
+	defer e.persist.Unlock()
+	for _, cand := range items {
+		e.mu.Lock()
+		if e.hist.FindSimilarItem(cand) != nil {
+			e.mu.Unlock()
+			skipped++
+			continue
+		}
+		taken := false
+		for _, x := range e.hist.Items() {
+			if x.Pin == cand.Pin && cand.Pin != "" {
+				taken = true
+				break
+			}
+		}
+		if taken {
+			if free := history.AvailablePins(e.hist.Items(), e.pinReserved...); len(free) > 0 {
+				cand.Pin = free[0]
+			} else {
+				cand.Pin = ""
+			}
+		}
+		e.mu.Unlock()
+		if err := e.cfg.Store.Save(context.Background(), cand); err != nil {
+			e.report(err)
+			return added, skipped, err
+		}
+		e.mu.Lock()
+		e.hist.Import(cand)
+		e.mu.Unlock()
+		added++
+	}
+	e.changed()
+	return added, skipped, nil
+}
 
 // Delete removes an item.
 func (e *Engine) Delete(id int64) error {
@@ -245,6 +290,9 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 	}
 	e.report(err)
 	e.changed()
+	// The reading may be what a rule matches: pin or expire the item now,
+	// as the rules would on their next change.
+	e.applyRules()
 	return err
 }
 
@@ -256,24 +304,57 @@ func (e *Engine) SetText(id int64, text string) error {
 	})
 }
 
+// SetSnippet marks or unmarks a clip as a snippet: its text carries
+// placeholders ({date}, {time}, {clipboard}, {uuid}) that expand at
+// paste time.
+func (e *Engine) SetSnippet(id int64, on bool) error {
+	return e.update(id, func(it *history.Item) { it.Snippet = on })
+}
+
 // CopyBack puts a history item back on the pasteboard, marked as MyClip's
 // own write; the next tick merges it into the item (copy-back bump). With
 // plain, formatting is removed as Clipboard.clearFormatting does: only the
-// string, plus file URLs, when there is a string.
+// string, plus file URLs, when there is a string. A snippet's text has its
+// placeholders expanded first; the {clipboard} value is the clipboard's
+// text before this write.
 func (e *Engine) CopyBack(id int64, plain bool) error {
 	e.mu.Lock()
 	it := e.find(id)
-	var items []pasteboard.Item
+	var contents []history.Content
 	if it != nil {
-		items = boardItems(it.Contents, plain)
+		contents = it.Contents
 	}
 	e.mu.Unlock()
 	if it == nil {
 		return ErrNoItem
 	}
 	var err error
-	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
+	e.cfg.RunOnMain(func() {
+		if it.Snippet {
+			var clip string
+			if read := e.cfg.Board.ReadItems(); len(read) > 0 {
+				clip = string(read[0].Types[pasteboard.TypeString])
+			}
+			contents = expandContents(contents, time.Now(), clip)
+		}
+		err = e.cfg.Board.Write(boardItems(contents, plain))
+	})
 	return err
+}
+
+// expandContents replaces the placeholders in a snippet's text content.
+// The rich formats are left with the raw placeholders: snippets are
+// text-first, and rewriting HTML or RTF reliably is not worth it.
+func expandContents(contents []history.Content, now time.Time, clip string) []history.Content {
+	out := make([]history.Content, 0, len(contents))
+	for _, c := range contents {
+		if c.Type == pasteboard.TypeString {
+			v := snippet.Expand(string(c.Value), now, func() string { return clip })
+			c.Value = []byte(v)
+		}
+		out = append(out, c)
+	}
+	return out
 }
 
 // CopyMany puts several items on the pasteboard as one copy, in the order
