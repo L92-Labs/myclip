@@ -10,6 +10,7 @@ import (
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
 	"github.com/L92-Labs/myclip/internal/settings"
+	"github.com/L92-Labs/myclip/locales"
 )
 
 type fakeHost struct {
@@ -53,7 +54,7 @@ func setup(t *testing.T) (*View, *fakeHost, *ui.Tester) {
 
 func TestEveryPaneBuilds(t *testing.T) {
 	v, _, tt := setup(t)
-	want := []string{"Launch at login", "Size:", "Popup at:", "pinned text", "com.example.secret", "Clear history on quit"}
+	want := []string{"Launch at login", "Size:", "Popup at:", "pinned text", "com.example.secret", "regular expression", "Clear history on quit"}
 	for tab, text := range want {
 		v.SetTab(tab)
 		tt.Frame()
@@ -101,5 +102,54 @@ func TestStorageTypes(t *testing.T) {
 	}
 	if !slices.Contains(v.S.EnabledPasteboardTypes, pasteboard.TypeString) {
 		t.Fatal("lost text types")
+	}
+}
+
+func TestRulesPane(t *testing.T) {
+	s := settings.Default()
+	s.Rules = []settings.Rule{
+		{Pattern: `^\d{6}$`, Action: settings.RulePin},
+		{Pattern: "temp", Action: settings.RuleExpire, Seconds: 60},
+	}
+	h := &fakeHost{}
+	v := &View{Host: h, S: &s}
+	v.Load()
+	tt := ui.NewTester(v.View, 800, 600)
+	tt.Frame()
+	v.SetTab(5)
+	tt.Frame()
+	for _, want := range []string{`^\d{6}$`, "temp", "60"} {
+		if !tt.HasText(want) {
+			t.Errorf("rule %q not shown", want)
+		}
+	}
+	// A bad pattern refuses to be added.
+	v.newRegexp = "("
+	tt.Click(locales.PrefAdd())
+	if len(s.Rules) != 2 || v.regexpErr == "" {
+		t.Fatalf("bad pattern accepted: %+v err %q", s.Rules, v.regexpErr)
+	}
+	// A good one is added and applied through Changed.
+	v.newRegexp = `^otp`
+	tt.Click(locales.PrefAdd())
+	if len(s.Rules) != 3 || s.Rules[2].Pattern != `^otp` || s.Rules[2].Action != settings.RulePin {
+		t.Fatalf("rules %+v", s.Rules)
+	}
+	if h.changed == 0 {
+		t.Error("no change reported")
+	}
+	// The expire picker shows the delay field and the default applies.
+	v.newRegexp = "later"
+	v.newRuleAction = settings.RuleExpire
+	tt.Frame()
+	tt.Click(locales.PrefAdd())
+	last := s.Rules[len(s.Rules)-1]
+	if last.Action != settings.RuleExpire || last.Seconds != 60 {
+		t.Fatalf("expire rule %+v", last)
+	}
+	// Removing works too.
+	tt.Click(locales.PrefRemove())
+	if len(s.Rules) != 3 {
+		t.Fatalf("rules after remove: %d", len(s.Rules))
 	}
 }

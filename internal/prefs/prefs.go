@@ -66,6 +66,8 @@ type View struct {
 
 	newType, newRegexp, regexpErr string
 	newApp                        string // Linux: a WM_CLASS to ignore
+	newRuleAction                 string
+	newRuleSeconds                float64
 	titles, texts                 map[int64]*string
 }
 
@@ -88,6 +90,8 @@ func (v *View) Load() {
 	v.loginItem = v.Host.LaunchAtLogin()
 	v.titles, v.texts = map[int64]*string{}, map[int64]*string{}
 	v.recording = ""
+	v.newRuleAction = settings.RulePin
+	v.newRuleSeconds = 60
 }
 
 func (v *View) changed() { v.Host.Changed() }
@@ -100,7 +104,7 @@ func (v *View) View(c *ui.Context) {
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).Padding(12, 16, 0, 16).Justify(ui.Center).Children(func() {
 			if ui.Tabs(c, &v.tab, locales.PrefGeneral(), locales.PrefStorage(), locales.PrefAppearance(),
-				locales.PrefPins(), locales.PrefIgnore(), locales.PrefAdvanced()).Changed() {
+				locales.PrefPins(), locales.PrefIgnore(), locales.PrefRules(), locales.PrefAdvanced()).Changed() {
 				v.stopRecording()
 			}
 		})
@@ -118,6 +122,8 @@ func (v *View) View(c *ui.Context) {
 				case 4:
 					v.ignore(c)
 				case 5:
+					v.rules(c)
+				case 6:
 					v.advanced(c)
 				}
 			})
@@ -125,8 +131,8 @@ func (v *View) View(c *ui.Context) {
 	})
 }
 
-// SetTab shows a pane: 0 General … 5 Advanced.
-func (v *View) SetTab(i int) { v.tab = max(0, min(i, 5)) }
+// SetTab shows a pane: 0 General … 6 Advanced.
+func (v *View) SetTab(i int) { v.tab = max(0, min(i, 6)) }
 
 // StopRecording ends a shortcut recording, as the window hides.
 func (v *View) StopRecording() { v.stopRecording() }
@@ -554,6 +560,61 @@ func (v *View) ignore(c *ui.Context) {
 			ui.Button(c, locales.PrefAdd()).Disabled(v.newRegexp == "").OnClick(add)
 		})
 	}
+}
+
+// rules is the smart-rules pane: a regexp matched against a clip's text,
+// pinning it or deleting it after a delay. The first match wins.
+func (v *View) rules(c *ui.Context) {
+	s := v.S
+	t := c.Theme()
+	muted(c, locales.PrefRulesDescription())
+	ui.Column(c).Border(1, t.Border).Radius(6).Padding(4).MinHeight(60).Children(func() {
+		remove := -1
+		for i, r := range s.Rules {
+			r := r
+			ui.Row(c.Key("rule"+fmt.Sprint(i))).Gap(8).Padding(4, 6).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, r.Pattern).FontSize(13).Font("Menlo").Grow(1).SingleLine()
+				label := locales.PrefRulePin()
+				if r.Action == settings.RuleExpire {
+					label = fmt.Sprintf("%s %d %s", locales.PrefRuleExpire(), r.Seconds, locales.PrefRuleSeconds())
+				}
+				ui.Text(c, label).FontSize(12).TextColor(t.TextMuted)
+				if ui.Button(c, locales.PrefRemove()).Clicked() {
+					remove = i
+				}
+			})
+		}
+		if remove >= 0 {
+			s.Rules = slices.Delete(slices.Clone(s.Rules), remove, remove+1)
+			v.changed()
+		}
+	})
+	ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+		add := func() {
+			if v.newRegexp == "" {
+				return
+			}
+			if _, err := regexp.Compile(v.newRegexp); err != nil {
+				v.regexpErr = locales.PrefInvalidRegexp()
+				return
+			}
+			s.Rules = append(s.Rules, settings.Rule{Pattern: v.newRegexp, Action: v.newRuleAction, Seconds: int(v.newRuleSeconds)})
+			v.newRegexp, v.regexpErr = "", ""
+			v.changed()
+		}
+		ui.Field(c, "", func() {
+			if ui.TextInput(c, &v.newRegexp).Placeholder(locales.PrefNewRule()).OnSubmit(add).Changed() {
+				v.regexpErr = ""
+			}
+		}).Error(v.regexpErr).Grow(1)
+		v.pick(c, &v.newRuleAction, settings.RuleActions,
+			[]string{locales.PrefRulePin(), locales.PrefRuleExpire()})
+		if v.newRuleAction == settings.RuleExpire {
+			ui.NumberInput(c, &v.newRuleSeconds, settings.MinRuleSeconds, 30*24*3600, 1).Width(150)
+		}
+		ui.Button(c, locales.PrefAdd()).Disabled(v.newRegexp == "").OnClick(add)
+	})
+	muted(c, locales.PrefRulesHint())
 }
 
 // list shows strings with a Remove button each.

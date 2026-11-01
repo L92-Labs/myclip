@@ -10,6 +10,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"github.com/L92-Labs/myclip/internal/engine"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/native"
 	"github.com/L92-Labs/myclip/internal/prefs"
@@ -39,10 +40,14 @@ func (a *app) Changed() {
 		!slices.Equal(old.IgnoredPasteboardTypes, s.IgnoredPasteboardTypes) ||
 		!slices.Equal(old.IgnoredApps, s.IgnoredApps) ||
 		!slices.Equal(old.IgnoreRegexp, s.IgnoreRegexp) ||
+		!slices.Equal(old.Rules, s.Rules) ||
 		old.IgnoreAllAppsExceptListed != s.IgnoreAllAppsExceptListed {
 		p := s.CapturePrefs()
 		p.IgnoreEvents = a.engine.Paused()
 		a.engine.SetPrefs(p)
+	}
+	if !slices.Equal(old.Rules, s.Rules) {
+		a.applyRules()
 	}
 	if old.IgnoreEvents != s.IgnoreEvents {
 		a.engine.SetPaused(s.IgnoreEvents)
@@ -61,6 +66,12 @@ func (a *app) Changed() {
 		a.panel.SetSize(a.popup.Fit())
 	}
 	a.refresh()
+}
+
+// applyRules installs the smart rules in the engine: at start, and when
+// the settings change.
+func (a *app) applyRules() {
+	a.engine.SetRules(engine.RulesFromSettings(a.settings.Rules), a.pinReserved()...)
 }
 
 // openPrefs shows the settings window, made the first time.

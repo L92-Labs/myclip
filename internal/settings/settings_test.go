@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 )
@@ -135,5 +136,32 @@ func TestResetNeverOverwritesABackup(t *testing.T) {
 	b2, _ := os.ReadFile(a2)
 	if a1 == a2 || string(b1) != "first" || string(b2) != "second" {
 		t.Fatalf("%s=%q %s=%q", a1, b1, a2, b2)
+	}
+}
+
+func TestNormalizeRules(t *testing.T) {
+	s := Default()
+	s.Rules = []Rule{
+		{Pattern: "(", Action: RulePin},       // does not compile
+		{Pattern: "ok", Action: "nope"},       // unknown action
+		{Pattern: "", Action: RulePin},        // empty
+		{Pattern: "good", Action: RulePin},    // kept
+		{Pattern: "late", Action: RuleExpire}, // no delay: dropped
+		{Pattern: "temp", Action: RuleExpire, Seconds: 7},
+		{Pattern: "huge", Action: RuleExpire, Seconds: -5},
+	}
+	s.Normalize()
+	var got []Rule
+	for _, r := range s.Rules {
+		got = append(got, Rule{r.Pattern, r.Action, r.Seconds})
+	}
+	want := []Rule{
+		{"good", RulePin, 0},
+		{"late", RuleExpire, DefaultRuleSeconds},
+		{"temp", RuleExpire, 7},
+		{"huge", RuleExpire, DefaultRuleSeconds},
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("rules = %+v, want %+v", got, want)
 	}
 }

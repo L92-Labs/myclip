@@ -186,6 +186,7 @@ func (a *app) start(dbPath string) error {
 		a.ocr.add(it) // images kept from before: read once
 	}
 	history.ResolveFileURL = native.ResolveFileURL
+	a.applyRules()
 	a.images = newImageCache(func() {
 		if a.panel != nil {
 			a.panel.Invalidate()

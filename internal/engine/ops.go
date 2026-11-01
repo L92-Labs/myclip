@@ -245,6 +245,9 @@ func (e *Engine) SetRecognizedText(id int64, image [32]byte, text string) error 
 	}
 	e.report(err)
 	e.changed()
+	// The reading may be what a rule matches: pin or expire the item now,
+	// as the rules would on their next change.
+	e.applyRules()
 	return err
 }
 

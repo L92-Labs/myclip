@@ -571,6 +571,76 @@ func (msgs Messages) EditCancel() string {
 	return Catalog.Format(msgs.locale, "editCancel", nil)
 }
 
+// PrefRules says "Rules"
+// in the language the app shows.
+func PrefRules() string { return In(i18n.Locale()).PrefRules() }
+
+// PrefRules says "Rules"
+// in the language of msgs.
+func (msgs Messages) PrefRules() string {
+	return Catalog.Format(msgs.locale, "prefRules", nil)
+}
+
+// PrefRulesDescription says "Smart rules match a clip's text as a regular expression: the first matching rule pins the clip, or deletes it after a…"
+// in the language the app shows.
+func PrefRulesDescription() string { return In(i18n.Locale()).PrefRulesDescription() }
+
+// PrefRulesDescription says "Smart rules match a clip's text as a regular expression: the first matching rule pins the clip, or deletes it after a…"
+// in the language of msgs.
+func (msgs Messages) PrefRulesDescription() string {
+	return Catalog.Format(msgs.locale, "prefRulesDescription", nil)
+}
+
+// PrefNewRule says "Regular expression to match"
+// in the language the app shows.
+func PrefNewRule() string { return In(i18n.Locale()).PrefNewRule() }
+
+// PrefNewRule says "Regular expression to match"
+// in the language of msgs.
+func (msgs Messages) PrefNewRule() string {
+	return Catalog.Format(msgs.locale, "prefNewRule", nil)
+}
+
+// PrefRulePin says "Pin"
+// in the language the app shows.
+func PrefRulePin() string { return In(i18n.Locale()).PrefRulePin() }
+
+// PrefRulePin says "Pin"
+// in the language of msgs.
+func (msgs Messages) PrefRulePin() string {
+	return Catalog.Format(msgs.locale, "prefRulePin", nil)
+}
+
+// PrefRuleExpire says "Delete after"
+// in the language the app shows.
+func PrefRuleExpire() string { return In(i18n.Locale()).PrefRuleExpire() }
+
+// PrefRuleExpire says "Delete after"
+// in the language of msgs.
+func (msgs Messages) PrefRuleExpire() string {
+	return Catalog.Format(msgs.locale, "prefRuleExpire", nil)
+}
+
+// PrefRuleSeconds says "s"
+// in the language the app shows.
+func PrefRuleSeconds() string { return In(i18n.Locale()).PrefRuleSeconds() }
+
+// PrefRuleSeconds says "s"
+// in the language of msgs.
+func (msgs Messages) PrefRuleSeconds() string {
+	return Catalog.Format(msgs.locale, "prefRuleSeconds", nil)
+}
+
+// PrefRulesHint says "Rules also match the text read in images and a clip's renamed title."
+// in the language the app shows.
+func PrefRulesHint() string { return In(i18n.Locale()).PrefRulesHint() }
+
+// PrefRulesHint says "Rules also match the text read in images and a clip's renamed title."
+// in the language of msgs.
+func (msgs Messages) PrefRulesHint() string {
+	return Catalog.Format(msgs.locale, "prefRulesHint", nil)
+}
+
 // PrefWindowTitle says "MyClip Settings"
 // in the language the app shows.
 func PrefWindowTitle() string { return In(i18n.Locale()).PrefWindowTitle() }
