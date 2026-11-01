@@ -37,6 +37,7 @@ func (h *fakeHost) Delete(id int64)    { h.calls = append(h.calls, call{what: "d
 func (h *fakeHost) Rename(id int64, title string) {
 	h.calls = append(h.calls, call{what: "title " + title, id: id})
 }
+func (h *fakeHost) SetSnippet(int64, bool) {}
 func (h *fakeHost) EditText(id int64, text string) {
 	h.calls = append(h.calls, call{what: "text " + text, id: id})
 }

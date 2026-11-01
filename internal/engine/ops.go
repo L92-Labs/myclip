@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
+	"github.com/L92-Labs/myclip/internal/snippet"
 )
 
 // ErrNoItem is returned for an ID the history no longer has.
@@ -302,24 +304,57 @@ func (e *Engine) SetText(id int64, text string) error {
 	})
 }
 
+// SetSnippet marks or unmarks a clip as a snippet: its text carries
+// placeholders ({date}, {time}, {clipboard}, {uuid}) that expand at
+// paste time.
+func (e *Engine) SetSnippet(id int64, on bool) error {
+	return e.update(id, func(it *history.Item) { it.Snippet = on })
+}
+
 // CopyBack puts a history item back on the pasteboard, marked as MyClip's
 // own write; the next tick merges it into the item (copy-back bump). With
 // plain, formatting is removed as Clipboard.clearFormatting does: only the
-// string, plus file URLs, when there is a string.
+// string, plus file URLs, when there is a string. A snippet's text has its
+// placeholders expanded first; the {clipboard} value is the clipboard's
+// text before this write.
 func (e *Engine) CopyBack(id int64, plain bool) error {
 	e.mu.Lock()
 	it := e.find(id)
-	var items []pasteboard.Item
+	var contents []history.Content
 	if it != nil {
-		items = boardItems(it.Contents, plain)
+		contents = it.Contents
 	}
 	e.mu.Unlock()
 	if it == nil {
 		return ErrNoItem
 	}
 	var err error
-	e.cfg.RunOnMain(func() { err = e.cfg.Board.Write(items) })
+	e.cfg.RunOnMain(func() {
+		if it.Snippet {
+			var clip string
+			if read := e.cfg.Board.ReadItems(); len(read) > 0 {
+				clip = string(read[0].Types[pasteboard.TypeString])
+			}
+			contents = expandContents(contents, time.Now(), clip)
+		}
+		err = e.cfg.Board.Write(boardItems(contents, plain))
+	})
 	return err
+}
+
+// expandContents replaces the placeholders in a snippet's text content.
+// The rich formats are left with the raw placeholders: snippets are
+// text-first, and rewriting HTML or RTF reliably is not worth it.
+func expandContents(contents []history.Content, now time.Time, clip string) []history.Content {
+	out := make([]history.Content, 0, len(contents))
+	for _, c := range contents {
+		if c.Type == pasteboard.TypeString {
+			v := snippet.Expand(string(c.Value), now, func() string { return clip })
+			c.Value = []byte(v)
+		}
+		out = append(out, c)
+	}
+	return out
 }
 
 // CopyMany puts several items on the pasteboard as one copy, in the order

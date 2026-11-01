@@ -2048,3 +2048,13 @@ func BackupImportSettings() string { return In(i18n.Locale()).BackupImportSettin
 func (msgs Messages) BackupImportSettings() string {
 	return Catalog.Format(msgs.locale, "backupImportSettings", nil)
 }
+
+// MenuSnippet says "Snippet"
+// in the language the app shows.
+func MenuSnippet() string { return In(i18n.Locale()).MenuSnippet() }
+
+// MenuSnippet says "Snippet"
+// in the language of msgs.
+func (msgs Messages) MenuSnippet() string {
+	return Catalog.Format(msgs.locale, "menuSnippet", nil)
+}

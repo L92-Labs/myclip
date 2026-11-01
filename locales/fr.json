@@ -224,5 +224,6 @@
       }
     }
   },
-  "backupImportSettings": " et remplacer les réglages"
+  "backupImportSettings": " et remplacer les réglages",
+  "menuSnippet": "Extrait"
 }

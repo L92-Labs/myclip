@@ -224,5 +224,6 @@
       }
     }
   },
-  "backupImportSettings": " y reemplazar los ajustes"
+  "backupImportSettings": " y reemplazar los ajustes",
+  "menuSnippet": "Fragmento"
 }

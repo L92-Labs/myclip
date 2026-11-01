@@ -284,3 +284,6 @@ func (a *app) toggleFromCommand() {
 	}
 	a.showPopup()
 }
+
+// SetSnippet marks or unmarks a clip as a snippet.
+func (a *app) SetSnippet(id int64, on bool) { _ = a.engine.SetSnippet(id, on) }

@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS items (
 	last_copied_at   INTEGER NOT NULL,
 	number_of_copies INTEGER NOT NULL DEFAULT 1,
 	pin              TEXT    NOT NULL DEFAULT '',
-	title            TEXT    NOT NULL DEFAULT ''
+	title            TEXT    NOT NULL DEFAULT '',
+	snippet          INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS contents (
 	item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
@@ -71,7 +72,33 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		db.Close()
 		return nil, fmt.Errorf("store: schema: %w", err)
 	}
+	if err := s.migrate(ctx); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("store: migrate: %w", err)
+	}
 	return s, nil
+}
+
+// migrate brings databases from earlier builds up to date: CREATE TABLE IF
+// NOT EXISTS cannot add columns, so each new one lands here, guarded by a
+// table_info check.
+func (s *Store) migrate(ctx context.Context) error {
+	r, err := s.db.Query(ctx, "PRAGMA table_info(items)")
+	if err != nil {
+		return err
+	}
+	columns := map[string]bool{}
+	for _, row := range r.Values {
+		if len(row) > 1 {
+			columns[asString(row[1])] = true
+		}
+	}
+	if !columns["snippet"] {
+		if _, err := s.db.Execute(ctx, "ALTER TABLE items ADD COLUMN snippet INTEGER NOT NULL DEFAULT 0"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // pin sets journal_mode=DELETE and secure_delete=ON, and asserts both. A
@@ -124,7 +151,7 @@ func (s *Store) Close() error { return s.db.Close() }
 // Load returns all items, newest first.
 func (s *Store) Load(ctx context.Context) ([]*history.Item, error) {
 	r, err := s.db.Query(ctx, `SELECT id, application, first_copied_at, last_copied_at,
-		number_of_copies, pin, title FROM items ORDER BY last_copied_at DESC, id DESC`)
+		number_of_copies, pin, title, snippet FROM items ORDER BY last_copied_at DESC, id DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +166,7 @@ func (s *Store) Load(ctx context.Context) ([]*history.Item, error) {
 			NumberOfCopies: int(asInt(row[4])),
 			Pin:            asString(row[5]),
 			Title:          asString(row[6]),
+			Snippet:        asInt(row[7]) != 0,
 		}
 		items = append(items, it)
 		byID[it.ID] = it
@@ -160,22 +188,23 @@ func (s *Store) Load(ctx context.Context) ([]*history.Item, error) {
 // contents, atomically.
 func (s *Store) Save(ctx context.Context, it *history.Item) error {
 	fields := []any{it.Application, it.FirstCopiedAt.UnixNano(), it.LastCopiedAt.UnixNano(),
-		int64(it.NumberOfCopies), it.Pin, it.Title}
+		int64(it.NumberOfCopies), it.Pin, it.Title, it.Snippet}
 	var stmts []sqlite.Statement
 	// New rows take max(id)+1 (INTEGER PRIMARY KEY without AUTOINCREMENT),
 	// so contents of a new item reference max(id) inside the transaction.
 	ref := "(SELECT max(id) FROM items)"
 	if it.ID == 0 {
 		stmts = append(stmts, sqlite.Statement{SQL: `INSERT INTO items(application, first_copied_at,
-			last_copied_at, number_of_copies, pin, title) VALUES (?, ?, ?, ?, ?, ?)`, Args: fields})
+			last_copied_at, number_of_copies, pin, title, snippet) VALUES (?, ?, ?, ?, ?, ?, ?)`, Args: fields})
 	} else {
 		ref = "?"
 		stmts = append(stmts,
 			sqlite.Statement{SQL: `INSERT INTO items(id, application, first_copied_at, last_copied_at,
-				number_of_copies, pin, title) VALUES (?, ?, ?, ?, ?, ?, ?)
+				number_of_copies, pin, title, snippet) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 				ON CONFLICT(id) DO UPDATE SET application=excluded.application,
 				first_copied_at=excluded.first_copied_at, last_copied_at=excluded.last_copied_at,
-				number_of_copies=excluded.number_of_copies, pin=excluded.pin, title=excluded.title`,
+				number_of_copies=excluded.number_of_copies, pin=excluded.pin, title=excluded.title,
+				snippet=excluded.snippet`,
 				Args: append([]any{it.ID}, fields...)},
 			sqlite.Statement{SQL: "DELETE FROM contents WHERE item_id = ?", Args: []any{it.ID}})
 	}

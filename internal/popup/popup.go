@@ -86,6 +86,8 @@ type Host interface {
 	Rename(id int64, title string)
 	// EditText replaces a text clip's contents with plain text.
 	EditText(id int64, text string)
+	// SetSnippet marks or unmarks a clip as a snippet.
+	SetSnippet(id int64, on bool)
 	Clear(all bool)
 	OpenSettings()
 	About()
@@ -648,6 +650,10 @@ func (p *Popup) rowMenu(m *ui.Menu, it *history.Item) {
 	}
 	if canEdit(it) && m.Item(locales.MenuEdit()).Chosen() {
 		p.startEdit(id)
+	}
+	snip := m.Item(locales.MenuSnippet()).Checked(it.Snippet)
+	if snip.Chosen() {
+		p.Host.SetSnippet(id, !it.Snippet)
 	}
 	m.Separator()
 	pin := locales.MenuPin()

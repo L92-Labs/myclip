@@ -336,5 +336,6 @@
       }
     }
   },
-  "backupImportSettings": " and replace the settings"
+  "backupImportSettings": " and replace the settings",
+  "menuSnippet": "Snippet"
 }
