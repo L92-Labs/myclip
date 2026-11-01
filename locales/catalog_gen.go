@@ -1934,3 +1934,117 @@ func PrefPlaySounds() string { return In(i18n.Locale()).PrefPlaySounds() }
 func (msgs Messages) PrefPlaySounds() string {
 	return Catalog.Format(msgs.locale, "prefPlaySounds", nil)
 }
+
+// PrefBackup says "Backup"
+// in the language the app shows.
+func PrefBackup() string { return In(i18n.Locale()).PrefBackup() }
+
+// PrefBackup says "Backup"
+// in the language of msgs.
+func (msgs Messages) PrefBackup() string {
+	return Catalog.Format(msgs.locale, "prefBackup", nil)
+}
+
+// PrefBackupExport says "Export…"
+// in the language the app shows.
+func PrefBackupExport() string { return In(i18n.Locale()).PrefBackupExport() }
+
+// PrefBackupExport says "Export…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupExport() string {
+	return Catalog.Format(msgs.locale, "prefBackupExport", nil)
+}
+
+// PrefBackupImport says "Import…"
+// in the language the app shows.
+func PrefBackupImport() string { return In(i18n.Locale()).PrefBackupImport() }
+
+// PrefBackupImport says "Import…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupImport() string {
+	return Catalog.Format(msgs.locale, "prefBackupImport", nil)
+}
+
+// PrefBackupHint says "Export writes the history and these settings to one JSON file. Import merges the file's clips (same contents are skip…"
+// in the language the app shows.
+func PrefBackupHint() string { return In(i18n.Locale()).PrefBackupHint() }
+
+// PrefBackupHint says "Export writes the history and these settings to one JSON file. Import merges the file's clips (same contents are skip…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupHint() string {
+	return Catalog.Format(msgs.locale, "prefBackupHint", nil)
+}
+
+// BackupExportTitle says "Export backup"
+// in the language the app shows.
+func BackupExportTitle() string { return In(i18n.Locale()).BackupExportTitle() }
+
+// BackupExportTitle says "Export backup"
+// in the language of msgs.
+func (msgs Messages) BackupExportTitle() string {
+	return Catalog.Format(msgs.locale, "backupExportTitle", nil)
+}
+
+// BackupImportTitle says "Import backup"
+// in the language the app shows.
+func BackupImportTitle() string { return In(i18n.Locale()).BackupImportTitle() }
+
+// BackupImportTitle says "Import backup"
+// in the language of msgs.
+func (msgs Messages) BackupImportTitle() string {
+	return Catalog.Format(msgs.locale, "backupImportTitle", nil)
+}
+
+// BackupImport says "Import"
+// in the language the app shows.
+func BackupImport() string { return In(i18n.Locale()).BackupImport() }
+
+// BackupImport says "Import"
+// in the language of msgs.
+func (msgs Messages) BackupImport() string {
+	return Catalog.Format(msgs.locale, "backupImport", nil)
+}
+
+// BackupCancel says "Cancel"
+// in the language the app shows.
+func BackupCancel() string { return In(i18n.Locale()).BackupCancel() }
+
+// BackupCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) BackupCancel() string {
+	return Catalog.Format(msgs.locale, "backupCancel", nil)
+}
+
+// BackupImportAsk says "Merge {count} clips into the history{andSettings}?"
+// in the language the app shows.
+func BackupImportAsk(count int, andSettings string) string {
+	return In(i18n.Locale()).BackupImportAsk(count, andSettings)
+}
+
+// BackupImportAsk says "Merge {count} clips into the history{andSettings}?"
+// in the language of msgs.
+func (msgs Messages) BackupImportAsk(count int, andSettings string) string {
+	return Catalog.Format(msgs.locale, "backupImportAsk", map[string]any{"count": count, "andSettings": andSettings})
+}
+
+// BackupImportDone says "Imported {added} clips; {skipped} were already in the history."
+// in the language the app shows.
+func BackupImportDone(added int, skipped int) string {
+	return In(i18n.Locale()).BackupImportDone(added, skipped)
+}
+
+// BackupImportDone says "Imported {added} clips; {skipped} were already in the history."
+// in the language of msgs.
+func (msgs Messages) BackupImportDone(added int, skipped int) string {
+	return Catalog.Format(msgs.locale, "backupImportDone", map[string]any{"added": added, "skipped": skipped})
+}
+
+// BackupImportSettings says " and replace the settings"
+// in the language the app shows.
+func BackupImportSettings() string { return In(i18n.Locale()).BackupImportSettings() }
+
+// BackupImportSettings says " and replace the settings"
+// in the language of msgs.
+func (msgs Messages) BackupImportSettings() string {
+	return Catalog.Format(msgs.locale, "backupImportSettings", nil)
+}

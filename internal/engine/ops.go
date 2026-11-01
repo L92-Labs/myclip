@@ -112,6 +112,49 @@ func (e *Engine) updateHeld(id int64, ok func(*history.Item) bool, fn func(*hist
 // beforeSave is a test hook between an update's change and its write.
 var beforeSave func()
 
+// ImportItems merges imported items into the history and the store,
+// preserving their timestamps. An item matching an existing clip
+// (same contents) is skipped; a pin the history already uses moves to the
+// next free key, or is dropped when none is free. It reports how many
+// were added and skipped.
+func (e *Engine) ImportItems(items []*history.Item) (added, skipped int, err error) {
+	e.persist.Lock()
+	defer e.persist.Unlock()
+	for _, cand := range items {
+		e.mu.Lock()
+		if e.hist.FindSimilarItem(cand) != nil {
+			e.mu.Unlock()
+			skipped++
+			continue
+		}
+		taken := false
+		for _, x := range e.hist.Items() {
+			if x.Pin == cand.Pin && cand.Pin != "" {
+				taken = true
+				break
+			}
+		}
+		if taken {
+			if free := history.AvailablePins(e.hist.Items(), e.pinReserved...); len(free) > 0 {
+				cand.Pin = free[0]
+			} else {
+				cand.Pin = ""
+			}
+		}
+		e.mu.Unlock()
+		if err := e.cfg.Store.Save(context.Background(), cand); err != nil {
+			e.report(err)
+			return added, skipped, err
+		}
+		e.mu.Lock()
+		e.hist.Import(cand)
+		e.mu.Unlock()
+		added++
+	}
+	e.changed()
+	return added, skipped, nil
+}
+
 // Delete removes an item.
 func (e *Engine) Delete(id int64) error {
 	e.persist.Lock()

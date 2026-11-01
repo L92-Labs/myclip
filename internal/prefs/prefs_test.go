@@ -17,6 +17,8 @@ type fakeHost struct {
 	changed   int
 	recording []bool
 	pins      []*history.Item
+	exported  int
+	imported  int
 }
 
 func (h *fakeHost) Changed()                     { h.changed++ }
@@ -33,6 +35,8 @@ func (h *fakeHost) AccessibilityTrusted() bool   { return false }
 func (h *fakeHost) RequestAccessibility()        {}
 func (h *fakeHost) StorageSize() string          { return "1.0 MB" }
 func (h *fakeHost) PickApp()                     {}
+func (h *fakeHost) ExportBackup() error          { h.exported++; return nil }
+func (h *fakeHost) ImportBackup() error          { h.imported++; return nil }
 func (h *fakeHost) AppName(id string) string     { return id }
 func (h *fakeHost) AppIcon(string) *ui.Bitmap    { return nil }
 func (h *fakeHost) Displays() []string           { return []string{"Built-in"} }

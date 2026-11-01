@@ -285,7 +285,14 @@
   "prefLocalOnly": "Everything stays on this Mac: no network, no telemetry.",
   "prefHistory": "History:",
   "trayClipsLinux": "{count, plural, one {# clip} other {# clips}} · stored on this computer only",
-  "@trayClipsLinux": {"placeholders": {"count": {"type": "int", "example": "3"}}},
+  "@trayClipsLinux": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "aboutDetailLinux": "A local-only clipboard history, after Maccy. Nothing you copy leaves this computer.",
   "pasteNeedsTool": "To paste, install xdotool (X11), or wtype or ydotool (Wayland). The item was copied.",
   "prefPasteTool": "Pasting types Ctrl+V with xdotool (X11), or wtype or ydotool (Wayland): install one.",
@@ -294,5 +301,40 @@
   "prefMenuIconHiddenLinux": "With the menu icon hidden, open the popup with its shortcut; Ctrl+, in the popup opens these settings.",
   "prefLocalOnlyLinux": "Everything stays on this computer: no network, no telemetry.",
   "prefNewApp": "Window class (WM_CLASS), e.g. KeePassXC",
-  "prefPlaySounds": "Play a sound on each copy"
+  "prefPlaySounds": "Play a sound on each copy",
+  "prefBackup": "Backup",
+  "prefBackupExport": "Export…",
+  "prefBackupImport": "Import…",
+  "prefBackupHint": "Export writes the history and these settings to one JSON file. Import merges the file's clips (same contents are skipped) and applies its settings.",
+  "backupExportTitle": "Export backup",
+  "backupImportTitle": "Import backup",
+  "backupImport": "Import",
+  "backupCancel": "Cancel",
+  "backupImportAsk": "Merge {count} clips into the history{andSettings}?",
+  "@backupImportAsk": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "andSettings": {
+        "type": "String",
+        "example": " and replace the settings"
+      }
+    }
+  },
+  "backupImportDone": "Imported {added} clips; {skipped} were already in the history.",
+  "@backupImportDone": {
+    "placeholders": {
+      "added": {
+        "type": "int",
+        "example": "3"
+      },
+      "skipped": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "backupImportSettings": " and replace the settings"
 }

@@ -39,6 +39,10 @@ type Host interface {
 	StorageSize() string
 	// PickApp asks for an application to ignore and adds it.
 	PickApp()
+	// ExportBackup and ImportBackup show the file dialogs and do the
+	// work; failures surface in their own dialogs.
+	ExportBackup() error
+	ImportBackup() error
 	AppName(bundleID string) string
 	AppIcon(bundleID string) *ui.Bitmap
 	Displays() []string
@@ -652,6 +656,12 @@ func (v *View) advanced(c *ui.Context) {
 		ui.Field(c, locales.PrefCheckInterval(), func() {
 			v.number(c, &v.interval, &s.ClipboardCheckInterval, settings.MinCheckIntervalMs, 60000, 100)
 		}).Description(locales.PrefCheckIntervalDescription())
+		ui.Field(c, locales.PrefBackup(), func() {
+			ui.Row(c).Gap(8).Children(func() {
+				ui.Button(c, locales.PrefBackupExport()).OnClick(func() { v.Host.ExportBackup() })
+				ui.Button(c, locales.PrefBackupImport()).OnClick(func() { v.Host.ImportBackup() })
+			})
+		}).Description(locales.PrefBackupHint())
 	})
 	muted(c, locales.LocalOnlyHere())
 }
