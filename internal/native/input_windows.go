@@ -78,8 +78,9 @@ func AccessibilityTrusted(bool) bool { return true }
 // SecureInputEnabled is false: Windows has no such switch.
 func SecureInputEnabled() bool { return false }
 
-// keyInput is one INPUT structure for a keyboard event (KEYBDINPUT with
-// no extra fields; the union's tail stays zero).
+// keyInput is one INPUT structure for a keyboard event: KEYBDINPUT in the
+// union's tail, padded out to the native INPUT size — SendInput requires
+// sizeof(INPUT), which the union sizes to MOUSEINPUT (40 bytes on amd64).
 type keyInput struct {
 	kind      uint32
 	reserved  uint32
@@ -88,6 +89,7 @@ type keyInput struct {
 	flags     uint32
 	time      uint32
 	extraInfo uintptr
+	_pad      [8]byte // the union's tail: MOUSEINPUT is larger than KEYBDINPUT
 }
 
 const (
@@ -142,7 +144,8 @@ func processImage(hwnd uintptr) string {
 	defer procCloseHandle.Call(h)
 	buf := make([]uint16, windows.MAX_PATH)
 	n := uint32(len(buf))
-	ok, _, _ := procProcessImage.Call(h, uintptr(unsafe.Pointer(&buf[0])), uintptr(unsafe.Pointer(&n)), 0)
+	// (hProcess, dwFlags, lpExeName, lpdwSize)
+	ok, _, _ := procProcessImage.Call(h, 0, uintptr(unsafe.Pointer(&buf[0])), uintptr(unsafe.Pointer(&n)))
 	if ok == 0 {
 		return ""
 	}

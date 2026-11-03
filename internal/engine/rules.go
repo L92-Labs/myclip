@@ -3,6 +3,7 @@
 package engine
 
 import (
+	"context"
 	"regexp"
 	"time"
 
@@ -62,6 +63,11 @@ func (e *Engine) applyRules() {
 	e.mu.Unlock()
 
 	for {
+		// Find the target, allocate its key and swap it in while holding
+		// persist: another applier, a capture or an edit must not save or
+		// delete the item between the replace and the write, or a stale
+		// snapshot would come back out of the store.
+		e.persist.Lock()
 		e.mu.Lock()
 		var target *history.Item
 		for _, it := range e.hist.Items() {
@@ -72,14 +78,26 @@ func (e *Engine) applyRules() {
 				}
 			}
 		}
-		free := history.AvailablePins(e.hist.Items(), reserved...)
-		e.mu.Unlock()
-		if target == nil || len(free) == 0 {
+		if target == nil {
+			e.mu.Unlock()
+			e.persist.Unlock()
 			return
 		}
-		if err := e.update(target.ID, func(it *history.Item) { it.Pin = free[0] }); err != nil {
-			return // gone, or already pinned meanwhile
+		free := history.AvailablePins(e.hist.Items(), reserved...)
+		if len(free) == 0 {
+			e.mu.Unlock()
+			e.persist.Unlock()
+			return
 		}
+		pinned := *target
+		pinned.Pin = free[0]
+		e.hist.Replace(target, &pinned)
+		e.mu.Unlock()
+
+		err := e.cfg.Store.Save(context.Background(), &pinned)
+		e.persist.Unlock()
+		e.report(err)
+		e.changed()
 	}
 }
 

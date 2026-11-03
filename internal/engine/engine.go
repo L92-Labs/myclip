@@ -131,8 +131,11 @@ func (e *Engine) record(ctx context.Context, r *capture.Result) {
 	e.persist.Lock()
 	e.mu.Lock()
 	it := history.NewItem(r.Contents, r.Application, now)
-	rule := match(e.rules, it)
 	res := e.hist.Add(it, r.ChangeCount, r.OwnWrite, now)
+	// The rules match the merged item: a merge restores the stored title
+	// and contents, which is what a rule may match, and re-copying should
+	// renew its expiry from this copy.
+	rule := match(e.rules, res.Item)
 	if rule != nil && rule.Action == settings.RulePin && res.Item.Pin == "" {
 		// Auto-pin the new clip while a pin key is free.
 		if free := history.AvailablePins(e.hist.Items(), e.pinReserved...); len(free) > 0 {
@@ -143,6 +146,11 @@ func (e *Engine) record(ctx context.Context, r *capture.Result) {
 		}
 	}
 	evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
+	for _, x := range evicted {
+		// The id may be reused by the store: a stale deadline here would
+		// delete an unrelated clip later.
+		delete(e.expires, x.ID)
+	}
 	e.mu.Unlock()
 
 	err := e.cfg.Store.Save(ctx, res.Item)

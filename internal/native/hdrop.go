@@ -31,6 +31,9 @@ func dropFiles(b []byte) []string {
 			if end == 0 {
 				break // the list's terminating NUL: done
 			}
+			if end >= len(list)/2 {
+				break // no terminator: malformed, not a path — never advance
+			}
 			out = append(out, string(utf16.Decode(le16s(list[:end*2]))))
 			list = list[(end+1)*2:]
 		}

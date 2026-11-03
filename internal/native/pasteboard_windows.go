@@ -19,24 +19,29 @@ import (
 var ErrUnsupported = errors.New("native: not supported on this platform")
 
 var (
-	user32    = windows.NewLazySystemDLL("user32.dll")
-	kernel32  = windows.NewLazySystemDLL("kernel32.dll")
-	shell32   = windows.NewLazySystemDLL("shell32.dll")
-	procSeq   = user32.NewProc("GetClipboardSequenceNumber")
-	procOpen  = user32.NewProc("OpenClipboard")
-	procClose = user32.NewProc("CloseClipboard")
-	procEmpty = user32.NewProc("EmptyClipboard")
-	procEnum  = user32.NewProc("EnumClipboardFormats")
-	procGet   = user32.NewProc("GetClipboardData")
-	procSet   = user32.NewProc("SetClipboardData")
-	procName  = user32.NewProc("GetClipboardFormatNameW")
-	procReg   = user32.NewProc("RegisterClipboardFormatW")
-	procSize  = kernel32.NewProc("GlobalSize")
-	procAlloc = kernel32.NewProc("GlobalAlloc")
-	procFree  = kernel32.NewProc("GlobalFree")
-	procLock  = kernel32.NewProc("GlobalLock")
-	procUnlck = kernel32.NewProc("GlobalUnlock")
-	procMove  = kernel32.NewProc("RtlMoveMemory")
+	user32      = windows.NewLazySystemDLL("user32.dll")
+	kernel32    = windows.NewLazySystemDLL("kernel32.dll")
+	shell32     = windows.NewLazySystemDLL("shell32.dll")
+	procSeq     = user32.NewProc("GetClipboardSequenceNumber")
+	procOpen    = user32.NewProc("OpenClipboard")
+	procClose   = user32.NewProc("CloseClipboard")
+	procEmpty   = user32.NewProc("EmptyClipboard")
+	procEnum    = user32.NewProc("EnumClipboardFormats")
+	procGet     = user32.NewProc("GetClipboardData")
+	procSet     = user32.NewProc("SetClipboardData")
+	procName    = user32.NewProc("GetClipboardFormatNameW")
+	procReg     = user32.NewProc("RegisterClipboardFormatW")
+	procSize    = kernel32.NewProc("GlobalSize")
+	procAlloc   = kernel32.NewProc("GlobalAlloc")
+	procFree    = kernel32.NewProc("GlobalFree")
+	procLock    = kernel32.NewProc("GlobalLock")
+	procUnlck   = kernel32.NewProc("GlobalUnlock")
+	procMove    = kernel32.NewProc("RtlMoveMemory")
+	procClassEx = user32.NewProc("RegisterClassExW")
+	procWindow  = user32.NewProc("CreateWindowExW")
+	procDestroy = user32.NewProc("DestroyWindow")
+	procDefProc = user32.NewProc("DefWindowProcW")
+	procModule  = kernel32.NewProc("GetModuleHandleW")
 )
 
 // Standard clipboard formats; registered ones resolve through regFormats.
@@ -119,10 +124,12 @@ func (General) ChangeCount() int {
 }
 
 // openClipboard retries briefly: the clipboard is a shared resource and
-// another process may hold it.
-func openClipboard() bool {
+// another process may hold it. hwnd is the owner: writes pass a real
+// window, because EmptyClipboard with no owner leaves the clipboard
+// unable to hold data (SetClipboardData then fails).
+func openClipboard(hwnd uintptr) bool {
 	for i := 0; i < maxOpenTries; i++ {
-		if v, _, _ := procOpen.Call(0); v != 0 {
+		if v, _, _ := procOpen.Call(hwnd); v != 0 {
 			return true
 		}
 		time.Sleep(20 * time.Millisecond)
@@ -130,9 +137,65 @@ func openClipboard() bool {
 	return false
 }
 
+// The clipboard owner: a message-only window. Writes must open the
+// clipboard with one, so the emptied clipboard keeps an owner and the
+// data published into it sticks.
+var (
+	ownerOnce   sync.Once
+	ownerWindow uintptr
+)
+
+// clipboardOwnerWindow makes the message-only window once and returns it
+// (0 when creation failed, which Write reports rather than publishing
+// ownerless).
+func clipboardOwnerWindow() uintptr {
+	ownerOnce.Do(func() {
+		name, err := windows.UTF16PtrFromString("MyClipClipboard")
+		if err != nil {
+			return
+		}
+		wc := wndClassEx{
+			Size:      uint32(unsafe.Sizeof(wndClassEx{})),
+			ClassName: name,
+			WndProc:   windows.NewCallback(clipboardWndProc),
+		}
+		wc.Instance, _, _ = procModule.Call(0) // the executable itself
+		atom, _, _ := procClassEx.Call(uintptr(unsafe.Pointer(&wc)))
+		if atom == 0 {
+			return
+		}
+		// (exStyle, class, name, style, x, y, w, h, parent, menu, instance,
+		// param) — parent HWND_MESSAGE: invisible, no taskbar presence.
+		ownerWindow, _, _ = procWindow.Call(0, atom, 0, 0, 0, 0, 0, 0,
+			^uintptr(2), 0, wc.Instance, 0)
+	})
+	return ownerWindow
+}
+
+type wndClassEx struct {
+	Size       uint32
+	Styles     uint32
+	WndProc    uintptr
+	Extra      int32
+	Window     int32
+	Instance   uintptr
+	Icon       uintptr
+	Cursor     uintptr
+	Background uintptr
+	MenuName   *uint16
+	ClassName  *uint16
+	SmallIcon  uintptr
+}
+
+// clipboardWndProc is the owner's window procedure: everything defaults.
+func clipboardWndProc(hwnd, msg, w, l uintptr) uintptr {
+	v, _, _ := procDefProc.Call(hwnd, msg, w, l)
+	return v
+}
+
 func (g General) Snapshot() (pasteboard.Snapshot, error) {
 	s := pasteboard.Snapshot{ChangeCount: g.ChangeCount()}
-	if !openClipboard() {
+	if !openClipboard(0) {
 		return s, errors.New("native: the clipboard is busy")
 	}
 	defer procClose.Call()
@@ -199,7 +262,7 @@ func readData(f uintptr) []byte {
 }
 
 func (General) ReadItems() []pasteboard.Item {
-	if !openClipboard() {
+	if !openClipboard(0) {
 		return nil
 	}
 	defer procClose.Call()
@@ -279,21 +342,28 @@ func (General) ReadItems() []pasteboard.Item {
 
 // Write replaces the clipboard contents.
 func (General) Write(items []pasteboard.Item) error {
+	// Writes need a real owner window: an emptied clipboard without one
+	// cannot hold data (SetClipboardData fails silently).
+	hwnd := clipboardOwnerWindow()
+	if hwnd == 0 {
+		return errors.New("native: no clipboard owner window")
+	}
 	if len(items) == 0 {
-		if !openClipboard() {
+		if !openClipboard(hwnd) {
 			return errors.New("native: the clipboard is busy")
 		}
 		defer procClose.Call()
 		procEmpty.Call()
 		return nil
 	}
-	if !openClipboard() {
+	if !openClipboard(hwnd) {
 		return errors.New("native: the clipboard is busy")
 	}
 	defer procClose.Call()
 	procEmpty.Call()
 
 	var files []string
+	var errs []error
 	wrote := map[string]bool{}
 	// Types the clipboard keeps without data: MyClip's own-write and
 	// paste-stack markers, from any item.
@@ -301,64 +371,77 @@ func (General) Write(items []pasteboard.Item) error {
 		for typ, v := range it.Types {
 			if len(v) == 0 && (typ == pasteboard.TypeOwnWrite || strings.HasPrefix(typ, pasteboard.StackWritePrefix)) {
 				wrote[typ] = true
-				setClipboard(registerFormat(typ), nil)
+				errs = append(errs, setClipboard(registerFormat(typ), nil))
 			}
 		}
 	}
 	// One clipboard item: the first data of each type, plus the files.
 	for _, it := range items {
 		for typ, v := range it.Types {
-			if len(v) == 0 || wrote[typ] {
+			if len(v) == 0 {
+				continue
+			}
+			if typ == pasteboard.TypeFileURL {
+				// Every item's file URL lands in the one CF_HDROP; never
+				// deduplicated away, or a multi-file copy keeps one file.
+				if p, err := url.Parse(string(v)); err == nil && p.Path != "" {
+					files = append(files, strings.TrimPrefix(p.Path, "/"))
+				}
+				continue
+			}
+			if wrote[typ] {
 				continue
 			}
 			wrote[typ] = true
 			switch typ {
 			case pasteboard.TypeString:
-				setClipboard(cfUnicodeText, utf16StringToBytes(string(v)))
+				errs = append(errs, setClipboard(cfUnicodeText, utf16StringToBytes(string(v))))
 			case pasteboard.TypeHTML:
-				setClipboard(regFormats.html, cfhtmlBuild(v))
+				errs = append(errs, setClipboard(regFormats.html, cfhtmlBuild(v)))
 			case pasteboard.TypeRTF:
-				setClipboard(regFormats.rtf, v)
+				errs = append(errs, setClipboard(regFormats.rtf, v))
 			case pasteboard.TypePNG:
-				setClipboard(regFormats.png, v)
+				errs = append(errs, setClipboard(regFormats.png, v))
 				if dib, ok := pngToDIB(v); ok {
-					setClipboard(cfDIB, dib)
-				}
-			case pasteboard.TypeFileURL:
-				if p, err := url.Parse(string(v)); err == nil && p.Path != "" {
-					files = append(files, strings.TrimPrefix(p.Path, "/"))
+					errs = append(errs, setClipboard(cfDIB, dib))
 				}
 			}
 		}
 	}
 	if len(files) > 0 {
-		setClipboard(cfHDrop, dropFilesBuild(files))
+		errs = append(errs, setClipboard(cfHDrop, dropFilesBuild(files)))
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // setClipboard puts data on the clipboard, transferring ownership of the
-// global allocation; nil data registers the format with no data.
-func setClipboard(f uintptr, data []byte) {
+// global allocation; empty data publishes a zero-length block, which is
+// how the own-write and paste-stack markers ride along. (NULL would ask
+// for delayed rendering, whose success is indistinguishable from failure.)
+// A failure is reported: the caller clears the clipboard first, so a
+// silent failure would leave it empty while claiming success.
+func setClipboard(f uintptr, data []byte) error {
 	if f == 0 {
-		return
-	}
-	if data == nil {
-		procSet.Call(f, 0)
-		return
+		return errors.New("native: clipboard format did not register")
 	}
 	h, _, _ := procAlloc.Call(gmemMoveable, uintptr(len(data)))
 	if h == 0 {
-		return
+		return errors.New("native: clipboard allocation failed")
 	}
-	p, _, _ := procLock.Call(h)
-	if p == 0 {
+	if len(data) > 0 {
+		p, _, _ := procLock.Call(h)
+		if p == 0 {
+			procFree.Call(h)
+			return errors.New("native: clipboard lock failed")
+		}
+		procMove.Call(p, uintptr(unsafe.Pointer(unsafe.SliceData(data))), uintptr(len(data)))
+		procUnlck.Call(h)
+	}
+	if v, _, _ := procSet.Call(f, h); v == 0 { // the clipboard owns h now
 		procFree.Call(h)
-		return
+		return errors.New("native: SetClipboardData failed")
 	}
-	procMove.Call(p, uintptr(unsafe.Pointer(unsafe.SliceData(data))), uintptr(len(data)))
-	procUnlck.Call(h)
-	procSet.Call(f, h) // the clipboard owns h now
+	return nil
 }
 
 // utf16BytesToString decodes UTF-16LE clipboard bytes (dropping the NUL).

@@ -7,6 +7,7 @@ import (
 
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
+	"github.com/L92-Labs/myclip/internal/settings"
 )
 
 func importItem(s string) *history.Item {
@@ -85,5 +86,46 @@ func TestImportPinDroppedWhenNoKeysFree(t *testing.T) {
 	}
 	if got := r.e.Items()[0].Pin; got != "b" || r.e.Items()[1].Pin != "" {
 		t.Fatalf("pins: %q %q", r.e.Items()[0].Pin, r.e.Items()[1].Pin)
+	}
+}
+
+// A pin an in-popup shortcut reserves is a conflict too, even on an empty
+// history: the popup checks pinned rows before its own shortcuts.
+func TestImportReservedPinMovesKey(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.e.SetRules(nil, "p") // Alt+P: the pin key p is reserved
+	imp := importItem("imported pinned")
+	imp.Pin = "p"
+	added, _, err := r.e.ImportItems([]*history.Item{imp})
+	if err != nil || added != 1 {
+		t.Fatalf("added %d err %v", added, err)
+	}
+	if got := r.e.Items()[0].Pin; got == "p" || got == "" {
+		t.Fatalf("reserved pin kept: %q", got)
+	}
+}
+
+// Imported clips get the live rules' effects, as a fresh capture would.
+func TestImportAppliesExpiryRules(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.e.SetRules([]Rule{mustRule(t, `one-time`, settings.RuleExpire, 30)})
+	imp := importItem("one-time code 42")
+	added, _, err := r.e.ImportItems([]*history.Item{imp})
+	if err != nil || added != 1 {
+		t.Fatalf("added %d err %v", added, err)
+	}
+	it := r.e.Items()[0]
+	at, ok := r.e.expires[it.ID]
+	if !ok {
+		t.Fatal("no expiry after import")
+	}
+	if !at.Equal(imp.LastCopiedAt.Add(30 * time.Second)) {
+		t.Fatalf("expiry %v, want last copy + 30s", at)
+	}
+	// And the sweep really deletes it when the deadline has run out.
+	r.clock = imp.LastCopiedAt.Add(31 * time.Second)
+	r.e.Tick(context.Background())
+	if items := r.e.Items(); len(items) != 0 {
+		t.Fatalf("imported clip outlived its rule: %+v", items)
 	}
 }

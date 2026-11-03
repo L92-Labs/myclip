@@ -33,6 +33,7 @@ type Item struct {
 	NumberOfCopies int       `json:"numberOfCopies"`
 	Pin            string    `json:"pin,omitempty"`
 	Title          string    `json:"title,omitempty"`
+	Snippet        bool      `json:"snippet,omitempty"`
 	Contents       []Content `json:"contents"`
 }
 
@@ -60,6 +61,7 @@ func Export(w io.Writer, s *settings.Settings, items []*history.Item) error {
 			NumberOfCopies: it.NumberOfCopies,
 			Pin:            it.Pin,
 			Title:          it.Title,
+			Snippet:        it.Snippet,
 		}
 		for _, c := range it.Contents {
 			x.Contents = append(x.Contents, Content{Type: c.Type, Value: c.Value})
@@ -112,7 +114,9 @@ func Read(r io.Reader) (*Archive, error) {
 		kept = append(kept, x)
 	}
 	a.Items = kept
-	if len(a.Items) == 0 {
+	// A settings-only backup is the app's own export after clearing the
+	// history: it restores the settings, with nothing to merge.
+	if len(a.Items) == 0 && a.Settings == nil {
 		return nil, errors.New("transfer: backup has no clips")
 	}
 	return &a, nil
@@ -129,6 +133,7 @@ func (a *Archive) HistoryItems() []*history.Item {
 			NumberOfCopies: x.NumberOfCopies,
 			Pin:            x.Pin,
 			Title:          x.Title,
+			Snippet:        x.Snippet,
 		}
 		for _, c := range x.Contents {
 			it.Contents = append(it.Contents, history.Content{Type: c.Type, Value: c.Value})

@@ -166,3 +166,63 @@ func TestRuleAppliesAfterOCR(t *testing.T) {
 		t.Fatalf("expiry %v", at)
 	}
 }
+
+// A rule-matched clip deleted by hand takes its deadline with it: the id
+// may be reused by the next clip, and a stale deadline would delete an
+// unrelated clip later.
+func TestExpiryDiesWithTheClip(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.e.SetRules([]Rule{mustRule(t, `one-time`, settings.RuleExpire, 3600)})
+	r.copy(t, "one-time code 1")
+	id := r.e.Items()[0].ID
+	if _, ok := r.e.expires[id]; !ok {
+		t.Fatal("no expiry set")
+	}
+	if err := r.e.Delete(id); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := r.e.expires[id]; ok {
+		t.Fatal("deadline kept after delete")
+	}
+
+	r.copy(t, "one-time code 2")
+	id = r.e.Items()[0].ID
+	if err := r.e.Clear(false); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := r.e.expires[id]; ok {
+		t.Fatal("deadline kept after clear")
+	}
+
+	r.copy(t, "one-time code 3")
+	id = r.e.Items()[0].ID
+	r.e.SetLimits(Limits{MaxItems: 0, MaxBytes: 1}) // a 1-byte total cap trims everything
+	if _, ok := r.e.expires[id]; ok {
+		t.Fatal("deadline kept after a limit trim")
+	}
+}
+
+// Re-copying a clip the rule matches only through its stored title renews
+// the deadline from the new copy, instead of leaving the old one.
+func TestExpiryRenewsOnRecopyOfRenamedClip(t *testing.T) {
+	r := newRig(t, Limits{})
+	r.copy(t, "receipt scan")
+	it := r.e.Items()[0]
+	r.e.SetTitle(it.ID, "invoice march")
+	r.e.SetRules([]Rule{mustRule(t, `invoice`, settings.RuleExpire, 60)})
+	first := r.e.expires[it.ID]
+	if first.IsZero() {
+		t.Fatal("no deadline from the title")
+	}
+	// Copy the same bytes again: the merge keeps the title, so the rule
+	// still matches and the deadline moves to now + 60s.
+	r.copy(t, "receipt scan")
+	items := r.e.Items()
+	if len(items) != 1 || items[0].Title != "invoice march" {
+		t.Fatalf("merge lost the rename: %+v", items)
+	}
+	renewed := r.e.expires[items[0].ID]
+	if !renewed.After(first) {
+		t.Fatalf("deadline not renewed: %v -> %v", first, renewed)
+	}
+}
