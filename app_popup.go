@@ -198,6 +198,20 @@ func (a *app) Delete(id int64) {
 	}
 }
 
+// Rename names a clip; "" goes back to its contents-derived title.
+func (a *app) Rename(id int64, title string) {
+	if err := a.engine.SetTitle(id, title); err != nil {
+		log.Print("myclip: rename: ", err)
+	}
+}
+
+// EditText replaces a text clip's contents with plain text.
+func (a *app) EditText(id int64, text string) {
+	if err := a.engine.SetText(id, text); err != nil {
+		log.Print("myclip: edit: ", err)
+	}
+}
+
 // Clear clears the history from the popup, which closes (History.clear).
 func (a *app) Clear(all bool) {
 	a.Close()
@@ -270,3 +284,6 @@ func (a *app) toggleFromCommand() {
 	}
 	a.showPopup()
 }
+
+// SetSnippet marks or unmarks a clip as a snippet.
+func (a *app) SetSnippet(id int64, on bool) { _ = a.engine.SetSnippet(id, on) }

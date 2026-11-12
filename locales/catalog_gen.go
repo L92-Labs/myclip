@@ -501,6 +501,146 @@ func (msgs Messages) MenuDelete() string {
 	return Catalog.Format(msgs.locale, "menuDelete", nil)
 }
 
+// MenuRename says "Rename…"
+// in the language the app shows.
+func MenuRename() string { return In(i18n.Locale()).MenuRename() }
+
+// MenuRename says "Rename…"
+// in the language of msgs.
+func (msgs Messages) MenuRename() string {
+	return Catalog.Format(msgs.locale, "menuRename", nil)
+}
+
+// MenuEdit says "Edit…"
+// in the language the app shows.
+func MenuEdit() string { return In(i18n.Locale()).MenuEdit() }
+
+// MenuEdit says "Edit…"
+// in the language of msgs.
+func (msgs Messages) MenuEdit() string {
+	return Catalog.Format(msgs.locale, "menuEdit", nil)
+}
+
+// EditRenameTitle says "Rename Clip"
+// in the language the app shows.
+func EditRenameTitle() string { return In(i18n.Locale()).EditRenameTitle() }
+
+// EditRenameTitle says "Rename Clip"
+// in the language of msgs.
+func (msgs Messages) EditRenameTitle() string {
+	return Catalog.Format(msgs.locale, "editRenameTitle", nil)
+}
+
+// EditTitle says "Edit Clip"
+// in the language the app shows.
+func EditTitle() string { return In(i18n.Locale()).EditTitle() }
+
+// EditTitle says "Edit Clip"
+// in the language of msgs.
+func (msgs Messages) EditTitle() string {
+	return Catalog.Format(msgs.locale, "editTitle", nil)
+}
+
+// EditNote says "Editing replaces the clip's contents with plain text."
+// in the language the app shows.
+func EditNote() string { return In(i18n.Locale()).EditNote() }
+
+// EditNote says "Editing replaces the clip's contents with plain text."
+// in the language of msgs.
+func (msgs Messages) EditNote() string {
+	return Catalog.Format(msgs.locale, "editNote", nil)
+}
+
+// EditSave says "Save"
+// in the language the app shows.
+func EditSave() string { return In(i18n.Locale()).EditSave() }
+
+// EditSave says "Save"
+// in the language of msgs.
+func (msgs Messages) EditSave() string {
+	return Catalog.Format(msgs.locale, "editSave", nil)
+}
+
+// EditCancel says "Cancel"
+// in the language the app shows.
+func EditCancel() string { return In(i18n.Locale()).EditCancel() }
+
+// EditCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) EditCancel() string {
+	return Catalog.Format(msgs.locale, "editCancel", nil)
+}
+
+// PrefRules says "Rules"
+// in the language the app shows.
+func PrefRules() string { return In(i18n.Locale()).PrefRules() }
+
+// PrefRules says "Rules"
+// in the language of msgs.
+func (msgs Messages) PrefRules() string {
+	return Catalog.Format(msgs.locale, "prefRules", nil)
+}
+
+// PrefRulesDescription says "Smart rules match a clip's text as a regular expression: the first matching rule pins the clip, or deletes it after a…"
+// in the language the app shows.
+func PrefRulesDescription() string { return In(i18n.Locale()).PrefRulesDescription() }
+
+// PrefRulesDescription says "Smart rules match a clip's text as a regular expression: the first matching rule pins the clip, or deletes it after a…"
+// in the language of msgs.
+func (msgs Messages) PrefRulesDescription() string {
+	return Catalog.Format(msgs.locale, "prefRulesDescription", nil)
+}
+
+// PrefNewRule says "Regular expression to match"
+// in the language the app shows.
+func PrefNewRule() string { return In(i18n.Locale()).PrefNewRule() }
+
+// PrefNewRule says "Regular expression to match"
+// in the language of msgs.
+func (msgs Messages) PrefNewRule() string {
+	return Catalog.Format(msgs.locale, "prefNewRule", nil)
+}
+
+// PrefRulePin says "Pin"
+// in the language the app shows.
+func PrefRulePin() string { return In(i18n.Locale()).PrefRulePin() }
+
+// PrefRulePin says "Pin"
+// in the language of msgs.
+func (msgs Messages) PrefRulePin() string {
+	return Catalog.Format(msgs.locale, "prefRulePin", nil)
+}
+
+// PrefRuleExpire says "Delete after"
+// in the language the app shows.
+func PrefRuleExpire() string { return In(i18n.Locale()).PrefRuleExpire() }
+
+// PrefRuleExpire says "Delete after"
+// in the language of msgs.
+func (msgs Messages) PrefRuleExpire() string {
+	return Catalog.Format(msgs.locale, "prefRuleExpire", nil)
+}
+
+// PrefRuleSeconds says "s"
+// in the language the app shows.
+func PrefRuleSeconds() string { return In(i18n.Locale()).PrefRuleSeconds() }
+
+// PrefRuleSeconds says "s"
+// in the language of msgs.
+func (msgs Messages) PrefRuleSeconds() string {
+	return Catalog.Format(msgs.locale, "prefRuleSeconds", nil)
+}
+
+// PrefRulesHint says "Rules also match the text read in images and a clip's renamed title."
+// in the language the app shows.
+func PrefRulesHint() string { return In(i18n.Locale()).PrefRulesHint() }
+
+// PrefRulesHint says "Rules also match the text read in images and a clip's renamed title."
+// in the language of msgs.
+func (msgs Messages) PrefRulesHint() string {
+	return Catalog.Format(msgs.locale, "prefRulesHint", nil)
+}
+
 // PrefWindowTitle says "MyClip Settings"
 // in the language the app shows.
 func PrefWindowTitle() string { return In(i18n.Locale()).PrefWindowTitle() }
@@ -1793,4 +1933,128 @@ func PrefPlaySounds() string { return In(i18n.Locale()).PrefPlaySounds() }
 // in the language of msgs.
 func (msgs Messages) PrefPlaySounds() string {
 	return Catalog.Format(msgs.locale, "prefPlaySounds", nil)
+}
+
+// PrefBackup says "Backup"
+// in the language the app shows.
+func PrefBackup() string { return In(i18n.Locale()).PrefBackup() }
+
+// PrefBackup says "Backup"
+// in the language of msgs.
+func (msgs Messages) PrefBackup() string {
+	return Catalog.Format(msgs.locale, "prefBackup", nil)
+}
+
+// PrefBackupExport says "Export…"
+// in the language the app shows.
+func PrefBackupExport() string { return In(i18n.Locale()).PrefBackupExport() }
+
+// PrefBackupExport says "Export…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupExport() string {
+	return Catalog.Format(msgs.locale, "prefBackupExport", nil)
+}
+
+// PrefBackupImport says "Import…"
+// in the language the app shows.
+func PrefBackupImport() string { return In(i18n.Locale()).PrefBackupImport() }
+
+// PrefBackupImport says "Import…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupImport() string {
+	return Catalog.Format(msgs.locale, "prefBackupImport", nil)
+}
+
+// PrefBackupHint says "Export writes the history and these settings to one JSON file. Import merges the file's clips (same contents are skip…"
+// in the language the app shows.
+func PrefBackupHint() string { return In(i18n.Locale()).PrefBackupHint() }
+
+// PrefBackupHint says "Export writes the history and these settings to one JSON file. Import merges the file's clips (same contents are skip…"
+// in the language of msgs.
+func (msgs Messages) PrefBackupHint() string {
+	return Catalog.Format(msgs.locale, "prefBackupHint", nil)
+}
+
+// BackupExportTitle says "Export backup"
+// in the language the app shows.
+func BackupExportTitle() string { return In(i18n.Locale()).BackupExportTitle() }
+
+// BackupExportTitle says "Export backup"
+// in the language of msgs.
+func (msgs Messages) BackupExportTitle() string {
+	return Catalog.Format(msgs.locale, "backupExportTitle", nil)
+}
+
+// BackupImportTitle says "Import backup"
+// in the language the app shows.
+func BackupImportTitle() string { return In(i18n.Locale()).BackupImportTitle() }
+
+// BackupImportTitle says "Import backup"
+// in the language of msgs.
+func (msgs Messages) BackupImportTitle() string {
+	return Catalog.Format(msgs.locale, "backupImportTitle", nil)
+}
+
+// BackupImport says "Import"
+// in the language the app shows.
+func BackupImport() string { return In(i18n.Locale()).BackupImport() }
+
+// BackupImport says "Import"
+// in the language of msgs.
+func (msgs Messages) BackupImport() string {
+	return Catalog.Format(msgs.locale, "backupImport", nil)
+}
+
+// BackupCancel says "Cancel"
+// in the language the app shows.
+func BackupCancel() string { return In(i18n.Locale()).BackupCancel() }
+
+// BackupCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) BackupCancel() string {
+	return Catalog.Format(msgs.locale, "backupCancel", nil)
+}
+
+// BackupImportAsk says "Merge {count} clips into the history{andSettings}?"
+// in the language the app shows.
+func BackupImportAsk(count int, andSettings string) string {
+	return In(i18n.Locale()).BackupImportAsk(count, andSettings)
+}
+
+// BackupImportAsk says "Merge {count} clips into the history{andSettings}?"
+// in the language of msgs.
+func (msgs Messages) BackupImportAsk(count int, andSettings string) string {
+	return Catalog.Format(msgs.locale, "backupImportAsk", map[string]any{"count": count, "andSettings": andSettings})
+}
+
+// BackupImportDone says "Imported {added} clips; {skipped} were already in the history."
+// in the language the app shows.
+func BackupImportDone(added int, skipped int) string {
+	return In(i18n.Locale()).BackupImportDone(added, skipped)
+}
+
+// BackupImportDone says "Imported {added} clips; {skipped} were already in the history."
+// in the language of msgs.
+func (msgs Messages) BackupImportDone(added int, skipped int) string {
+	return Catalog.Format(msgs.locale, "backupImportDone", map[string]any{"added": added, "skipped": skipped})
+}
+
+// BackupImportSettings says " and replace the settings"
+// in the language the app shows.
+func BackupImportSettings() string { return In(i18n.Locale()).BackupImportSettings() }
+
+// BackupImportSettings says " and replace the settings"
+// in the language of msgs.
+func (msgs Messages) BackupImportSettings() string {
+	return Catalog.Format(msgs.locale, "backupImportSettings", nil)
+}
+
+// MenuSnippet says "Snippet"
+// in the language the app shows.
+func MenuSnippet() string { return In(i18n.Locale()).MenuSnippet() }
+
+// MenuSnippet says "Snippet"
+// in the language of msgs.
+func (msgs Messages) MenuSnippet() string {
+	return Catalog.Format(msgs.locale, "menuSnippet", nil)
 }

@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        os: [ubuntu-24.04, macos-15, windows-2025]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,6 +69,7 @@ jobs:
       - name: Vet and tests without cgo
         run: scripts/test.sh -count=1
       - name: Race detector
+        if: runner.os != 'Windows'
         run: go test -race -count=1 ./...
 
   build:
@@ -92,6 +93,10 @@ jobs:
             target: darwin/universal
             arch: universal
             artifact: macos-universal
+          - os: windows-2025
+            target: windows/amd64
+            arch: amd64
+            artifact: windows-amd64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -107,10 +112,19 @@ jobs:
       - name: Build macOS universal installers
         if: runner.os == 'macOS'
         run: scripts/build-mac.sh --skip-tests --universal --dmg
+      - name: Build Windows executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $version = (Get-Content mygo.json | ConvertFrom-Json).version
+          go build -trimpath -ldflags "-s -w" -o build/windows-amd64/myclip.exe .
+          Copy-Item LICENSE, NOTICE.md, THIRD_PARTY_NOTICES.txt build/windows-amd64/
+          Compress-Archive -Path build/windows-amd64/* -DestinationPath build/windows-amd64/myclip-windows-amd64.zip
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
+          & $iscc /DAppVersion=$version scripts/windows.iss
       - name: Verify and collect release packages
-        env:
-          TARGET: ${{ matrix.target }}
-        run: python3 scripts/release.py "$TARGET"
+        run: python3 scripts/release.py "${{ matrix.target }}"
       - name: Install Linux smoke tools
         if: matrix.target == 'linux/amd64'
         run: |

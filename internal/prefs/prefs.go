@@ -5,6 +5,8 @@ package prefs
 
 import (
 	"fmt"
+	"image"
+	"image/color"
 	"regexp"
 	"runtime"
 	"slices"
@@ -39,9 +41,16 @@ type Host interface {
 	StorageSize() string
 	// PickApp asks for an application to ignore and adds it.
 	PickApp()
+	// ExportBackup and ImportBackup show the file dialogs and do the
+	// work; failures surface in their own dialogs.
+	ExportBackup() error
+	ImportBackup() error
 	AppName(bundleID string) string
 	AppIcon(bundleID string) *ui.Bitmap
 	Displays() []string
+	// Refit sizes the window to the pane again, after the frame that
+	// asked for it: it runs on the main thread once that build is done.
+	Refit()
 }
 
 // Content type groups of the Storage pane (StorageType @ eb03eba).
@@ -66,6 +75,8 @@ type View struct {
 
 	newType, newRegexp, regexpErr string
 	newApp                        string // Linux: a WM_CLASS to ignore
+	newRuleAction                 string
+	newRuleSeconds                float64
 	titles, texts                 map[int64]*string
 }
 
@@ -88,9 +99,14 @@ func (v *View) Load() {
 	v.loginItem = v.Host.LaunchAtLogin()
 	v.titles, v.texts = map[int64]*string{}, map[int64]*string{}
 	v.recording = ""
+	v.newRuleAction = settings.RulePin
+	v.newRuleSeconds = 60
 }
 
-func (v *View) changed() { v.Host.Changed() }
+func (v *View) changed() {
+	v.Host.Changed()
+	v.Host.Refit() // edits move the pane's rows: the window follows
+}
 
 // View builds the window.
 func (v *View) View(c *ui.Context) {
@@ -98,35 +114,93 @@ func (v *View) View(c *ui.Context) {
 	c.Root().Background(t.Background)
 	c.OnShortcut(ui.Cmd, ui.KeyW, func() { v.stopRecording() })
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).Padding(12, 16, 0, 16).Justify(ui.Center).Children(func() {
-			if ui.Tabs(c, &v.tab, locales.PrefGeneral(), locales.PrefStorage(), locales.PrefAppearance(),
-				locales.PrefPins(), locales.PrefIgnore(), locales.PrefAdvanced()).Changed() {
-				v.stopRecording()
-			}
-		})
+		v.tabStrip(c)
 		ui.Scroll(c.Key(v.tab)).Grow(1).Children(func() {
-			ui.Column(c).Padding(16, 24).Gap(12).Children(func() {
-				switch v.tab {
-				case 0:
-					v.general(c)
-				case 1:
-					v.storage(c)
-				case 2:
-					v.appearance(c)
-				case 3:
-					v.pins(c)
-				case 4:
-					v.ignore(c)
-				case 5:
-					v.advanced(c)
-				}
-			})
+			v.paneBody(c)
 		})
 	})
 }
 
-// SetTab shows a pane: 0 General … 5 Advanced.
-func (v *View) SetTab(i int) { v.tab = max(0, min(i, 5)) }
+func (v *View) tabStrip(c *ui.Context) {
+	ui.Row(c).Padding(12, 16, 0, 16).Justify(ui.Center).Children(func() {
+		if ui.Tabs(c, &v.tab, locales.PrefGeneral(), locales.PrefStorage(), locales.PrefAppearance(),
+			locales.PrefPins(), locales.PrefIgnore(), locales.PrefRules(), locales.PrefAdvanced()).Changed() {
+			v.stopRecording()
+			v.Host.Refit()
+		}
+	})
+}
+
+// paneBody is the current pane's content, under the tab strip.
+func (v *View) paneBody(c *ui.Context) {
+	ui.Column(c).Padding(16, 24).Gap(12).Children(func() {
+		switch v.tab {
+		case 0:
+			v.general(c)
+		case 1:
+			v.storage(c)
+		case 2:
+			v.appearance(c)
+		case 3:
+			v.pins(c)
+		case 4:
+			v.ignore(c)
+		case 5:
+			v.rules(c)
+		case 6:
+			v.advanced(c)
+		}
+	})
+}
+
+// SetTab shows a pane: 0 General … 6 Advanced.
+func (v *View) SetTab(i int) {
+	v.tab = max(0, min(i, 6))
+	if v.Host != nil {
+		v.Host.Refit()
+	}
+}
+
+// The window's width; its height follows the pane it shows.
+const (
+	fitWidth     = 680
+	fitRenderMax = 2400 // the tallest pane the measurement renders
+	fitMargin    = 4    // a little room under the last control
+)
+
+// Fit is the window size that shows the current pane without scrolling.
+// It renders the tab strip and the pane in memory and measures the
+// drawing, so the panes that grow with their content — pins, ignored
+// applications, rules — keep the window as tall as they need and no
+// taller. Maccy's panes, whose lists sit in their own scroll views, are
+// fixed; ours show everything at once, as they are short.
+func (v *View) Fit() (w, h int) {
+	img := ui.Render(func(c *ui.Context) {
+		t := c.Theme()
+		c.Root().Background(t.Background)
+		ui.Column(c).Children(func() {
+			v.tabStrip(c)
+			v.paneBody(c)
+		})
+	}, fitWidth, fitRenderMax, 1)
+	bottom := lastDrawnRow(img, img.RGBAAt(2, 2)) // (2, 2): the strip's padding
+	return fitWidth, min(fitRenderMax, bottom+1+panePadY+fitMargin)
+}
+
+// panePadY is the pane column's vertical padding.
+const panePadY = 16
+
+// lastDrawnRow is the last row of img that drew anything but bg.
+func lastDrawnRow(img *image.RGBA, bg color.RGBA) int {
+	for y := img.Rect.Max.Y - 1; y >= img.Rect.Min.Y; y-- {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			if img.RGBAAt(x, y) != bg {
+				return y
+			}
+		}
+	}
+	return 0
+}
 
 // StopRecording ends a shortcut recording, as the window hides.
 func (v *View) StopRecording() { v.stopRecording() }
@@ -468,6 +542,7 @@ func (v *View) pins(c *ui.Context) {
 			}
 			if ui.Button(c.Key(fmt.Sprint("unpin", id)), locales.PrefUnpin()).Clicked() {
 				v.Host.Unpin(id)
+				v.Host.Refit()
 			}
 		}
 	})
@@ -556,6 +631,61 @@ func (v *View) ignore(c *ui.Context) {
 	}
 }
 
+// rules is the smart-rules pane: a regexp matched against a clip's text,
+// pinning it or deleting it after a delay. The first match wins.
+func (v *View) rules(c *ui.Context) {
+	s := v.S
+	t := c.Theme()
+	muted(c, locales.PrefRulesDescription())
+	ui.Column(c).Border(1, t.Border).Radius(6).Padding(4).MinHeight(60).Children(func() {
+		remove := -1
+		for i, r := range s.Rules {
+			r := r
+			ui.Row(c.Key("rule"+fmt.Sprint(i))).Gap(8).Padding(4, 6).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, r.Pattern).FontSize(13).Font("Menlo").Grow(1).SingleLine()
+				label := locales.PrefRulePin()
+				if r.Action == settings.RuleExpire {
+					label = fmt.Sprintf("%s %d %s", locales.PrefRuleExpire(), r.Seconds, locales.PrefRuleSeconds())
+				}
+				ui.Text(c, label).FontSize(12).TextColor(t.TextMuted)
+				if ui.Button(c, locales.PrefRemove()).Clicked() {
+					remove = i
+				}
+			})
+		}
+		if remove >= 0 {
+			s.Rules = slices.Delete(slices.Clone(s.Rules), remove, remove+1)
+			v.changed()
+		}
+	})
+	ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+		add := func() {
+			if v.newRegexp == "" {
+				return
+			}
+			if _, err := regexp.Compile(v.newRegexp); err != nil {
+				v.regexpErr = locales.PrefInvalidRegexp()
+				return
+			}
+			s.Rules = append(s.Rules, settings.Rule{Pattern: v.newRegexp, Action: v.newRuleAction, Seconds: int(v.newRuleSeconds)})
+			v.newRegexp, v.regexpErr = "", ""
+			v.changed()
+		}
+		ui.Field(c, "", func() {
+			if ui.TextInput(c, &v.newRegexp).Placeholder(locales.PrefNewRule()).OnSubmit(add).Changed() {
+				v.regexpErr = ""
+			}
+		}).Error(v.regexpErr).Grow(1)
+		v.pick(c, &v.newRuleAction, settings.RuleActions,
+			[]string{locales.PrefRulePin(), locales.PrefRuleExpire()})
+		if v.newRuleAction == settings.RuleExpire {
+			ui.NumberInput(c, &v.newRuleSeconds, settings.MinRuleSeconds, 30*24*3600, 1).Width(150)
+		}
+		ui.Button(c, locales.PrefAdd()).Disabled(v.newRegexp == "").OnClick(add)
+	})
+	muted(c, locales.PrefRulesHint())
+}
+
 // list shows strings with a Remove button each.
 func (v *View) list(c *ui.Context, items *[]string, show func(string)) {
 	t := c.Theme()
@@ -591,6 +721,12 @@ func (v *View) advanced(c *ui.Context) {
 		ui.Field(c, locales.PrefCheckInterval(), func() {
 			v.number(c, &v.interval, &s.ClipboardCheckInterval, settings.MinCheckIntervalMs, 60000, 100)
 		}).Description(locales.PrefCheckIntervalDescription())
+		ui.Field(c, locales.PrefBackup(), func() {
+			ui.Row(c).Gap(8).Children(func() {
+				ui.Button(c, locales.PrefBackupExport()).OnClick(func() { v.Host.ExportBackup() })
+				ui.Button(c, locales.PrefBackupImport()).OnClick(func() { v.Host.ImportBackup() })
+			})
+		}).Description(locales.PrefBackupHint())
 	})
 	muted(c, locales.LocalOnlyHere())
 }

@@ -82,6 +82,12 @@ type Host interface {
 	SelectMany(ids []int64, a Action)
 	TogglePin(id int64)
 	Delete(id int64)
+	// Rename names a clip; "" goes back to the title from its contents.
+	Rename(id int64, title string)
+	// EditText replaces a text clip's contents with plain text.
+	EditText(id int64, text string)
+	// SetSnippet marks or unmarks a clip as a snippet.
+	SetSnippet(id int64, on bool)
 	Clear(all bool)
 	OpenSettings()
 	About()
@@ -99,6 +105,15 @@ type Host interface {
 	AppName(bundleID string) string
 	// Resize asks for the window to take this size, after the frame.
 	Resize(width, height int)
+}
+
+// editState is the rename/edit dialog: which clip, which kind, the text
+// in the field, and its focus.
+type editState struct {
+	open, rename bool
+	id           int64
+	text         string
+	handle       ui.Handle
 }
 
 type row struct {
@@ -137,6 +152,8 @@ type Popup struct {
 
 	confirm, confirmAll, dontAsk bool
 
+	edit editState
+
 	width, height int
 }
 
@@ -164,6 +181,7 @@ func (p *Popup) Reset() {
 	p.query = ""
 	p.previewOpen, p.previewShut = false, false
 	p.confirm = false
+	p.edit.open = false
 	p.marked = nil
 	p.hoverRow = -2 // the pointer resting where the popup opens chooses nothing
 	p.filter()
@@ -429,7 +447,7 @@ func (p *Popup) View(c *ui.Context) {
 	} else {
 		root.Background(t.Background)
 	}
-	if !p.confirm && !p.search.Focused(c) {
+	if !p.confirm && !p.edit.open && !p.search.Focused(c) {
 		p.search.Focus(c)
 	}
 	p.autoPreview(c)
@@ -449,6 +467,7 @@ func (p *Popup) View(c *ui.Context) {
 		}
 	})
 	p.confirmDialog(c)
+	p.editDialog(c)
 	p.fit()
 }
 
@@ -626,6 +645,17 @@ func (p *Popup) rowMenu(m *ui.Menu, it *history.Item) {
 		p.Host.Select(id, Action{Paste: true, Plain: true})
 	}
 	m.Separator()
+	if m.Item(locales.MenuRename()).Chosen() {
+		p.startRename(id)
+	}
+	if canEdit(it) && m.Item(locales.MenuEdit()).Chosen() {
+		p.startEdit(id)
+	}
+	snip := m.Item(locales.MenuSnippet()).Checked(it.Snippet)
+	if snip.Chosen() {
+		p.Host.SetSnippet(id, !it.Snippet)
+	}
+	m.Separator()
 	pin := locales.MenuPin()
 	if it.Pin != "" {
 		pin = locales.MenuUnpin()
@@ -635,6 +665,110 @@ func (p *Popup) rowMenu(m *ui.Menu, it *history.Item) {
 	}
 	if m.Item(locales.MenuDelete()).Chosen() {
 		p.Host.Delete(id)
+	}
+}
+
+// canEdit reports whether a clip's contents can be edited as text: not an
+// image or file URLs, which editing would replace.
+func canEdit(it *history.Item) bool {
+	if _, _, ok := it.Image(); ok {
+		return false
+	}
+	if len(it.FilePaths()) > 0 {
+		return false
+	}
+	return it.ContentText() != ""
+}
+
+func (p *Popup) byID(id int64) *history.Item {
+	for _, it := range p.items {
+		if it.ID == id {
+			return it
+		}
+	}
+	return nil
+}
+
+// startRename opens the rename dialog with the clip's title. An empty
+// title goes back to the title from the contents.
+func (p *Popup) startRename(id int64) {
+	if it := p.byID(id); it != nil {
+		p.edit = editState{open: true, rename: true, id: id, text: it.Title}
+	}
+}
+
+// startEdit opens the edit dialog with the clip's text.
+func (p *Popup) startEdit(id int64) {
+	if it := p.byID(id); it != nil {
+		p.edit = editState{open: true, id: id, text: it.ContentText()}
+	}
+}
+
+// editKeys takes Enter and Escape in the dialog's field: Enter saves
+// (plain Enter in the rename field, ⌘⏎ in the multi-line editor, which
+// keeps Enter for a newline), Escape cancels.
+func (p *Popup) editKeys(ev ui.InputEvent) bool {
+	if ev.Kind != ui.InputKeyDown {
+		return false
+	}
+	switch {
+	case ev.Mods == 0 && ev.Key == ui.KeyEscape:
+		p.edit.open = false
+	case ev.Key == ui.KeyEnter && (p.edit.rename || ev.Mods == ui.Cmd):
+		p.saveEdit()
+	default:
+		return false
+	}
+	return true
+}
+
+// saveEdit closes the dialog and applies the text: the new title when
+// renaming, else the clip's new contents.
+func (p *Popup) saveEdit() {
+	id, rename, text := p.edit.id, p.edit.rename, p.edit.text
+	p.edit.open = false
+	if rename {
+		p.Host.Rename(id, strings.TrimSpace(text))
+		return
+	}
+	p.Host.EditText(id, text)
+}
+
+func (p *Popup) editDialog(c *ui.Context) {
+	t := c.Theme()
+	ui.DialogBase(c, &p.edit.open, func(backdrop, panel ui.Element) {
+		backdrop.Background(ui.RGBA(0, 0, 0, 0.3))
+		panel.Width(380).Padding(16).Gap(10).Radius(10).Background(t.Background).Border(1, t.Border)
+		title, note := locales.EditRenameTitle(), ""
+		if !p.edit.rename {
+			title, note = locales.EditTitle(), locales.EditNote()
+		}
+		ui.Text(c, title).Bold().Wrap()
+		if p.edit.rename {
+			ui.Row(c).Gap(6).Padding(5, 8).Radius(6).Background(t.Surface).AlignItems(ui.Center).Children(func() {
+				ui.TextInput(c, &p.edit.text).Bind(&p.edit.handle).Grow(1).FontSize(13).
+					Label(title).HandleInput(p.editKeys)
+			})
+		} else {
+			ui.Box(c).Height(180).Children(func() {
+				ui.TextArea(c, &p.edit.text).Bind(&p.edit.handle).Grow(1).FontSize(13).
+					Label(title).HandleInput(p.editKeys)
+			})
+		}
+		if note != "" {
+			ui.Text(c, note).FontSize(12).TextColor(t.TextMuted).Wrap()
+		}
+		ui.Row(c).Gap(8).Justify(ui.End).Children(func() {
+			if ui.Button(c, locales.EditCancel()).Clicked() {
+				p.edit.open = false
+			}
+			if ui.PrimaryButton(c, locales.EditSave()).Clicked() {
+				p.saveEdit()
+			}
+		})
+	})
+	if p.edit.open && !p.edit.handle.Focused(c) {
+		p.edit.handle.Focus(c)
 	}
 }
 
@@ -811,7 +945,7 @@ func (p *Popup) Fit() (width, height int) {
 	if s.ShowFooter {
 		h += 4*30 + 10
 	}
-	if p.confirm || p.previewOpen {
+	if p.confirm || p.previewOpen || p.edit.open {
 		h = max(h, 360)
 	}
 	h = max(120, min(h, s.WindowHeight))

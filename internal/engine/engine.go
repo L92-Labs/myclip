@@ -13,6 +13,7 @@ import (
 	"github.com/L92-Labs/myclip/internal/capture"
 	"github.com/L92-Labs/myclip/internal/history"
 	"github.com/L92-Labs/myclip/internal/pasteboard"
+	"github.com/L92-Labs/myclip/internal/settings"
 	"github.com/L92-Labs/myclip/internal/store"
 )
 
@@ -56,6 +57,12 @@ type Engine struct {
 	hist      *history.History
 	oversized int
 
+	// rules are the smart rules; expires holds each rule-matched item's
+	// deadline, in memory only (rebuilt from the rules on load and change).
+	rules       []Rule
+	pinReserved []string
+	expires     map[int64]time.Time
+
 	// persist orders the store writes as the changes they follow: held from
 	// a change through its write, so a slower writer cannot save an older
 	// state over a newer one. Callbacks run after it is released (they wait
@@ -81,7 +88,7 @@ func New(ctx context.Context, cfg Config) (*Engine, error) {
 	if err != nil {
 		return nil, fmt.Errorf("engine: load history: %w", err)
 	}
-	e := &Engine{cfg: cfg, hist: history.New()}
+	e := &Engine{cfg: cfg, hist: history.New(), expires: map[int64]time.Time{}}
 	e.hist.Load(items)
 	cfg.RunOnMain(func() { e.cap = capture.NewCapturer(cfg.Board, cfg.Prefs) })
 	e.cap.Frontmost = cfg.Frontmost
@@ -115,6 +122,7 @@ func (e *Engine) Tick(ctx context.Context) capture.Outcome {
 		e.oversized++
 		e.mu.Unlock()
 	}
+	e.sweepExpired()
 	return o
 }
 
@@ -124,10 +132,34 @@ func (e *Engine) record(ctx context.Context, r *capture.Result) {
 	e.mu.Lock()
 	it := history.NewItem(r.Contents, r.Application, now)
 	res := e.hist.Add(it, r.ChangeCount, r.OwnWrite, now)
+	// The rules match the merged item: a merge restores the stored title
+	// and contents, which is what a rule may match, and re-copying should
+	// renew its expiry from this copy.
+	rule := match(e.rules, res.Item)
+	if rule != nil && rule.Action == settings.RulePin && res.Item.Pin == "" {
+		// Auto-pin the new clip while a pin key is free.
+		if free := history.AvailablePins(e.hist.Items(), e.pinReserved...); len(free) > 0 {
+			pinned := *res.Item
+			pinned.Pin = free[0]
+			e.hist.Replace(res.Item, &pinned)
+			res.Item = &pinned
+		}
+	}
 	evicted := e.hist.Trim(e.cfg.Limits.MaxItems, e.cfg.Limits.MaxBytes)
+	for _, x := range evicted {
+		// The id may be reused by the store: a stale deadline here would
+		// delete an unrelated clip later.
+		delete(e.expires, x.ID)
+	}
 	e.mu.Unlock()
 
 	err := e.cfg.Store.Save(ctx, res.Item)
+	if rule != nil && rule.Action == settings.RuleExpire && res.Item != nil && res.Item.ID != 0 {
+		e.mu.Lock()
+		delay := time.Duration(max(settings.MinRuleSeconds, rule.Seconds)) * time.Second
+		e.expires[res.Item.ID] = now.Add(delay)
+		e.mu.Unlock()
+	}
 	var ids []int64
 	for _, x := range evicted {
 		if x.ID != 0 {

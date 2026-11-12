@@ -82,6 +82,7 @@ func (h *History) Add(item *Item, changeCount int, fromOwnWrite bool, now time.T
 	item.NumberOfCopies += existing.NumberOfCopies
 	item.Pin = existing.Pin
 	item.Title = existing.Title
+	item.Snippet = existing.Snippet // recopying the template keeps it a snippet
 	if !fromOwnWrite {
 		// Maccy: if !item.fromMaccy { item.application = existing.application }
 		// For foreign writes we keep incoming application; for own-write we preserve existing.
@@ -115,6 +116,23 @@ func (h *History) Add(item *Item, changeCount int, fromOwnWrite bool, now time.T
 func (h *History) Load(items []*Item) {
 	h.items = append([]*Item(nil), items...)
 	h.sessionLog = map[int]*Item{}
+}
+
+// Import slots an imported item into the list by LastCopiedAt, keeping the
+// list newest first — Trim evicts the list's last unpinned item, and an
+// appended import behind older clips would be the first thing to go.
+// Callers dedupe first; nothing here merges or re-times it.
+func (h *History) Import(it *Item) {
+	pos := len(h.items)
+	for i, x := range h.items {
+		if it.LastCopiedAt.After(x.LastCopiedAt) {
+			pos = i
+			break
+		}
+	}
+	h.items = append(h.items, nil)
+	copy(h.items[pos+1:], h.items[pos:])
+	h.items[pos] = it
 }
 
 // Replace puts updated in old's place in the list and the session log.
