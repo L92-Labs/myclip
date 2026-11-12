@@ -1,6 +1,7 @@
 module github.com/L92-Labs/myclip
 
 go 1.27.3
+toolchain go1.27.4
 
 tool github.com/egoist/mygo/cmd/mygo
 
