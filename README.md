@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/L92-Labs/myclip/actions/workflows/ci.yml/badge.svg)](https://github.com/L92-Labs/myclip/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Listed on Awesome MyGo](https://awesomemygo.dev/badge.svg)](https://awesomemygo.dev/apps/myclip)
 
 A clipboard history for the menu bar that never leaves your computer — macOS
 and Linux.
