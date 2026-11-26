@@ -79,10 +79,12 @@ build artifacts for 14 days.
 go build -trimpath -ldflags "-s -w" -o myclip.exe .
 ```
 
-On first launch, this executable downloads MyGo's SQLite DLL if it cannot
-find a bundled, adjacent, configured, or valid cached copy. The CI installer
-and ZIP use the same executable and also omit the DLL.
-<!-- source: main.go:145, internal/store/store.go:57, .github/workflows/ci.yml:115, scripts/windows.iss:24, MyGo v0.6.2 plugins/sqlite/library.go:59 and plugins/sqlite/mygo-plugin.json:27 -->
+On first launch, this executable downloads MyGo's SQLite DLL when no SQLite
+library is configured, sits next to the executable, or is already cached. A
+configured path or an adjacent file that exists but cannot be loaded makes
+startup fail instead. The CI installer and ZIP use the same executable and
+also omit the DLL.
+<!-- source: main.go:145, internal/store/store.go:57, .github/workflows/ci.yml:115, scripts/windows.iss:24, MyGo v0.6.2 plugins/sqlite/library.go:35-59,92-109 and plugins/sqlite/mygo-plugin.json:27 -->
 
 macOS preview builds are **ad-hoc signed, not Developer ID signed or notarized**.
 Gatekeeper may block first launch; use System Settings › Privacy & Security ›
@@ -170,16 +172,19 @@ See the [Awesome MyGo listing](https://awesomemygo.dev/apps/myclip).
 ## Privacy and security
 
 - **Offline runtime.** The macOS and Linux packages bundle SQLite and
-  MyClip runs without network access. Windows source and CI builds download
-  MyGo's SQLite DLL on first launch if no usable copy is already available.
+  MyClip runs without network access. Windows source and CI builds do not
+  bundle SQLite: on first launch they download MyGo's SQLite DLL unless a
+  library is configured, sits next to the executable, or is already cached.
   MyGo verifies the download against its SHA-256. For development,
   `scripts/dev-mac.sh` can fetch SQLite when preparing the app, and
   `go test` can fetch it when a test opens the database.
   <!-- source: scripts/build-mac.sh:77, scripts/build-linux.sh:39, scripts/dev-mac.sh:11, main.go:77, .github/workflows/ci.yml:120, MyGo v0.6.2 cmd/mygo/build.go:200,275,330, cmd/mygo/dev.go:558 and plugins/sqlite/library.go:59 -->
-- **Marked secrets are skipped.** MyClip checks clipboard types for
-  concealed or transient markers before reading clip contents. It skips
-  copies carrying those markers without storing them.
-  <!-- source: internal/pasteboard/types.go:53, internal/capture/ignore.go:21, internal/capture/capturer.go:118 -->
+- **Marked secrets are skipped during automatic capture.** Before reading
+  clipboard contents, MyClip checks the clipboard types for concealed or
+  transient markers and skips copies carrying those markers without storing
+  them. Expanding a snippet's `{clipboard}` placeholder reads the current
+  clipboard without that check.
+  <!-- source: internal/pasteboard/types.go:53, internal/capture/ignore.go:21, internal/capture/capturer.go:118, internal/engine/ops.go:339 -->
 - **Local history files.** On macOS and Linux the data directory is mode
   0700 and the history database is mode 0600. History lives in
   `~/Library/Application Support/com.l92labs.myclip/` on macOS and
@@ -220,8 +225,10 @@ actions. Settings › General shows the current selection modifiers.
 
 On macOS, Option-click the menu icon to pause or resume capture. On Windows,
 use Alt-click. Add Shift to ignore the next copy while capture is on.
-If capture is paused, either modifier click resumes it.
-<!-- source: tray.go:54,65, internal/native/input_darwin.go:115, internal/native/input_windows.go:56, MyGo v0.6.2 internal/windows/tray.go:299 -->
+Either modifier click resumes capture after a pause. If capture is off
+because MyClip could not read its settings, the clicks do nothing; use the
+menu's Reset Settings to recover.
+<!-- source: tray.go:54,65-70, internal/native/input_darwin.go:115, internal/native/input_windows.go:56, MyGo v0.6.2 internal/windows/tray.go:299 -->
 
 On Linux, use the AppIndicator menu for **Pause Capture** and **Ignore Next
 Copy**. On macOS and Windows those same items are in the icon's right-click
