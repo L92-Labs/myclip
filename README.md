@@ -16,50 +16,89 @@ GTK 3, OpenGL/EGL, Fontconfig and FreeType.
 <!-- source: CONTRIBUTING.md:8, go.mod:3, scripts/build-linux.sh:1, scripts/build-linux.sh:30, main.go:50 -->
 
 ```sh
-arch=$(go env GOARCH) &&
-  scripts/build-linux.sh &&
+arch=$(go env GOHOSTARCH) &&
+  GOARCH="$arch" scripts/build-linux.sh \
+    --arch "$arch" &&
   (cd "build/linux-$arch" &&
     ./myclip --toggle)
 ```
 <!-- source: scripts/build-linux.sh:2, scripts/build-linux.sh:24, scripts/build-linux.sh:37, mygo.json:7, .github/workflows/ci.yml:138, main.go:91, main.go:227 -->
 
-On macOS or Windows, or to skip the build on Linux, use the
-[installers below](#download-and-install).
-<!-- source: docs/RELEASING.md:35 -->
+For macOS and Linux downloads or Windows source builds, see
+[Download and install](#download-and-install).
+<!-- source: GitHub release v0.1.0 assets, .github/workflows/ci.yml:120 -->
 
 ## Download and install
 
-Get installers and `SHA256SUMS` from [GitHub Releases](https://github.com/L92-Labs/myclip/releases).
-Each tagged release builds from source in GitHub Actions; ordinary CI runs
-also retain downloadable build artifacts for 14 days.
-
-<!-- source: docs/RELEASING.md:35, scripts/windows.iss:15, scripts/release.py:41 -->
+[Release v0.1.0](https://github.com/L92-Labs/myclip/releases/tag/v0.1.0)
+publishes the macOS and Linux packages below with `SHA256SUMS`.
+<!-- source: GitHub release v0.1.0 assets -->
 
 | System | Download | Install |
 |---|---|---|
-| macOS, Apple Silicon or Intel | `myclip-VERSION-macos-universal.dmg` (or `.zip`) | Drag MyClip to Applications |
-| Linux x86-64 | `myclip-VERSION-linux-amd64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install ./myclip-VERSION-linux-amd64.deb` |
-| Linux ARM64 | `myclip-VERSION-linux-arm64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install ./myclip-VERSION-linux-arm64.deb` |
-| Windows 10/11 x86-64 | `myclip-VERSION-windows-amd64-setup.exe` (or `.zip`) | Run the per-user installer (no admin rights), or extract the portable ZIP |
+| macOS, Apple Silicon or Intel | `myclip-0.1.0-macos-universal.dmg` (or `.zip`) | Open the DMG or extract the ZIP, then drag MyClip to Applications |
+| Linux x86-64 | `myclip-0.1.0-linux-amd64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install "./myclip-0.1.0-linux-amd64.deb"` |
+| Linux ARM64 | `myclip-0.1.0-linux-arm64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install "./myclip-0.1.0-linux-arm64.deb"` |
 
-For a portable Linux installation, extract the archive, then run `./install.sh`
-from its extracted directory. The installer adds a desktop entry and a
-`myclip` command. GTK 3 and the dependencies listed below must be installed;
-the Debian package declares its dependencies, including MyGo's WebKitGTK
-package requirement.
+On Linux, install the runtime libraries listed under [Build](#build). The
+Debian package declares its dependencies, including MyGo's WebKitGTK package
+requirement. For the portable archive, unpack it into a separate directory
+and run the bundled executable from there. This example starts in the Linux
+x86-64 download directory and uses a POSIX shell with `tar`.
+<!-- source: v0.1.0 Linux tar.gz contents, scripts/release.py:24, MyGo v0.6.2 cmd/mygo/deb.go:36 -->
+
+```sh
+portable_dir=$(mktemp -d) &&
+  tar -xzf "myclip-0.1.0-linux-amd64.tar.gz" -C "$portable_dir" &&
+  (cd "$portable_dir" && ./myclip --toggle)
+```
+
+For a per-user installation, the Linux source build generates `install.sh`
+separately from the archive. After building for Linux x86-64 with the
+prerequisites under [Build](#build), run the installer from the clone root as
+your regular user. The example below builds first, then passes the archive
+path explicitly. The installer adds a desktop entry and a `myclip` command
+and checks for WebKitGTK.
+<!-- source: scripts/build-linux.sh:2, mygo.json:7, MyGo v0.6.2 cmd/mygo/installscript.go:124,166,203,215,249 -->
+
+```sh
+scripts/build-linux.sh --arch amd64 &&
+  sh "build/linux-amd64/install.sh" "build/linux-amd64/myclip-0.1.0-linux-amd64.tar.gz"
+```
+
+Release v0.1.0 has no Windows downloads. On Windows x86-64, install Go
+matching [go.mod](go.mod) and build from the clone root in PowerShell.
+[CI](https://github.com/L92-Labs/myclip/actions/workflows/ci.yml) also builds a
+Windows installer and portable ZIP. Ordinary CI runs retain downloadable
+build artifacts for 14 days.
+<!-- source: GitHub release v0.1.0 assets, .github/workflows/ci.yml:96,120,147, docs/RELEASING.md:3 -->
+
+```powershell
+go build -trimpath -ldflags "-s -w" -o myclip.exe .
+```
 
 macOS preview builds are **ad-hoc signed, not Developer ID signed or notarized**.
 Gatekeeper may block first launch; use System Settings › Privacy & Security ›
 Open Anyway after checking the download. Do not disable Gatekeeper globally.
 Pasting needs Accessibility permission; copying and search work without it.
-Checksums detect changed downloads; GitHub build provenance is available
-through `gh attestation verify <download> --repo L92-Labs/myclip`.
-
-Check downloads from the release directory:
+Checksums detect changed downloads. To verify GitHub build provenance,
+install and authenticate the GitHub CLI, then run this example from the
+download directory.
+<!-- source: v0.1.0 .github/workflows/ci.yml:161, gh attestation verify --help -->
 
 ```sh
-shasum -a 256 -c SHA256SUMS  # macOS; on Linux use sha256sum -c SHA256SUMS
+gh attestation verify "myclip-0.1.0-linux-amd64.tar.gz" --repo L92-Labs/myclip
 ```
+
+Check downloads from the release directory using the checksum tool for your OS.
+
+```sh
+case "$(uname -s)" in
+  Darwin) shasum -a 256 -c SHA256SUMS ;;
+  Linux)  sha256sum -c SHA256SUMS ;;
+esac
+```
+<!-- source: v0.1.0 SHA256SUMS release asset -->
 
 `SHA256SUMS` lists every installer; download all files to check the entire
 manifest, or compare the hash of just the installer you downloaded.
@@ -74,8 +113,9 @@ MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
 [PARITY.md](PARITY.md) lists what matches, the deviations, and MyClip's
 additions. It is written in Go with
 [MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
-no cgo and no Xcode project. Single-architecture executables are about
-12–14 MB; the universal macOS app contains both architectures.
+no cgo and no Xcode project. The universal macOS executable supports
+both Apple Silicon and Intel.
+<!-- source: scripts/build-mac.sh:6, scripts/release.py:49 -->
 
 > **Status:** early preview. macOS and Linux (X11; Wayland through XWayland)
 > and Windows. Linux desktop behavior is tested under Xvfb/Openbox. Real Mac
@@ -170,20 +210,36 @@ On a Mac with the Xcode Command Line Tools (`xcode-select --install`),
 Python 3 and Go matching `go.mod`:
 
 ```sh
-scripts/build-mac.sh --dmg --open       # test, build build/darwin-<arch>/myclip.app + .dmg, launch
+scripts/build-mac.sh --dmg --open       # test, build the app and DMG, launch
 scripts/build-mac.sh --universal --dmg  # arm64 + x86_64
-scripts/dev-mac.sh                      # live-reload development run
-scripts/test.sh                         # go vet + go test (macOS or Linux)
-python3 scripts/licenses.py --check      # verify bundled third-party notices
 ```
+<!-- source: scripts/build-mac.sh:2 -->
 
 The first launch of an ad-hoc signed build needs right-click → Open.
 
-On Linux (GTK 3):
+For a live-reload development session, run the following in the foreground.
+Quit the session with Ctrl+C before running the checks below.
+<!-- source: scripts/dev-mac.sh:2,11 -->
 
 ```sh
-scripts/build-linux.sh    # test, build build/linux-<arch>/: binary, .deb, .tar.gz + install.sh
-scripts/linux-smoke.sh    # end-to-end on a virtual display (Xvfb + openbox)
+scripts/dev-mac.sh
+```
+
+```sh
+scripts/test.sh                     # go vet + go test (macOS or Linux)
+python3 scripts/licenses.py --check  # verify bundled third-party notices
+```
+<!-- source: CONTRIBUTING.md:15 -->
+
+On Linux, use Bash, Go matching `go.mod`, Python 3, GTK 3, OpenGL/EGL,
+Fontconfig and FreeType. For the full desktop smoke test, install Xvfb,
+Openbox, libX11, libXtst (`libXtst.so.6`) and xdotool. Install scrot if
+capturing screenshots. See [Contributing](CONTRIBUTING.md#setup).
+<!-- source: CONTRIBUTING.md:8, scripts/build-linux.sh:30, scripts/linux-smoke.sh:10,25,35,67, _tools/xkeys.py:3, .github/workflows/ci.yml:132 -->
+
+```sh
+scripts/build-linux.sh    # test and build the binary, packages and install.sh
+scripts/linux-smoke.sh    # end-to-end on a virtual display
 ```
 
 | Linux needs | for |
