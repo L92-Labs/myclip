@@ -16,8 +16,10 @@ GTK 3, OpenGL/EGL, Fontconfig and FreeType.
 <!-- source: CONTRIBUTING.md:8, go.mod:3, scripts/build-linux.sh:1, scripts/build-linux.sh:30, main.go:50 -->
 
 ```sh
-scripts/build-linux.sh &&
-  ./build/linux-$(go env GOARCH)/myclip --toggle
+arch=$(go env GOARCH) &&
+  scripts/build-linux.sh &&
+  (cd "build/linux-$arch" &&
+    ./myclip --toggle)
 ```
 <!-- source: scripts/build-linux.sh:2, scripts/build-linux.sh:24, scripts/build-linux.sh:37, mygo.json:7, .github/workflows/ci.yml:138, main.go:91, main.go:227 -->
 
