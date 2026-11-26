@@ -2,25 +2,28 @@
 
 [![CI](https://github.com/L92-Labs/myclip/actions/workflows/ci.yml/badge.svg)](https://github.com/L92-Labs/myclip/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Listed on Awesome MyGo](https://awesomemygo.dev/badge.svg)](https://awesomemygo.dev/apps/myclip)
 
-A clipboard history for the menu bar that never leaves your computer — macOS
-and Linux.
+A local-only clipboard history for the menu bar on macOS and Linux, with a
+Windows preview. Copy something, then find it again in MyClip.
 No account, no cloud, no network, no telemetry. Open source (MIT).
+<!-- source: docs/RELEASE_NOTES.md:1, docs/RELEASING.md:3, main.go:88, CONTRIBUTING.md:38, LICENSE:1 -->
 
-MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
-[PARITY.md](PARITY.md) lists what matches, the deviations, and MyClip's
-additions. It is written in Go with
-[MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
-no cgo and no Xcode project. Single-architecture executables are about
-12–14 MB; the universal macOS app contains both architectures.
+## Quick start
 
-> **Status:** early preview. macOS and Linux (X11; Wayland through XWayland)
-> and Windows. Linux desktop behavior is tested under Xvfb/Openbox. Real Mac
-> permission, paste, OCR and sound checks, plus native Wayland desktop
-> checks, still need hands-on validation. Windows CI builds, tests, OCR and
-> the installer are exercised automatically, but clipboard, paste and tray
-> behavior still need hands-on validation on real hardware.
+On an x86-64 or ARM64 Linux desktop with X11 or XWayland, run this from the
+root of a fresh clone. You need Bash, Go matching [go.mod](go.mod), Python 3,
+GTK 3, OpenGL/EGL, Fontconfig and FreeType.
+<!-- source: CONTRIBUTING.md:8, go.mod:3, scripts/build-linux.sh:1, scripts/build-linux.sh:30, main.go:50 -->
+
+```sh
+scripts/build-linux.sh &&
+  ./build/linux-$(go env GOARCH)/myclip --toggle
+```
+<!-- source: scripts/build-linux.sh:2, scripts/build-linux.sh:24, scripts/build-linux.sh:37, mygo.json:7, .github/workflows/ci.yml:138, main.go:91, main.go:227 -->
+
+On macOS or Windows, or to skip the build on Linux, use the
+[installers below](#download-and-install).
+<!-- source: docs/RELEASING.md:35 -->
 
 ## Download and install
 
@@ -28,12 +31,14 @@ Get installers and `SHA256SUMS` from [GitHub Releases](https://github.com/L92-La
 Each tagged release builds from source in GitHub Actions; ordinary CI runs
 also retain downloadable build artifacts for 14 days.
 
+<!-- source: docs/RELEASING.md:35, scripts/windows.iss:15, scripts/release.py:41 -->
+
 | System | Download | Install |
 |---|---|---|
 | macOS, Apple Silicon or Intel | `myclip-VERSION-macos-universal.dmg` (or `.zip`) | Drag MyClip to Applications |
 | Linux x86-64 | `myclip-VERSION-linux-amd64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install ./myclip-VERSION-linux-amd64.deb` |
-| Linux ARM64 | `myclip-VERSION-linux-arm64.deb` or `.tar.gz` | Same procedure, using the ARM64 file |
-| Windows 10/11 x86-64 | `myclip-VERSION-windows-amd64-setup.exe` (or `.zip`) | Run the installer — per-user, no admin rights; the `.zip` is portable |
+| Linux ARM64 | `myclip-VERSION-linux-arm64.deb` or `.tar.gz` | Debian/Ubuntu: `sudo apt install ./myclip-VERSION-linux-arm64.deb` |
+| Windows 10/11 x86-64 | `myclip-VERSION-windows-amd64-setup.exe` (or `.zip`) | Run the per-user installer (no admin rights), or extract the portable ZIP |
 
 For a portable Linux installation, extract the archive, then run `./install.sh`
 from its extracted directory. The installer adds a desktop entry and a
@@ -62,6 +67,23 @@ manifest, or compare the hash of just the installer you downloaded.
 The screenshot uses synthetic clipboard content on an X11 virtual desktop.
 
 ## What it does
+
+MyClip follows the design of [Maccy](https://maccy.app) 2.7.1;
+[PARITY.md](PARITY.md) lists what matches, the deviations, and MyClip's
+additions. It is written in Go with
+[MyGo](https://mygo.egoist.dev), using native UI drawn on the GPU. It needs
+no cgo and no Xcode project. Single-architecture executables are about
+12–14 MB; the universal macOS app contains both architectures.
+
+> **Status:** early preview. macOS and Linux (X11; Wayland through XWayland)
+> and Windows. Linux desktop behavior is tested under Xvfb/Openbox. Real Mac
+> permission, paste, OCR and sound checks, plus native Wayland desktop
+> checks, still need hands-on validation. Windows CI builds, tests, OCR and
+> the installer are exercised automatically, but clipboard, paste and tray
+> behavior still need hands-on validation on real hardware.
+
+See the [Awesome MyGo listing](https://awesomemygo.dev/apps/myclip).
+<!-- source: README.md:5 at 64d8314 -->
 
 - **History.** Everything you copy (text, rich text, images, files),
   newest first. Pin the clips you reuse; pins get a ⌘-letter of their own.
@@ -130,6 +152,16 @@ Click the menu icon with ⌥ to pause or resume capture. While capture is on,
 click with ⌥⇧ to ignore only the next copy (while paused, ⌥⇧-click resumes,
 as in Maccy).
 
+## Configuration
+
+| Setting | Default | Effect |
+|---|---|---|
+| Popup shortcut | ⇧⌘C on macOS, ⇧+Super+C on Linux | Opens clipboard history. <!-- source: internal/settings/settings.go:76, scripts/linux-smoke.sh:67 --> |
+| Search mode | Exact | Also supports fuzzy, regex and mixed search. <!-- source: internal/settings/settings.go:64, internal/settings/settings.go:174 --> |
+| History size | 200 items | Sets how many unpinned clips are kept. <!-- source: internal/settings/settings.go:177, internal/history/history.go:168 --> |
+| Notify on each new copy | Off | Shows a notification for each new copy on supported systems. <!-- source: internal/settings/settings.go:118, internal/settings/settings.go:168, main.go:322 --> |
+| `MYCLIP_SHOW` | Unset | Set before launch to `popup`, `popup-preview` or `prefs:<tab>` to open that window for screenshots. <!-- source: main.go:221, main.go:233 --> |
+
 ## Build
 
 On a Mac with the Xcode Command Line Tools (`xcode-select --install`),
@@ -144,8 +176,6 @@ python3 scripts/licenses.py --check      # verify bundled third-party notices
 ```
 
 The first launch of an ad-hoc signed build needs right-click → Open.
-`MYCLIP_SHOW=popup` (or `popup-preview`, `prefs:<tab>`) opens a window at
-launch, for screenshots.
 
 On Linux (GTK 3):
 
